@@ -1,0 +1,36 @@
+{
+  "unit": "Grupo",
+  "statement": "eerr",
+  "table": "EERR Grupo",
+  "sheet": "Grupo Sanvest",
+  "name_col": "I",
+  "note_col": "H",
+
+  "_comment_hierarchy": "bold+indent de la col nombre: SECCION = bold & indent 0 & texto en section_markers (→N1); GRUPO N2 = bold & indent 0 & no marker; DETALLE N3 = no-bold & indent>0 (se emite). La col G (participación) NO es marcador jerárquico.",
+  "hierarchy": "bold_indent",
+
+  "period": { "mode": "close_row", "label_col": "I", "label_contains": "Cierre", "date_col": "O" },
+  "notes": { "sheet": "Notas", "number_col": "B", "text_col": "C" },
+
+  "section_markers": ["INGRESOS", "EGRESOS"],
+  "skip_markers": ["TOTAL INGRESOS", "TOTAL EGRESOS"],
+  "stop_markers": ["UTILIDAD AI - GRUPO SANVEST"],
+
+  "value_cols": { "Real": "L", "YTG": "M", "Forecast": "N", "Presupuesto": "O", "2024": "P" },
+  "level_cols": { "N1": "N1", "N2": "N2", "N3": "N3" },
+  "note_number_out": "Notas",
+  "note_text_out": "Comentario Nota",
+  "trimestre_out": "Trimestre",
+  "index_out": ["Indice"],
+
+  "cascada": {
+    "table": "Cascada",
+    "unit_col": "N2",
+    "sign_col": "N1",
+    "sign_map": { "INGRESOS": 1, "EGRESOS": -1 },
+    "scenarios": { "PPTO": "Presupuesto", "Forecast": "Forecast", "Real": "Real" },
+    "_comment_escenarios": "PPTO siempre. Real vs Forecast según cierre: si la col YTG (Yet To Go) suma 0, el período está cerrado → Real; si >0, en curso → Forecast.",
+    "closed_col": "YTG",
+    "out_cols": { "unit": "N1", "monto": "Monto ", "scenario": "N2", "period": "Fecha Trimestre" }
+  }
+}

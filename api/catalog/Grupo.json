@@ -1,0 +1,245 @@
+{
+  "unit": "Grupo",
+  "tables": [
+    {
+      "model_name": "Balance",
+      "slug": "balance",
+      "rows": 547,
+      "columns": [
+        {
+          "name": "N1 ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "N2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "N3",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "N4",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "N5",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Costo UF QAC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costo USD QAC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Mercado UF QAC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Mercado USD QAC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costo UF LQ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costo USD LQ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Mercado UF LQ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Mercado USD LQ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Trimestre",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Notas",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nota",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Indice",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice 2 ",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "N1 ",
+        "N2",
+        "N3",
+        "N4",
+        "N5",
+        "Trimestre",
+        "Notas",
+        "Nota",
+        "Indice 2 "
+      ],
+      "measures": [
+        "Costo UF QAC",
+        "Costo USD QAC",
+        "Mercado UF QAC",
+        "Mercado USD QAC",
+        "Costo UF LQ",
+        "Costo USD LQ",
+        "Mercado UF LQ",
+        "Mercado USD LQ",
+        "Indice"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "EERR Grupo",
+      "slug": "eerr_grupo",
+      "rows": 181,
+      "columns": [
+        {
+          "name": "N1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "N2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "N3",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTG",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Forecast",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Presupuesto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Notas",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Trimestre",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Comentario Nota",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Indice",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "2024",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "N1",
+        "N2",
+        "N3",
+        "Notas",
+        "Trimestre",
+        "Comentario Nota",
+        "Indice"
+      ],
+      "measures": [
+        "Real",
+        "YTG",
+        "Forecast",
+        "Presupuesto",
+        "2024"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "Cascada",
+      "slug": "cascada",
+      "rows": 64,
+      "columns": [
+        {
+          "name": "N1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Monto ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "N2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha Trimestre",
+          "dtype": "string",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "N1",
+        "N2",
+        "Fecha Trimestre"
+      ],
+      "measures": [
+        "Monto "
+      ],
+      "dates": []
+    }
+  ]
+}

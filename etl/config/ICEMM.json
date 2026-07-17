@@ -1,0 +1,206 @@
+{
+  "unit": "ICEMM",
+  "tables": [
+    {
+      "table": "ICEMM Mensual",
+      "sheet": "ICEMM Mensual",
+      "file": "ICEMM.xlsx",
+      "columns": [
+        {
+          "col": "Nivel 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 2",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Real",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Proy",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "FechID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD Real",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD Proy",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "FY Proy",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "FY PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTG Proy",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTG PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "ICEMM YTD",
+      "sheet": "ICEMM YTD",
+      "file": "ICEMM.xlsx",
+      "columns": [
+        {
+          "col": "Nivel 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 2",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Real",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "PPTO",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTG Proy",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTG PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Flujo",
+      "sheet": "Flujo",
+      "file": "ICEMM.xlsx",
+      "columns": [
+        {
+          "col": "Orden",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Categoría 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Categoría 2",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Monto",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    }
+  ]
+}

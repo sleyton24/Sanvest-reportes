@@ -1,0 +1,1778 @@
+{
+  "unit": "USA",
+  "tables": [
+    {
+      "table": "Bemiston GP and LP Information",
+      "sheet": "Bemiston GP and LP Information",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Categ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Equity",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Distributions",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Net Cash Flow",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EM",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "XIRR",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Promote",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Structure Fee",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "AM Fees",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Bemiston Property Info",
+      "sheet": "Bemiston Property Info",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Property Information",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Total Land Size (Feet)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Gross Square Feet (GSF)",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Number of Units",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Parking",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Rentable Square Feet (RSF)",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "MILA FINAL",
+      "sheet": "MILA FINAL",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Nivel 2 ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 3",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Monto 2",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha ID ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Real",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Indice",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "AUX",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "AUX2",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "AUXYTD",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "AUXYTD2",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Ocupación PPTO",
+      "sheet": "Ocupación PPTO",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Occupied %",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Fecha ID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Activo ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Occupied % R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupacion O",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupacion Retail",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupacion Retail BD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "St Grand",
+      "sheet": "St Grand",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Nivel 2 ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 3",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Monto 2",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha ID ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Real",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "St grand final (2)",
+      "sheet": "St grand final",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Nivel 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 3",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 2",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Monto AUX",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Monto 2",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha ID ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Real UAX",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Real",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Indice",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "AUX YTD ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "AUX YTD P",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "PPTO graficos",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Real Graficos",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD Graf",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD graf PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": true,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Tiempo ID",
+      "sheet": "Tiempo ID",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Fecha ID ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA Bemiston Tipologias",
+      "sheet": "USA Bemiston Tipologias ",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Floor Plan",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Unit Count",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Avg SF/Unit",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Avg Rent/Unit",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Avg Rent PSF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA Bemiston ppto",
+      "sheet": "USA Bemiston ppto",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Nivel 2 ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 3",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Monto 2",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha ID ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Real",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA Graficos",
+      "sheet": "USA Graficos",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Item",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Actual",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Budget",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Original",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Original N",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Actual P",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Budget P",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Actual YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Budget YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Original YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "mes ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "FechaID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "OR YTD P",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "AUX Real",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Aux BD ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": true,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA KPIS GESTION",
+      "sheet": "USA KPIS GESTION",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Dólar SQF AC MONTH",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF BD MONTH",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF Retail AC MONTH",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF Retail BD MONTH",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF AC YTD",
+          "m_type": "type any",
+          "pandas": "object",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Dólar SQF BD YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF Retail AC YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF Retail BD YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "AVG RENT ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "DATE AC",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "AVG RENT BD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "AVG Rent O",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF O",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Dólar SQF O AVG",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": true,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA Modelo Original Bemiston",
+      "sheet": "USA Modelo Original Bemiston",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Loan",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Loan Rate ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Calc LTV",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Valuation",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "TIR GP ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "TIR LP ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Yield to cost",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Cap Rate ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Gross Value",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Terminal NOI",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Cash on Cash",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Rent growth",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Loan rate AC",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Maturity",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA Renovación contratos",
+      "sheet": "USA Renovación contratos",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Unit #",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Lease Start",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Lease End",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Lease Term",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Gross Rent",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Gross Rent PSF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Full Term Gross Rent",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Net Rent",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Net PSF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Concession Amount ($)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Concession (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Concession (mths)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Utility Bundle",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Parking",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Renewal Offer Gross Rent",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": " Market Rent",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Renewal vs. Market Rent ($)",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Renewal vs last",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Net Rent PSF renewal",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Market Rent PSF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Uso Y fondo Bemiston",
+      "sheet": "Uso Y fondo Bemiston",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Category",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Tipo ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Monto",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Column5",
+          "m_type": "type any",
+          "pandas": "object",
+          "sql": "NVARCHAR(255)"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": true,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "fINAL beMISTON",
+      "sheet": "fINAL beMISTON",
+      "file": "BD Gestion USA .xlsx",
+      "columns": [
+        {
+          "col": "Nivel 1",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 3",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Monto 2",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha ID ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Real",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Indice",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nivel 2",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "AUX YTD ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "AUX YTD P",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Monto AUX",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Real UAX",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "DIF I Y II",
+      "sheet": "DIF I Y II",
+      "file": "USA.xlsx",
+      "columns": [
+        {
+          "col": "Mes Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre fondo/Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nombre del activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "periodo_acumulado",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Trimestre",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Invested Capital_ACTUAL",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Distributions_BUDGET",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Annual Return BUDGET",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "DIF II",
+      "sheet": "DIF II",
+      "file": "USA.xlsx",
+      "columns": [
+        {
+          "col": "Mes Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre Fondo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nombre Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Cuenta/Tabla",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "periodo acumulado",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Trimestre Acumulado",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "ACTUAL DISTRIBUTION (USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "BUDGET YIELD (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ACTUAL YIELD (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "DIF I Div. Yield (Annualized)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "KPI",
+      "sheet": "KPI",
+      "file": "USA.xlsx",
+      "columns": [
+        {
+          "col": "Nombre Fondo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Div. Yield Annualized",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Trimestre Acumulado",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Año ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA Bemiston (2)",
+      "sheet": "USA Bemiston",
+      "file": "USA.xlsx",
+      "columns": [
+        {
+          "col": "Mes de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Versión",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Inversión Total_USD",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Participación_BNV_en_Sociedad(%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "TIR_BNV_AI",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "AVANCE_CONSTRUCCIÓN",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "COSTOS_TOTALES_PROYECTO_NETO (USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "INCIDENCIA_CONSTRUCCIÓN_(USD/M2 LOSA)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "COSTO_TOTAL_PROYECTO_(USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "%LINEA/COSTO_TOTAL_NETO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "DEUDA_A_LA_FECHA UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "DEUDA_APROBADA_(USD)",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA DIF I y II ACUMULADOS",
+      "sheet": "USA DIF I y II ACUMULADOS",
+      "file": "USA.xlsx",
+      "columns": [
+        {
+          "col": "Mes Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre Fondo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nombre Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Cuenta/Tabla",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "periodo acumulado",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Trimestre Acumulado",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "ACTUAL DISTRIBUTION (USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "BUDGET YIELD (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ACTUAL YIELD (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Indice",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Trimeste Real",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Div. Yield Annualized Budget",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Div. Yield Annualized",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "USA EV costos Bemiston",
+      "sheet": "USA EV costos Bemiston",
+      "file": "USA.xlsx",
+      "columns": [
+        {
+          "col": "Mes de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Versión",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "COSTO_TOTAL_PROYECTO_(USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    }
+  ]
+}

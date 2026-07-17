@@ -1,0 +1,817 @@
+{
+  "unit": "DV",
+  "tables": [
+    {
+      "model_name": "Amortizacion",
+      "slug": "amortizacion",
+      "rows": 18,
+      "columns": [
+        {
+          "name": "Proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Amortizado",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Saldo",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Proyecto",
+        "FechaID"
+      ],
+      "measures": [
+        "Amortizado",
+        "Saldo"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "DV Construccion",
+      "slug": "dv_construccion",
+      "rows": 556,
+      "columns": [
+        {
+          "name": "Mes de carga ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo de datos",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "AVANCE_CONSTRUCCIÓN",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "INCIDENCIA_CONSTRUCCIÓN_(UF/M2 LOSA)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "COSTOS_TOTALES_PROYECTO_NETO (UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "COSTO_TOTAL/M2_VENDIBLE_(UF/M2)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "COSTO_TOTAL_PROYECTO_(UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "%LINEA/COSTO_TOTAL_NETO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "DEUDA_A_LA_FECHA UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga ",
+        "Año de carga",
+        "Tipo de datos",
+        "Nombre proyecto",
+        "Versión",
+        "Fecha ID "
+      ],
+      "measures": [
+        "AVANCE_CONSTRUCCIÓN",
+        "INCIDENCIA_CONSTRUCCIÓN_(UF/M2 LOSA)",
+        "COSTOS_TOTALES_PROYECTO_NETO (UF)",
+        "COSTO_TOTAL/M2_VENDIBLE_(UF/M2)",
+        "COSTO_TOTAL_PROYECTO_(UF)",
+        "%LINEA/COSTO_TOTAL_NETO",
+        "DEUDA_A_LA_FECHA UF"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "DV Escrituras",
+      "slug": "dv_escrituras",
+      "rows": 290,
+      "columns": [
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo de datos",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "VENTAS_ACUMULADAS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF_RECAUDADAS         ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF_POR_RECAUDAR",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "PROYECCIÓN_VENTA_TOTAL(UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UNIDADES_ESCRITURADAS_RECAUDADAS",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "UNIDADES_ESCRITURADAS_FIRMADAS",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "RESERVAS_Y_PROMESAS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fehca ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Tipo de datos",
+        "Nombre proyecto",
+        "Versión",
+        "UNIDADES_ESCRITURADAS_RECAUDADAS",
+        "UNIDADES_ESCRITURADAS_FIRMADAS",
+        "Fehca ID "
+      ],
+      "measures": [
+        "VENTAS_ACUMULADAS",
+        "UF_RECAUDADAS         ",
+        "UF_POR_RECAUDAR",
+        "PROYECCIÓN_VENTA_TOTAL(UF)",
+        "RESERVAS_Y_PROMESAS"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "DV Evolucion de costos",
+      "slug": "dv_evolucion_de_costos",
+      "rows": 272,
+      "columns": [
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo de datos",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "PPTO_DE_COSTOS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "PROYECCIÓN_DE_COSTOS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "COSTOS_REALES",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha Id",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Tipo de datos",
+        "Nombre proyecto",
+        "Año",
+        "mes",
+        "Fecha Id"
+      ],
+      "measures": [
+        "PPTO_DE_COSTOS",
+        "PROYECCIÓN_DE_COSTOS",
+        "COSTOS_REALES"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "DV Indicadores Financieros",
+      "slug": "dv_indicadores_financieros",
+      "rows": 294,
+      "columns": [
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo de datos",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Margen_%_(UT/CT)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Margen_%_(UT/VT)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Margen_proyecto_UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Inversion Sanvest",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Inversion_total_BNV_(UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Participacion_BNV_en_sociedad (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Margen_BNV_AI_(UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ROI_BNV_AI",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "TIR_BNV_AI",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "fecha ID ",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes",
+        "Año",
+        "Tipo de datos",
+        "Nombre proyecto",
+        "Versión",
+        "fecha ID "
+      ],
+      "measures": [
+        "Margen_%_(UT/CT)",
+        "Margen_%_(UT/VT)",
+        "Margen_proyecto_UF",
+        "Inversion Sanvest",
+        "Inversion_total_BNV_(UF)",
+        "Participacion_BNV_en_sociedad (%)",
+        "Margen_BNV_AI_(UF)",
+        "ROI_BNV_AI",
+        "TIR_BNV_AI"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "DV KPIS",
+      "slug": "dv_kpis",
+      "rows": 290,
+      "columns": [
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo de datos",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "VENTAS NETAS_DEL_MES",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UNIDADES_VENDIDAS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AVANCE_VENTAS_(UNIDADES)%",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2_VENTA",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UNIDADES TOTALES",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fecha ID",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes",
+        "Año",
+        "Tipo de datos",
+        "Nombre proyecto",
+        "Versión",
+        "UNIDADES TOTALES",
+        "Fecha ID"
+      ],
+      "measures": [
+        "VENTAS NETAS_DEL_MES",
+        "UNIDADES_VENDIDAS",
+        "AVANCE_VENTAS_(UNIDADES)%",
+        "UF/M2_VENTA"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "DV Uso y Fondo",
+      "slug": "dv_uso_y_fondo",
+      "rows": 652,
+      "columns": [
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo de datos",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Categoria",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "SUBCATEGORIA",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Monto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fecha ID",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Tipo de datos",
+        "Nombre proyecto",
+        "Categoria",
+        "SUBCATEGORIA",
+        "Fecha ID"
+      ],
+      "measures": [
+        "Monto"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "DV Ventas",
+      "slug": "dv_ventas",
+      "rows": 261,
+      "columns": [
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo de datos",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "VENTAS_ACUMULADAS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF_RECAUDADAS         ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF_POR_RECAUDAR",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "PROYECCIÓN_VENTA_TOTAL(UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UNIDADES_ESCRITURADAS_RECAUDADAS",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "UNIDADES_ESCRITURADAS_FIRMADAS",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "RESERVAS_Y_PROMESAS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año Mes ",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Tipo de datos",
+        "Nombre proyecto",
+        "Versión",
+        "UNIDADES_ESCRITURADAS_RECAUDADAS",
+        "UNIDADES_ESCRITURADAS_FIRMADAS",
+        "Fecha ID "
+      ],
+      "measures": [
+        "VENTAS_ACUMULADAS",
+        "UF_RECAUDADAS         ",
+        "UF_POR_RECAUDAR",
+        "PROYECCIÓN_VENTA_TOTAL(UF)",
+        "RESERVAS_Y_PROMESAS"
+      ],
+      "dates": [
+        "Año Mes "
+      ]
+    },
+    {
+      "model_name": "FECHA AUX",
+      "slug": "fecha_aux",
+      "rows": 73,
+      "columns": [
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Año",
+        "mes",
+        "Fecha ID "
+      ],
+      "measures": [],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "Financieros Sanvest",
+      "slug": "financieros_sanvest",
+      "rows": 3,
+      "columns": [
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Inversión Sanvest",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Participación Sanvest",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Margen % (UT/CT)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Margen % (UT/VTA)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Margen Sanvest UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "TIR Sanvest",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ROI Sanvest",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Margen Proyecto UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/m2 Venta Dpto Ev. Original",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/m2 venta total EV. Original",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/m2 Venta Dpto actual",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/m2 venta total actual",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Incidencia construcción (UF/m2 losa)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costo total neto /m2 vendible (UF/m2)",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Activo"
+      ],
+      "measures": [
+        "Inversión Sanvest",
+        "Participación Sanvest",
+        "Margen % (UT/CT)",
+        "Margen % (UT/VTA)",
+        "Margen Sanvest UF",
+        "TIR Sanvest",
+        "ROI Sanvest",
+        "Margen Proyecto UF",
+        "UF/m2 Venta Dpto Ev. Original",
+        "UF/m2 venta total EV. Original",
+        "UF/m2 Venta Dpto actual",
+        "UF/m2 venta total actual",
+        "Incidencia construcción (UF/m2 losa)",
+        "Costo total neto /m2 vendible (UF/m2)"
+      ],
+      "dates": []
+    }
+  ]
+}

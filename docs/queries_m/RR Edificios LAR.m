@@ -1,0 +1,7 @@
+let
+    Origen = Excel.Workbook(File.Contents("C:\Users\sleyton\BNV\Administración y Finanzas - Documentos\Inteligencia de negocios\Formatos para reportes PBI\Renta Residencial .xlsx"), null, true),
+    #"RR Edificios LAR_Sheet" = Origen{[Item="RR Edificios LAR",Kind="Sheet"]}[Data],
+    #"Encabezados promovidos" = Table.PromoteHeaders(#"RR Edificios LAR_Sheet", [PromoteAllScalars=true]),
+    #"Tipo cambiado" = Table.TransformColumnTypes(#"Encabezados promovidos",{{"Fecha ID", Int64.Type}, {"Activo", type text}, {"MES 2", Int64.Type}, {"Año", Int64.Type}, {"Mes ", type text}, {"Superficie Total Arrendable", type number}, {"Cantidad Deptos", type number}, {"Ocupación Deptos (%)", type number}, {"Superficie Total Ocupada", type number}, {"Arriendos Deptos (UF/mes)", type number}, {"Arriendo Deptos (UF/m2)(**)", type number}, {"Arriendo Deptos (UF/uni)", type number}, {"Ocupación Estacionamientos (%)", type number}, {"Arriendos Estacionamientos (UF/mes)", type number}, {"Arriendo Estacionamientos (UF/uni)", type number}, {"Arriendo Deptos + Estacio. (UF/m2)", type number}, {"Ingresos Gasto Común (UF/mes)", type number}, {"Ingresos Gasto Común (UF/m2)", type number}, {"Ingresos Gasto Común (UF/uni)", type number}, {"Ingresos Gasto Común ($/m2)", type number}, {"Cuota Banco (UF)", type number}, {"EBITDA AJUSTADO/CUOTA BANCO", type number}, {"Morosidad 0-30 días (UF)", type number}, {"Morosidad 31-60 días (UF)", type number}, {"Morosidad 61-90+ días (UF)", type number}, {"Morosidad 91-120+ días (UF)", type number}})
+in
+    #"Tipo cambiado"

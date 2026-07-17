@@ -1,0 +1,41 @@
+{
+  "unit": "Grupo",
+  "statement": "balance",
+  "table": "Balance",
+  "sheet": "Grupo Sanvest",
+  "name_col": "G",
+  "note_col": "F",
+  "period": { "mode": "first_date", "col": "I" },
+  "notes": { "sheet": "Notas", "number_col": "B", "text_col": "C" },
+
+  "_comment_levels": "nivel jerárquico segun indentación de la col nombre: 0=entidad/seccion, 1=grupo, 2=hoja detalle",
+  "indent_thresholds": [
+    { "max_indent": 0, "level": 0 },
+    { "max_indent": 8, "level": 1 },
+    { "max_indent": 999, "level": 2 }
+  ],
+
+  "section_markers": {
+    "ACTIVOS": "ACTIVOS",
+    "PASIVOS": "PASIVOS",
+    "TOTAL PATRIMONIO": "Patrimonio"
+  },
+  "skip_markers": ["TOTAL ACTIVOS", "TOTAL PASIVOS", "TOTAL PASIVOS Y PATRIMONIO"],
+  "stop_markers": ["CUADRE"],
+  "n5_by_section": {
+    "ACTIVOS": "ACTIVOS",
+    "PASIVOS": "Pasivos y Patrimonio",
+    "Patrimonio": "Pasivos y Patrimonio"
+  },
+
+  "value_cols": {
+    "Costo UF QAC": "I", "Costo USD QAC": "J", "Mercado UF QAC": "K", "Mercado USD QAC": "L",
+    "Costo UF LQ": "N", "Costo USD LQ": "O", "Mercado UF LQ": "P", "Mercado USD LQ": "Q"
+  },
+
+  "level_cols": { "N1": "N1 ", "N2": "N2", "N3": "N3", "N4": "N4", "N5": "N5" },
+  "note_number_out": "Notas",
+  "note_text_out": "Nota",
+  "trimestre_out": "Trimestre",
+  "index_out": ["Indice", "Indice 2 "]
+}

@@ -1,0 +1,212 @@
+{
+  "unit": "ICEMM",
+  "tables": [
+    {
+      "model_name": "ICEMM Mensual",
+      "slug": "icemm_mensual",
+      "rows": 600,
+      "columns": [
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Real",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Proy",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Año",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD Proy",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "FY Proy",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "FY PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTG Proy",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTG PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nivel 1",
+        "Nivel 2",
+        "Real",
+        "Año",
+        "Mes",
+        "FechID"
+      ],
+      "measures": [
+        "PPTO",
+        "Proy",
+        "YTD Real",
+        "YTD PPTO",
+        "YTD Proy",
+        "FY Proy",
+        "FY PPTO",
+        "YTG Proy",
+        "YTG PPTO"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "ICEMM YTD",
+      "slug": "icemm_ytd",
+      "rows": 24,
+      "columns": [
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Real",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "PPTO",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTG Proy",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTG PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        }
+      ],
+      "dimensions": [
+        "Nivel 1",
+        "Nivel 2",
+        "Real",
+        "PPTO"
+      ],
+      "measures": [
+        "YTG Proy",
+        "YTG PPTO"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "Flujo",
+      "slug": "flujo",
+      "rows": 148,
+      "columns": [
+        {
+          "name": "Orden",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Categoría 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Categoría 2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Monto",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Orden",
+        "Categoría 1",
+        "Categoría 2"
+      ],
+      "measures": [
+        "Monto"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    }
+  ]
+}

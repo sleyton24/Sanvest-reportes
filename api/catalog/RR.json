@@ -1,0 +1,995 @@
+{
+  "unit": "RR",
+  "tables": [
+    {
+      "model_name": "Indicadores Financieros",
+      "slug": "indicadores_financieros",
+      "rows": 864,
+      "columns": [
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Item",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Item 2",
+          "dtype": "str",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "anio",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión_Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Ppto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Proyección",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD REAL",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice2",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Nombre activo",
+        "Item",
+        "Item 2",
+        "mes",
+        "anio",
+        "Indice",
+        "Indice2",
+        "FechaID"
+      ],
+      "measures": [
+        "Versión_Real",
+        "Versión_Ppto",
+        "Versión_Proyección",
+        "YTD REAL",
+        "YTD PPTO"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "Indicadores Financieros Lar",
+      "slug": "indicadores_financieros_lar",
+      "rows": 539,
+      "columns": [
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 1 ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Real Peso",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "PPTO Peso",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Ppto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD REAL",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF Mes",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF Mes PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Nombre activo",
+        "Nivel 1 ",
+        "Nivel 2",
+        "Mes",
+        "Año",
+        "Indice",
+        "FechaID"
+      ],
+      "measures": [
+        "Real Peso",
+        "PPTO Peso",
+        "Versión_Real",
+        "Versión_Ppto",
+        "YTD REAL",
+        "YTD PPTO",
+        "UF Mes",
+        "UF Mes PPTO"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "RR Edificios LAR",
+      "slug": "rr_edificios_lar",
+      "rows": 182,
+      "columns": [
+        {
+          "name": "Fecha ID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "MES 2",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Superficie Total Arrendable",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Cantidad Deptos",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación Deptos (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Superficie Total Ocupada",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Arriendos Deptos (UF/mes)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Arriendo Deptos (UF/m2)(**)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Arriendo Deptos (UF/uni)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación Estacionamientos (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Arriendos Estacionamientos (UF/mes)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Arriendo Estacionamientos (UF/uni)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Arriendo Deptos + Estacio. (UF/m2)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ingresos Gasto Común (UF/mes)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ingresos Gasto Común (UF/m2)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ingresos Gasto Común (UF/uni)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ingresos Gasto Común ($/m2)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Cuota Banco (UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA AJUSTADO/CUOTA BANCO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Morosidad 0-30 días (UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Morosidad 31-60 días (UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Morosidad 61-90+ días (UF)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Morosidad 91-120+ días (UF)",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Fecha ID",
+        "Activo",
+        "MES 2",
+        "Año",
+        "Mes "
+      ],
+      "measures": [
+        "Superficie Total Arrendable",
+        "Cantidad Deptos",
+        "Ocupación Deptos (%)",
+        "Superficie Total Ocupada",
+        "Arriendos Deptos (UF/mes)",
+        "Arriendo Deptos (UF/m2)(**)",
+        "Arriendo Deptos (UF/uni)",
+        "Ocupación Estacionamientos (%)",
+        "Arriendos Estacionamientos (UF/mes)",
+        "Arriendo Estacionamientos (UF/uni)",
+        "Arriendo Deptos + Estacio. (UF/m2)",
+        "Ingresos Gasto Común (UF/mes)",
+        "Ingresos Gasto Común (UF/m2)",
+        "Ingresos Gasto Común (UF/uni)",
+        "Ingresos Gasto Común ($/m2)",
+        "Cuota Banco (UF)",
+        "EBITDA AJUSTADO/CUOTA BANCO",
+        "Morosidad 0-30 días (UF)",
+        "Morosidad 31-60 días (UF)",
+        "Morosidad 61-90+ días (UF)",
+        "Morosidad 91-120+ días (UF)"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "RR KPis",
+      "slug": "rr_kpis",
+      "rows": 92,
+      "columns": [
+        {
+          "name": "mes carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "anio carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "CONTRATOS POR VENCER ESTE MES",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "UNIDADES ARRENDADAS",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "OCUPACIÓN DEPTOS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "OCUPACIÓN DEPARTAMENTOS_YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2_DEPARTAMENTOS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2_YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/ESTACIONAMIENTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/ESTACIONAMIENTO_YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2 (DEPTO+ESTAC.)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2 (DEPTO+ESTAC.)_YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        }
+      ],
+      "dimensions": [
+        "mes carga",
+        "anio carga",
+        "Nombre activo",
+        "Versión",
+        "CONTRATOS POR VENCER ESTE MES",
+        "UNIDADES ARRENDADAS"
+      ],
+      "measures": [
+        "OCUPACIÓN DEPTOS",
+        "OCUPACIÓN DEPARTAMENTOS_YTD",
+        "UF/M2_DEPARTAMENTOS",
+        "UF/M2_YTD",
+        "UF/ESTACIONAMIENTO",
+        "UF/ESTACIONAMIENTO_YTD",
+        "UF/M2 (DEPTO+ESTAC.)",
+        "UF/M2 (DEPTO+ESTAC.)_YTD"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "Real+PPTO+LY",
+      "slug": "real_ppto_ly",
+      "rows": 228,
+      "columns": [
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Ingresos totales UF p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo UF p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF/CUOTA BANCO p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación departamentos 2022 (%) p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF/VENTAS p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ingresos totales UF YTD p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF YTD p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF YTD p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo UF YTD p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año p",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes p",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Ingresos totales UF R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo UF R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF/CUOTA BANCO R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación departamentos 2022 (%) R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ingresos totales UF YTD R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF YTD R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF YTD R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo UF YTD R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "LY fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Check",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ingresos totales UF R LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF R LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo UF R LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF/CUOTA BANCO R LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación departamentos 2022 (%) R7 LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF/VENTAS R LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Gastos Comunes (UF/M2) R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Gastos Comunes (UF/M2) P",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2_DEPARTAMENTOS R ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2_YTD R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/ESTACIONAMIENTO R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/ESTACIONAMIENTO_YTD R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2 (DEPTO+ESTAC.) R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2 (DEPTO+ESTAC.)_YTD R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha ID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "UF/M2_DEPARTAMENTOS p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2_YTD p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/ESTACIONAMIENTO p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/ESTACIONAMIENTO_YTD p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2 (DEPTO+ESTAC.) p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF/M2 (DEPTO+ESTAC.)_YTD p",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Tarifa LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Gasto comun LY",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Activo",
+        "Año p",
+        "Mes p",
+        "Año",
+        "Mes",
+        "Fecha ID"
+      ],
+      "measures": [
+        "Ingresos totales UF p",
+        "Costos operacionales UF p",
+        "EBITDA UF p",
+        "Flujo UF p",
+        "EBITDA UF/CUOTA BANCO p",
+        "Ocupación departamentos 2022 (%) p",
+        "EBITDA UF/VENTAS p",
+        "Ingresos totales UF YTD p",
+        "Costos operacionales UF YTD p",
+        "EBITDA UF YTD p",
+        "Flujo UF YTD p",
+        "Ingresos totales UF R",
+        "Costos operacionales UF R",
+        "EBITDA UF R",
+        "Flujo UF R",
+        "EBITDA UF/CUOTA BANCO R",
+        "Ocupación departamentos 2022 (%) R",
+        "Ingresos totales UF YTD R",
+        "Costos operacionales UF YTD R",
+        "EBITDA UF YTD R",
+        "Flujo UF YTD R",
+        "Check",
+        "Ingresos totales UF R LY",
+        "Costos operacionales UF LY",
+        "EBITDA UF R LY",
+        "Flujo UF R LY",
+        "EBITDA UF/CUOTA BANCO R LY",
+        "Ocupación departamentos 2022 (%) R7 LY",
+        "EBITDA UF/VENTAS R LY",
+        "Gastos Comunes (UF/M2) R",
+        "Gastos Comunes (UF/M2) P",
+        "UF/M2_DEPARTAMENTOS R ",
+        "UF/M2_YTD R",
+        "UF/ESTACIONAMIENTO R",
+        "UF/ESTACIONAMIENTO_YTD R",
+        "UF/M2 (DEPTO+ESTAC.) R",
+        "UF/M2 (DEPTO+ESTAC.)_YTD R",
+        "UF/M2_DEPARTAMENTOS p",
+        "UF/M2_YTD p",
+        "UF/ESTACIONAMIENTO p",
+        "UF/ESTACIONAMIENTO_YTD p",
+        "UF/M2 (DEPTO+ESTAC.) p",
+        "UF/M2 (DEPTO+ESTAC.)_YTD p",
+        "Tarifa LY",
+        "Gasto comun LY"
+      ],
+      "dates": [
+        "Periodo",
+        "LY fecha"
+      ]
+    },
+    {
+      "model_name": "TIEMPO AUX",
+      "slug": "tiempo_aux",
+      "rows": 84,
+      "columns": [
+        {
+          "name": "AÑO",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "MES",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fecha ID",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "AÑO",
+        "MES",
+        "Fecha ID"
+      ],
+      "measures": [],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "Tipologia",
+      "slug": "tipologia",
+      "rows": 16,
+      "columns": [
+        {
+          "name": "Mes Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre activo-empresa",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "TIPOLOGIAS/MÉTRICA",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "UNIDADES ADMINISTRADAS",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año información",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes ",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes Carga",
+        "Año Carga",
+        "Nombre activo-empresa",
+        "Versión",
+        "TIPOLOGIAS/MÉTRICA",
+        "Año información",
+        "Mes "
+      ],
+      "measures": [
+        "UNIDADES ADMINISTRADAS"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "Deuda Activos",
+      "slug": "deuda_activos",
+      "rows": 815,
+      "columns": [
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Cuota",
+          "dtype": "Float64",
+          "role": "measure"
+        },
+        {
+          "name": "por pagar",
+          "dtype": "Float64",
+          "role": "measure"
+        },
+        {
+          "name": "Deuda total",
+          "dtype": "Int64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaId",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidad",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "ActivoNorm",
+          "dtype": "string",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Activo",
+        "Fecha",
+        "Año",
+        "Mes",
+        "FechaId",
+        "Unidad",
+        "ActivoNorm"
+      ],
+      "measures": [
+        "Cuota",
+        "por pagar",
+        "Deuda total"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    }
+  ]
+}

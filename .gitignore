@@ -1,0 +1,31 @@
+# Secretos locales
+.env
+
+# Entornos / dependencias
+.venv/
+frontend/node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Datos locales (NO van al repo: informes financieros fuente y bases locales)
+db/*.sqlite
+db/backups/
+Formatos para reportes PBI/
+Ejemplos para subir/
+2026/
+ppt con logos/
+*.pbix
+docs/_raw/
+
+# Staging del mantenedor de ETL (propuestas/backups en runtime)
+etl/specs/_staging/
+etl/specs/_backups/
+
+# Logs de procesos locales
+*.log
+
+# SO / editor
+Thumbs.db
+.DS_Store

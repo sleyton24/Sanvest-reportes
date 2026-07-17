@@ -1,0 +1,7 @@
+let
+    Origen = Excel.Workbook(File.Contents("C:\Users\sleyton\BNV\Administración y Finanzas - Documentos\Inteligencia de negocios\Formatos para reportes PBI\BD HOTEL .xlsx"), null, true),
+    #"Hotel Real_Sheet" = Origen{[Item="Hotel Real",Kind="Sheet"]}[Data],
+    #"Encabezados promovidos" = Table.PromoteHeaders(#"Hotel Real_Sheet", [PromoteAllScalars=true]),
+    #"Tipo cambiado" = Table.TransformColumnTypes(#"Encabezados promovidos",{{"Nombre activo", type text}, {"Periodo", type date}, {"mes", Int64.Type}, {"anio", Int64.Type}, {"Ingresos totales", type number}, {"Costos operacionales UF", type number}, {"EBITDA UF", type number}, {"Flujo (Resultado) UF", type number}, {"EBITDA/CUOTA BANCO", type number}, {"ADR Room (USD)", type number}, {"Ocupación pago 2024 (%)", type number}, {"REVPAR USD", type number}, {"ADR Room (CLP)", type number}, {"REVPAR (CLP)", type number}, {"ADR Room (CLP) YTD", type number}, {"REVPAR (CLP) YTD", type number}, {"ADR Room (USD) YTD", type number}, {"REVPAR (USD) YTD", type number}, {"LY AUX", Int64.Type}, {"Periodo LY AUX", Int64.Type}, {"Ingresos totales LY", type number}, {"Costos operacionales LY", type number}, {"EBITDA UF LY", type number}, {"Flujo (Resultado) UF LY", type number}, {"EBITDA/CUOTA BANCO LY", type number}, {"ADR Room (USD) LY", type number}, {"Ocupación pago 2024 (%) LY", type number}, {"REVPAR USD LY", type number}, {"FechaID", Int64.Type}})
+in
+    #"Tipo cambiado"

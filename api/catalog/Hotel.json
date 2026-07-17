@@ -1,0 +1,808 @@
+{
+  "unit": "Hotel",
+  "tables": [
+    {
+      "model_name": "Hotel FULL",
+      "slug": "hotel_full",
+      "rows": 336,
+      "columns": [
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Item",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "anio",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión_Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Ppto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Proyección",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Real YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Ppto YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "indice",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "fechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Nombre activo",
+        "Item",
+        "mes",
+        "anio",
+        "indice",
+        "fechaID"
+      ],
+      "measures": [
+        "Versión_Real",
+        "Versión_Ppto",
+        "Versión_Proyección",
+        "Versión_Real YTD",
+        "Versión_Ppto YTD"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "Hotel Graficos",
+      "slug": "hotel_graficos",
+      "rows": 84,
+      "columns": [
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "anio",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Ingresos totales",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo (Resultado) UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA/CUOTA BANCO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación pago 2024 (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR USD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (CLP)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (CLP)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (CLP) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (CLP) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (USD) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "LY AUX",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo LY AUX",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Ingresos totales LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo (Resultado) UF LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA/CUOTA BANCO LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD) LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación pago 2024 (%) LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR USD LY",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nombre activo",
+        "mes",
+        "anio",
+        "FechaID",
+        "LY AUX"
+      ],
+      "measures": [
+        "Ingresos totales",
+        "Costos operacionales UF",
+        "EBITDA UF",
+        "Flujo (Resultado) UF",
+        "EBITDA/CUOTA BANCO",
+        "ADR Room (USD)",
+        "Ocupación pago 2024 (%)",
+        "REVPAR USD",
+        "ADR Room (CLP)",
+        "REVPAR (CLP)",
+        "ADR Room (CLP) YTD",
+        "REVPAR (CLP) YTD",
+        "ADR Room (USD) YTD",
+        "REVPAR (USD) YTD",
+        "Ingresos totales LY",
+        "Costos operacionales LY",
+        "EBITDA UF LY",
+        "Flujo (Resultado) UF LY",
+        "EBITDA/CUOTA BANCO LY",
+        "ADR Room (USD) LY",
+        "Ocupación pago 2024 (%) LY",
+        "REVPAR USD LY"
+      ],
+      "dates": [
+        "Periodo",
+        "Periodo LY AUX"
+      ]
+    },
+    {
+      "model_name": "Hotel Original",
+      "slug": "hotel_original",
+      "rows": 421,
+      "columns": [
+        {
+          "name": "Column1",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Column2",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Column3",
+          "dtype": "str",
+          "role": "dimension"
+        },
+        {
+          "name": "Column4",
+          "dtype": "str",
+          "role": "dimension"
+        },
+        {
+          "name": "Column5",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Column6",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Column7",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Column8",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Column9",
+          "dtype": "object",
+          "role": "dimension"
+        },
+        {
+          "name": "Column10",
+          "dtype": "object",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Column1",
+        "Column2",
+        "Column3",
+        "Column4",
+        "Column5",
+        "Column6",
+        "Column7",
+        "Column8",
+        "Column9",
+        "Column10"
+      ],
+      "measures": [],
+      "dates": []
+    },
+    {
+      "model_name": "Hotel PPTO",
+      "slug": "hotel_ppto",
+      "rows": 84,
+      "columns": [
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "anio",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Ingresos totales",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo (Resultado) UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA/CUOTA BANCO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación pago 2024 (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR USD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (CLP)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (CLP)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (CLP) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (CLP) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (USD) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "LY AUX",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo LY AUX",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Ingresos totales LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo (Resultado) UF LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA/CUOTA BANCO LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD) LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación pago 2024 (%) LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR USD LY",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nombre activo",
+        "mes",
+        "anio",
+        "FechaID",
+        "LY AUX"
+      ],
+      "measures": [
+        "Ingresos totales",
+        "Costos operacionales UF",
+        "EBITDA UF",
+        "Flujo (Resultado) UF",
+        "EBITDA/CUOTA BANCO",
+        "ADR Room (USD)",
+        "Ocupación pago 2024 (%)",
+        "REVPAR USD",
+        "ADR Room (CLP)",
+        "REVPAR (CLP)",
+        "ADR Room (CLP) YTD",
+        "REVPAR (CLP) YTD",
+        "ADR Room (USD) YTD",
+        "REVPAR (USD) YTD",
+        "Ingresos totales LY",
+        "Costos operacionales LY",
+        "EBITDA UF LY",
+        "Flujo (Resultado) UF LY",
+        "EBITDA/CUOTA BANCO LY",
+        "ADR Room (USD) LY",
+        "Ocupación pago 2024 (%) LY",
+        "REVPAR USD LY"
+      ],
+      "dates": [
+        "Periodo",
+        "Periodo LY AUX"
+      ]
+    },
+    {
+      "model_name": "Hotel Real",
+      "slug": "hotel_real",
+      "rows": 84,
+      "columns": [
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "anio",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Ingresos totales",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo (Resultado) UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA/CUOTA BANCO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación pago 2024 (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR USD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (CLP)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (CLP)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (CLP) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (CLP) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR (USD) YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "LY AUX",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo LY AUX",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Ingresos totales LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Costos operacionales LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA UF LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Flujo (Resultado) UF LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EBITDA/CUOTA BANCO LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ADR Room (USD) LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupación pago 2024 (%) LY",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "REVPAR USD LY",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nombre activo",
+        "mes",
+        "anio",
+        "FechaID",
+        "LY AUX",
+        "Periodo LY AUX"
+      ],
+      "measures": [
+        "Ingresos totales",
+        "Costos operacionales UF",
+        "EBITDA UF",
+        "Flujo (Resultado) UF",
+        "EBITDA/CUOTA BANCO",
+        "ADR Room (USD)",
+        "Ocupación pago 2024 (%)",
+        "REVPAR USD",
+        "ADR Room (CLP)",
+        "REVPAR (CLP)",
+        "ADR Room (CLP) YTD",
+        "REVPAR (CLP) YTD",
+        "ADR Room (USD) YTD",
+        "REVPAR (USD) YTD",
+        "Ingresos totales LY",
+        "Costos operacionales LY",
+        "EBITDA UF LY",
+        "Flujo (Resultado) UF LY",
+        "EBITDA/CUOTA BANCO LY",
+        "ADR Room (USD) LY",
+        "Ocupación pago 2024 (%) LY",
+        "REVPAR USD LY"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "Deuda Activos",
+      "slug": "deuda_activos",
+      "rows": 815,
+      "columns": [
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Cuota",
+          "dtype": "Float64",
+          "role": "measure"
+        },
+        {
+          "name": "por pagar",
+          "dtype": "Float64",
+          "role": "measure"
+        },
+        {
+          "name": "Deuda total",
+          "dtype": "Int64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaId",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidad",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "ActivoNorm",
+          "dtype": "string",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Activo",
+        "Fecha",
+        "Año",
+        "Mes",
+        "FechaId",
+        "Unidad",
+        "ActivoNorm"
+      ],
+      "measures": [
+        "Cuota",
+        "por pagar",
+        "Deuda total"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    }
+  ]
+}

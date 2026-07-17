@@ -1,0 +1,572 @@
+{
+  "unit": "Atempora",
+  "tables": [
+    {
+      "table": "EERR CIVITAS",
+      "sheet": "EERR CIVITAS",
+      "file": "CIVITAS.xlsx",
+      "columns": [
+        {
+          "col": "Nivel 2 ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 1 ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Monto",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Fecha ",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "año ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "mes ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "fechaID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Indice ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "ppto",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD Real",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": true,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "KPIS Atempora",
+      "sheet": "KPIS Atempora",
+      "file": "CIVITAS.xlsx",
+      "columns": [
+        {
+          "col": "Proyecto",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Ocupacion Ventas OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupacion Renta OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "M2 vendidos OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "m2 arrendados OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Disponible OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Reserva Arriendo OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Reserva Compra OF",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "uf/m2 venta OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "uf/m2 arriendo OF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Unidades Vendidas OF",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Unidades Arrendadas OF",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Unidades reservadas  ARR OF",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Unidades reservadas  Vent OF",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Unidades Disponibles OF",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Ocupacion Ventas LC",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupacion Renta LC",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "M2 vendidos LC",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "m2 arrendados LC",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "uf/m2 venta LC",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "uf/m2 arriendo LC",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Unidades Vendidas LC",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Unidades Arrendadas LC",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Unidades Disponibles LC",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha ",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha ID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Of total",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "LC Total",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Gasto Comun",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "M2 occ totales",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupacion total",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Detalle arriendo civitas",
+      "sheet": "Detalle arriendo civitas",
+      "file": "CIVITAS.xlsx",
+      "columns": [
+        {
+          "col": "Unidad",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Superficie prorrateo [m²]",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Superficie [m²]",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Tipología",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "UF/mes",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Precio lista [UF/m²]",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Precio [UF]",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Estado",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Usuario",
+          "m_type": "type any",
+          "pandas": "object",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Valor arriendo [UF]",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Valor arriendo [UF/m²]",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Fecha inicio",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Plazo",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Renovación",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha término",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "m2 aux",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Morosidad",
+      "sheet": "Morosidad",
+      "file": "CIVITAS.xlsx",
+      "columns": [
+        {
+          "col": "}",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Clasif",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "SALDO PENDIENTE",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Ventas Civitas",
+      "sheet": "Ventas Civitas",
+      "file": "CIVITAS.xlsx",
+      "columns": [
+        {
+          "col": "Comprador",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Oficinas",
+          "m_type": "type any",
+          "pandas": "object",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Venta Neta",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "deuda civitas",
+      "sheet": "deuda civitas",
+      "file": "CIVITAS.xlsx",
+      "columns": [
+        {
+          "col": "Proyecto",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Amortización",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Capital",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "FechaID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Date AUX Civitas",
+      "sheet": "Date AUX Civitas",
+      "file": "CIVITAS.xlsx",
+      "columns": [
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "mes ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "fecha ",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "fechaid",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    }
+  ]
+}

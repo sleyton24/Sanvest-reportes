@@ -1,0 +1,913 @@
+{
+  "unit": "RR",
+  "tables": [
+    {
+      "table": "Indicadores Financieros",
+      "sheet": "Indicadores Financieros ",
+      "columns": [
+        {
+          "col": "Mes de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Item",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "anio",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Versión_Real",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Ppto",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Proyección",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Indice",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "YTD REAL",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Indicadores Financieros Lar",
+      "sheet": "Indicadores Financieros Lar",
+      "columns": [
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 1 ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Nivel 2",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Real Peso",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "PPTO Peso",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Real",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Ppto",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD REAL",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "YTD PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF Mes",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF Mes PPTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Indice",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "FechaID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "RR Edificios LAR",
+      "sheet": "RR Edificios LAR",
+      "columns": [
+        {
+          "col": "Fecha ID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "MES 2",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes ",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Superficie Total Arrendable",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Cantidad Deptos",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación Deptos (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Superficie Total Ocupada",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Arriendos Deptos (UF/mes)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Arriendo Deptos (UF/m2)(**)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Arriendo Deptos (UF/uni)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación Estacionamientos (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Arriendos Estacionamientos (UF/mes)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Arriendo Estacionamientos (UF/uni)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Arriendo Deptos + Estacio. (UF/m2)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ingresos Gasto Común (UF/mes)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ingresos Gasto Común (UF/m2)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ingresos Gasto Común (UF/uni)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ingresos Gasto Común ($/m2)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Cuota Banco (UF)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA AJUSTADO/CUOTA BANCO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Morosidad 0-30 días (UF)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Morosidad 31-60 días (UF)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Morosidad 61-90+ días (UF)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Morosidad 91-120+ días (UF)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "RR KPis",
+      "sheet": "RR KPis",
+      "columns": [
+        {
+          "col": "mes carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "anio carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Versión",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "CONTRATOS POR VENCER ESTE MES",
+          "m_type": "type any",
+          "pandas": "object",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "UNIDADES ARRENDADAS",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "OCUPACIÓN DEPTOS",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "OCUPACIÓN DEPARTAMENTOS_YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2_DEPARTAMENTOS",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2_YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/ESTACIONAMIENTO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/ESTACIONAMIENTO_YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2 (DEPTO+ESTAC.)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2 (DEPTO+ESTAC.)_YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Real+PPTO+LY",
+      "sheet": "Real+PPTO+LY",
+      "columns": [
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Ingresos totales UF p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo UF p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF/CUOTA BANCO p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación departamentos 2022 (%) p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF/VENTAS p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ingresos totales UF YTD p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF YTD p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF YTD p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo UF YTD p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año p",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes p",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Ingresos totales UF R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo UF R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF/CUOTA BANCO R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación departamentos 2022 (%) R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ingresos totales UF YTD R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF YTD R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF YTD R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo UF YTD R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "LY fecha",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Check",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ingresos totales UF R LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF R LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo UF R LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF/CUOTA BANCO R LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación departamentos 2022 (%) R7 LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF/VENTAS R LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Gastos Comunes (UF/M2) R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Gastos Comunes (UF/M2) P",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2_DEPARTAMENTOS R ",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2_YTD R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/ESTACIONAMIENTO R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/ESTACIONAMIENTO_YTD R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2 (DEPTO+ESTAC.) R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2 (DEPTO+ESTAC.)_YTD R",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Fecha ID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "UF/M2_DEPARTAMENTOS p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2_YTD p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/ESTACIONAMIENTO p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/ESTACIONAMIENTO_YTD p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2 (DEPTO+ESTAC.) p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "UF/M2 (DEPTO+ESTAC.)_YTD p",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Tarifa LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Gasto comun LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "TIEMPO AUX",
+      "sheet": "TIEMPO AUX",
+      "columns": [
+        {
+          "col": "AÑO",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "MES",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Fecha ID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Tipologia",
+      "sheet": "Tipologia",
+      "columns": [
+        {
+          "col": "Mes Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año Carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre activo-empresa",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Versión",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "TIPOLOGIAS/MÉTRICA",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "UNIDADES ADMINISTRADAS",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Año información",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Mes ",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    }
+  ]
+}

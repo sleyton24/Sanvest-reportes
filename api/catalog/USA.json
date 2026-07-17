@@ -1,0 +1,1888 @@
+{
+  "unit": "USA",
+  "tables": [
+    {
+      "model_name": "Bemiston GP and LP Information",
+      "slug": "bemiston_gp_and_lp_information",
+      "rows": 13,
+      "columns": [
+        {
+          "name": "Categ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Equity",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Distributions",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Net Cash Flow",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "EM",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "XIRR",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Promote",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Structure Fee",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AM Fees",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Activo",
+          "dtype": "str",
+          "role": "dimension"
+        },
+        {
+          "name": "Indice",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Categ",
+        "Activo",
+        "Indice"
+      ],
+      "measures": [
+        "Equity",
+        "Distributions",
+        "Net Cash Flow",
+        "EM",
+        "XIRR",
+        "Promote",
+        "Structure Fee",
+        "AM Fees"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "Bemiston Property Info",
+      "slug": "bemiston_property_info",
+      "rows": 8,
+      "columns": [
+        {
+          "name": "Property Information",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Total Land Size (Feet)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Gross Square Feet (GSF)",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Number of Units",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Parking",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Rentable Square Feet (RSF)",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Activo",
+          "dtype": "str",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Property Information",
+        "Gross Square Feet (GSF)",
+        "Number of Units",
+        "Parking",
+        "Rentable Square Feet (RSF)",
+        "Activo"
+      ],
+      "measures": [
+        "Total Land Size (Feet)"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "MILA FINAL",
+      "slug": "mila_final",
+      "rows": 1034,
+      "columns": [
+        {
+          "name": "Nivel 2 ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 3",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Monto 2",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Real",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Indice",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AUX",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "AUX2",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "AUXYTD",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "AUXYTD2",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 3 AUX",
+          "dtype": "str",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Nivel 2 ",
+        "Nivel 1",
+        "Nivel 3",
+        "Monto 2",
+        "Año",
+        "Mes",
+        "Fecha ID ",
+        "Real",
+        "YTD",
+        "YTD PPTO",
+        "AUX",
+        "AUX2",
+        "AUXYTD",
+        "AUXYTD2",
+        "Nivel 3 AUX"
+      ],
+      "measures": [
+        "Indice"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "Ocupación PPTO",
+      "slug": "ocupacion_ppto",
+      "rows": 72,
+      "columns": [
+        {
+          "name": "Occupied %",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Occupied % R",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupacion O",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupacion Retail",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupacion Retail BD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Fecha ID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Activo ",
+          "dtype": "string",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Fecha ID",
+        "Activo "
+      ],
+      "measures": [
+        "Occupied %",
+        "Occupied % R",
+        "Ocupacion O",
+        "Ocupacion Retail",
+        "Ocupacion Retail BD"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "St Grand",
+      "slug": "st_grand",
+      "rows": 11160,
+      "columns": [
+        {
+          "name": "Nivel 2 ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 3",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Monto 2",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Real",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Nivel 2 ",
+        "Nivel 1",
+        "Nivel 3",
+        "Año",
+        "Mes",
+        "Fecha ID ",
+        "Real",
+        "YTD",
+        "Indice"
+      ],
+      "measures": [
+        "Monto 2",
+        "YTD PPTO"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "St grand final (2)",
+      "slug": "st_grand_final_2",
+      "rows": 1779,
+      "columns": [
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 3",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Monto AUX",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Monto 2",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Real UAX",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "AUX YTD ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AUX YTD P",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "PPTO graficos",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Real Graficos",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD Graf",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD graf PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nivel 1",
+        "Nivel 3",
+        "Nivel 2",
+        "Año",
+        "Mes",
+        "Fecha ID "
+      ],
+      "measures": [
+        "Monto AUX",
+        "Monto 2",
+        "Real UAX",
+        "Real",
+        "YTD",
+        "YTD PPTO",
+        "Indice",
+        "AUX YTD ",
+        "AUX YTD P",
+        "PPTO graficos",
+        "Real Graficos",
+        "YTD Graf",
+        "YTD graf PPTO"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "Tiempo ID",
+      "slug": "tiempo_id",
+      "rows": 24,
+      "columns": [
+        {
+          "name": "Fecha ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes ",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Fecha ID ",
+        "Año ",
+        "Mes "
+      ],
+      "measures": [],
+      "dates": []
+    },
+    {
+      "model_name": "USA Bemiston Tipologias",
+      "slug": "usa_bemiston_tipologias",
+      "rows": 9,
+      "columns": [
+        {
+          "name": "Floor Plan",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Unit Count",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Avg SF/Unit",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Avg Rent/Unit",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Avg Rent PSF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Activo",
+          "dtype": "str",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Floor Plan",
+        "Unit Count",
+        "Activo"
+      ],
+      "measures": [
+        "Avg SF/Unit",
+        "Avg Rent/Unit",
+        "Avg Rent PSF"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "USA Bemiston ppto",
+      "slug": "usa_bemiston_ppto",
+      "rows": 4813,
+      "columns": [
+        {
+          "name": "Nivel 2 ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 3",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Monto 2",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Real",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 1 r ",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nivel 2 ",
+        "Nivel 1",
+        "Nivel 3",
+        "Año",
+        "Mes",
+        "Fecha ID ",
+        "Real",
+        "YTD",
+        "Indice"
+      ],
+      "measures": [
+        "Monto 2",
+        "YTD PPTO",
+        "Nivel 1 r "
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "USA Graficos",
+      "slug": "usa_graficos",
+      "rows": 216,
+      "columns": [
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Item",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Actual",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Budget",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Original",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Original N",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Actual P",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Budget P",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Actual YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Budget YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Original YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "mes ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "OR YTD P",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AUX Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Aux BD ",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Item",
+        "Activo",
+        "mes ",
+        "año",
+        "FechaID"
+      ],
+      "measures": [
+        "Actual",
+        "Budget",
+        "Original",
+        "Original N",
+        "Actual P",
+        "Budget P",
+        "Actual YTD",
+        "Budget YTD",
+        "Original YTD",
+        "OR YTD P",
+        "AUX Real",
+        "Aux BD "
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "USA KPIS GESTION",
+      "slug": "usa_kpis_gestion",
+      "rows": 72,
+      "columns": [
+        {
+          "name": "Dólar SQF AC MONTH",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF BD MONTH",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF Retail AC MONTH",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF Retail BD MONTH",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF AC YTD",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Dólar SQF BD YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF Retail AC YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF Retail BD YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AVG RENT ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "AVG Rent O",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF O",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Dólar SQF O AVG",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "DATE AC",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "AVG RENT BD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "YEAR",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Month",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "DateID",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Dólar SQF AC YTD",
+        "AVG RENT ",
+        "Activo",
+        "YEAR",
+        "Month",
+        "DateID"
+      ],
+      "measures": [
+        "Dólar SQF AC MONTH",
+        "Dólar SQF BD MONTH",
+        "Dólar SQF Retail AC MONTH",
+        "Dólar SQF Retail BD MONTH",
+        "Dólar SQF BD YTD",
+        "Dólar SQF Retail AC YTD",
+        "Dólar SQF Retail BD YTD",
+        "AVG Rent O",
+        "Dólar SQF O",
+        "Dólar SQF O AVG",
+        "AVG RENT BD"
+      ],
+      "dates": [
+        "DATE AC"
+      ]
+    },
+    {
+      "model_name": "USA Modelo Original Bemiston",
+      "slug": "usa_modelo_original_bemiston",
+      "rows": 3,
+      "columns": [
+        {
+          "name": "Loan",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Loan Rate ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Calc LTV",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Valuation",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "TIR GP ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "TIR LP ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Yield to cost",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Cap Rate ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Gross Value",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Terminal NOI",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Cash on Cash",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Activo",
+          "dtype": "str",
+          "role": "dimension"
+        },
+        {
+          "name": "Rent growth",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Loan rate AC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Maturity",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        }
+      ],
+      "dimensions": [
+        "Loan",
+        "Activo"
+      ],
+      "measures": [
+        "Loan Rate ",
+        "Calc LTV",
+        "Valuation",
+        "TIR GP ",
+        "TIR LP ",
+        "Yield to cost",
+        "Cap Rate ",
+        "Gross Value",
+        "Terminal NOI",
+        "Cash on Cash",
+        "Rent growth",
+        "Loan rate AC"
+      ],
+      "dates": [
+        "Maturity"
+      ]
+    },
+    {
+      "model_name": "USA Renovación contratos",
+      "slug": "usa_renovacion_contratos",
+      "rows": 85,
+      "columns": [
+        {
+          "name": "Unit #",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Lease Start",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Lease End",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Lease Term",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Gross Rent",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Gross Rent PSF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Full Term Gross Rent",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Net Rent",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Net PSF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Concession Amount ($)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Concession (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Concession (mths)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Utility Bundle",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Parking",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Renewal Offer Gross Rent",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": " Market Rent",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Renewal vs. Market Rent ($)",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Renewal vs last",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Net Rent PSF renewal",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Market Rent PSF",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Unit #",
+        "Lease Term",
+        "Gross Rent",
+        "Full Term Gross Rent",
+        "Utility Bundle",
+        "Parking",
+        "Renewal Offer Gross Rent",
+        " Market Rent",
+        "Renewal vs. Market Rent ($)",
+        "Renewal vs last"
+      ],
+      "measures": [
+        "Gross Rent PSF",
+        "Net Rent",
+        "Net PSF",
+        "Concession Amount ($)",
+        "Concession (%)",
+        "Concession (mths)",
+        "Net Rent PSF renewal",
+        "Market Rent PSF"
+      ],
+      "dates": [
+        "Lease Start",
+        "Lease End"
+      ]
+    },
+    {
+      "model_name": "Uso Y fondo Bemiston",
+      "slug": "uso_y_fondo_bemiston",
+      "rows": 23,
+      "columns": [
+        {
+          "name": "Category",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Tipo ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Monto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Category",
+        "Tipo ",
+        "Activo"
+      ],
+      "measures": [
+        "Monto"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "fINAL beMISTON",
+      "slug": "final_bemiston",
+      "rows": 2079,
+      "columns": [
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 3",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Monto AUX",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Monto 2",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha ID ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Real UAX",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Real",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "AUX YTD ",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AUX YTD P",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nivel 1",
+        "Nivel 3",
+        "Nivel 2",
+        "Año",
+        "Mes",
+        "Fecha ID ",
+        "Real",
+        "YTD",
+        "Indice"
+      ],
+      "measures": [
+        "Monto AUX",
+        "Monto 2",
+        "Real UAX",
+        "YTD PPTO",
+        "AUX YTD ",
+        "AUX YTD P"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "DIF I Y II",
+      "slug": "dif_i_y_ii",
+      "rows": 58,
+      "columns": [
+        {
+          "name": "Mes Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre fondo/Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre del activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "periodo_acumulado",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Trimestre",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Invested Capital_ACTUAL",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Invested Capital Budget",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Distributions_BUDGET",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Annual Return BUDGET",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Mes Carga",
+        "Año Carga",
+        "Nombre fondo/Activo",
+        "Nombre del activo",
+        "periodo_acumulado",
+        "Trimestre",
+        "Año"
+      ],
+      "measures": [
+        "Invested Capital_ACTUAL",
+        "Invested Capital Budget",
+        "Distributions_BUDGET",
+        "Annual Return BUDGET",
+        "Indice"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "DIF II",
+      "slug": "dif_ii",
+      "rows": 42,
+      "columns": [
+        {
+          "name": "Mes Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre Fondo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Cuenta/Tabla",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "periodo acumulado",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Trimestre Acumulado",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "ACTUAL DISTRIBUTION (USD)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "BUDGET YIELD (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ACTUAL YIELD (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "DIF I Div. Yield (Annualized)",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Mes Carga",
+        "Año Carga",
+        "Nombre Fondo",
+        "Nombre Activo",
+        "Cuenta/Tabla",
+        "periodo acumulado",
+        "Trimestre Acumulado",
+        "Año"
+      ],
+      "measures": [
+        "ACTUAL DISTRIBUTION (USD)",
+        "BUDGET YIELD (%)",
+        "ACTUAL YIELD (%)",
+        "DIF I Div. Yield (Annualized)"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "KPI",
+      "slug": "kpi",
+      "rows": 6,
+      "columns": [
+        {
+          "name": "Nombre Fondo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Div. Yield Annualized",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Trimestre Acumulado",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Año ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Div. Yield Annualized Budget",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Nombre Fondo",
+        "Trimestre Acumulado",
+        "Año "
+      ],
+      "measures": [
+        "Div. Yield Annualized",
+        "Div. Yield Annualized Budget"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "USA Bemiston (2)",
+      "slug": "usa_bemiston_2",
+      "rows": 46,
+      "columns": [
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Inversión Total_USD",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Participación_BNV_en_Sociedad(%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "TIR_BNV_AI",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "AVANCE_CONSTRUCCIÓN",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "COSTOS_TOTALES_PROYECTO_NETO (USD)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "INCIDENCIA_CONSTRUCCIÓN_(USD/M2 LOSA)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "COSTO_TOTAL_PROYECTO_(USD)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "%LINEA/COSTO_TOTAL_NETO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "DEUDA_A_LA_FECHA UF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "DEUDA_APROBADA_(USD)",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Año",
+        "Mes",
+        "Nombre activo",
+        "Versión",
+        "Inversión Total_USD",
+        "DEUDA_APROBADA_(USD)"
+      ],
+      "measures": [
+        "Participación_BNV_en_Sociedad(%)",
+        "TIR_BNV_AI",
+        "AVANCE_CONSTRUCCIÓN",
+        "COSTOS_TOTALES_PROYECTO_NETO (USD)",
+        "INCIDENCIA_CONSTRUCCIÓN_(USD/M2 LOSA)",
+        "COSTO_TOTAL_PROYECTO_(USD)",
+        "%LINEA/COSTO_TOTAL_NETO",
+        "DEUDA_A_LA_FECHA UF"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "USA DIF I y II ACUMULADOS",
+      "slug": "usa_dif_i_y_ii_acumulados",
+      "rows": 169,
+      "columns": [
+        {
+          "name": "Mes Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año Carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre Fondo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Cuenta/Tabla",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "periodo acumulado",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Trimestre Acumulado",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "ACTUAL DISTRIBUTION (USD)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "BUDGET YIELD (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ACTUAL YIELD (%)",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Indice",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Trimeste Real",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Div. Yield Annualized Budget",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Div. Yield Annualized",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Mes Carga",
+        "Año Carga",
+        "Nombre Fondo",
+        "Nombre Activo",
+        "Cuenta/Tabla",
+        "periodo acumulado",
+        "Trimestre Acumulado",
+        "Año",
+        "Indice",
+        "Trimeste Real"
+      ],
+      "measures": [
+        "ACTUAL DISTRIBUTION (USD)",
+        "BUDGET YIELD (%)",
+        "ACTUAL YIELD (%)",
+        "Div. Yield Annualized Budget",
+        "Div. Yield Annualized"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "USA EV costos Bemiston",
+      "slug": "usa_ev_costos_bemiston",
+      "rows": 75,
+      "columns": [
+        {
+          "name": "Mes de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año de carga",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Versión",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "COSTO_TOTAL_PROYECTO_(USD)",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Mes de carga",
+        "Año de carga",
+        "Año",
+        "Mes",
+        "Nombre activo",
+        "Versión"
+      ],
+      "measures": [
+        "COSTO_TOTAL_PROYECTO_(USD)"
+      ],
+      "dates": [
+        "Periodo"
+      ]
+    },
+    {
+      "model_name": "USA P&L (homologado)",
+      "slug": "usa_pnl",
+      "rows": 4607,
+      "columns": [
+        {
+          "name": "Activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Seccion",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Categoria",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Linea",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ppto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD_Ppto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Anio",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Activo",
+        "Seccion",
+        "Categoria",
+        "Linea",
+        "Anio",
+        "Mes",
+        "FechaID"
+      ],
+      "measures": [
+        "Real",
+        "Ppto",
+        "YTD",
+        "YTD_Ppto"
+      ],
+      "dates": []
+    }
+  ]
+}

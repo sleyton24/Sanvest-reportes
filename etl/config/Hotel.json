@@ -1,0 +1,566 @@
+{
+  "unit": "Hotel",
+  "tables": [
+    {
+      "table": "Hotel FULL",
+      "sheet": "Hotel FULL",
+      "columns": [
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Mes de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Año de carga",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Item",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "anio",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Versión_Real",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Ppto",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Proyección",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Real YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Versión_Ppto YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "indice",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "fechaID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Hotel Graficos",
+      "sheet": "Hotel Real",
+      "columns": [
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "anio",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Ingresos totales",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo (Resultado) UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA/CUOTA BANCO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación pago 2024 (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Hotel Original",
+      "sheet": "Hotel Original ",
+      "columns": [],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": false
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Hotel PPTO",
+      "sheet": "Hotel PPTO",
+      "columns": [
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "anio",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Ingresos totales",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo (Resultado) UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA/CUOTA BANCO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación pago 2024 (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR USD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (CLP)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR (CLP)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (CLP) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR (CLP) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (USD) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR (USD) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "LY AUX",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Periodo LY AUX",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "Ingresos totales LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo (Resultado) UF LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA/CUOTA BANCO LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (USD) LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación pago 2024 (%) LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR USD LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    },
+    {
+      "table": "Hotel Real",
+      "sheet": "Hotel Real",
+      "columns": [
+        {
+          "col": "Nombre activo",
+          "m_type": "type text",
+          "pandas": "string",
+          "sql": "NVARCHAR(255)"
+        },
+        {
+          "col": "Periodo",
+          "m_type": "type date",
+          "pandas": "datetime64[ns]",
+          "sql": "DATE"
+        },
+        {
+          "col": "mes",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "anio",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Ingresos totales",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo (Resultado) UF",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA/CUOTA BANCO",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (USD)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación pago 2024 (%)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR USD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (CLP)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR (CLP)",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (CLP) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR (CLP) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (USD) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR (USD) YTD",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "LY AUX",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Periodo LY AUX",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        },
+        {
+          "col": "Ingresos totales LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Costos operacionales LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA UF LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Flujo (Resultado) UF LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "EBITDA/CUOTA BANCO LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "ADR Room (USD) LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "Ocupación pago 2024 (%) LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "REVPAR USD LY",
+          "m_type": "type number",
+          "pandas": "float64",
+          "sql": "FLOAT"
+        },
+        {
+          "col": "FechaID",
+          "m_type": "Int64.Type",
+          "pandas": "Int64",
+          "sql": "BIGINT"
+        }
+      ],
+      "extra_steps": {
+        "filter_rows": false,
+        "rename_cols": false,
+        "remove_cols": false,
+        "remove_error_rows": false,
+        "promote_headers": true
+      },
+      "unknown_types": []
+    }
+  ]
+}

@@ -1,0 +1,580 @@
+{
+  "unit": "Atempora",
+  "tables": [
+    {
+      "model_name": "EERR CIVITAS",
+      "slug": "eerr_civitas",
+      "rows": 528,
+      "columns": [
+        {
+          "name": "Nivel 2 ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 1 ",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Monto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "ppto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha ",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "año ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "mes ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "fechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Indice ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD Real",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Nivel 2 ",
+        "Nivel 1 ",
+        "año ",
+        "mes ",
+        "fechaID",
+        "Indice ",
+        "YTD Real",
+        "YTD PPTO"
+      ],
+      "measures": [
+        "Monto",
+        "ppto"
+      ],
+      "dates": [
+        "Fecha "
+      ]
+    },
+    {
+      "model_name": "KPIS Atempora",
+      "slug": "kpis_atempora",
+      "rows": 16,
+      "columns": [
+        {
+          "name": "Proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Ocupacion Ventas OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupacion Renta OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "M2 vendidos OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "m2 arrendados OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Disponible OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Reserva Arriendo OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Reserva Compra OF",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "uf/m2 venta OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "uf/m2 arriendo OF",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Unidades Vendidas OF",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidades Arrendadas OF",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidades reservadas  ARR OF",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidades reservadas  Vent OF",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidades Disponibles OF",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Ocupacion Ventas LC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupacion Renta LC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "M2 vendidos LC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "m2 arrendados LC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "uf/m2 venta LC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "uf/m2 arriendo LC",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Unidades Vendidas LC",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidades Arrendadas LC",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidades Disponibles LC",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha ",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha ID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Of total",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "LC Total",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Gasto Comun",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "M2 occ totales",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Ocupacion total",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Proyecto",
+        "Reserva Compra OF",
+        "Unidades Vendidas OF",
+        "Unidades Arrendadas OF",
+        "Unidades reservadas  ARR OF",
+        "Unidades reservadas  Vent OF",
+        "Unidades Disponibles OF",
+        "Unidades Vendidas LC",
+        "Unidades Arrendadas LC",
+        "Unidades Disponibles LC",
+        "Mes",
+        "Año",
+        "Fecha ID",
+        "Of total",
+        "LC Total"
+      ],
+      "measures": [
+        "Ocupacion Ventas OF",
+        "Ocupacion Renta OF",
+        "M2 vendidos OF",
+        "m2 arrendados OF",
+        "Disponible OF",
+        "Reserva Arriendo OF",
+        "uf/m2 venta OF",
+        "uf/m2 arriendo OF",
+        "Ocupacion Ventas LC",
+        "Ocupacion Renta LC",
+        "M2 vendidos LC",
+        "m2 arrendados LC",
+        "uf/m2 venta LC",
+        "uf/m2 arriendo LC",
+        "Gasto Comun",
+        "M2 occ totales",
+        "Ocupacion total"
+      ],
+      "dates": [
+        "Fecha "
+      ]
+    },
+    {
+      "model_name": "Detalle arriendo civitas",
+      "slug": "detalle_arriendo_civitas",
+      "rows": 193,
+      "columns": [
+        {
+          "name": "Unidad",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Superficie prorrateo [m²]",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Superficie [m²]",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Tipología",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "UF/mes",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Precio lista [UF/m²]",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Precio [UF]",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Estado",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Usuario",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Valor arriendo [UF]",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Valor arriendo [UF/m²]",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Fecha inicio",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Plazo",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Renovación",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha término",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "m2 aux",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Unidad",
+        "Tipología",
+        "Estado",
+        "Usuario",
+        "Plazo",
+        "Renovación"
+      ],
+      "measures": [
+        "Superficie prorrateo [m²]",
+        "Superficie [m²]",
+        "UF/mes",
+        "Precio lista [UF/m²]",
+        "Precio [UF]",
+        "Valor arriendo [UF]",
+        "Valor arriendo [UF/m²]",
+        "m2 aux"
+      ],
+      "dates": [
+        "Fecha inicio",
+        "Fecha término"
+      ]
+    },
+    {
+      "model_name": "Morosidad",
+      "slug": "morosidad",
+      "rows": 34,
+      "columns": [
+        {
+          "name": "}",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Clasif",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "SALDO PENDIENTE",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "F. EMISION",
+          "dtype": "str",
+          "role": "dimension"
+        },
+        {
+          "name": "Columna1",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Columna2",
+          "dtype": "int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "}",
+        "Clasif",
+        "F. EMISION",
+        "Columna2"
+      ],
+      "measures": [
+        "SALDO PENDIENTE"
+      ],
+      "dates": [
+        "Columna1"
+      ]
+    },
+    {
+      "model_name": "Ventas Civitas",
+      "slug": "ventas_civitas",
+      "rows": 9,
+      "columns": [
+        {
+          "name": "Comprador",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Oficinas",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Venta Neta",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Comprador",
+        "Oficinas"
+      ],
+      "measures": [
+        "Venta Neta"
+      ],
+      "dates": []
+    },
+    {
+      "model_name": "deuda civitas",
+      "slug": "deuda_civitas",
+      "rows": 53,
+      "columns": [
+        {
+          "name": "Proyecto",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Amortización",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Capital",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Fecha",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "aux",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Proyecto",
+        "Año",
+        "mes",
+        "FechaID"
+      ],
+      "measures": [
+        "Amortización",
+        "Capital",
+        "aux"
+      ],
+      "dates": [
+        "Fecha"
+      ]
+    },
+    {
+      "model_name": "Date AUX Civitas",
+      "slug": "date_aux_civitas",
+      "rows": 24,
+      "columns": [
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "mes ",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "fecha ",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "fechaid",
+          "dtype": "Int64",
+          "role": "dimension"
+        }
+      ],
+      "dimensions": [
+        "Año",
+        "mes ",
+        "fechaid"
+      ],
+      "measures": [],
+      "dates": [
+        "fecha "
+      ]
+    }
+  ]
+}
