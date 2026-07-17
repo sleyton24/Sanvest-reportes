@@ -6,7 +6,8 @@ import { useAuth } from "../auth";
 // Cuánto dura el saludo antes de ceder el lugar al logo Sanvest.
 const HELLO_MS = 7_000; // 7 segundos
 
-type Tile = { id: string; label: string; sub: string; color: string; desc: string; icon: ReactNode; logo?: string };
+// blend: funde el fondo blanco del PNG con la tarjeta (logos sin recorte limpio)
+type Tile = { id: string; label: string; sub: string; color: string; desc: string; icon: ReactNode; logo?: string; blend?: boolean };
 
 const I = (d: string) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}
@@ -36,7 +37,7 @@ const ICON: Record<string, ReactNode> = {
 
 const TILES: Tile[] = [
   { id: "DV", label: "Desarrollo para la Venta", sub: "Inmobiliario", color: "#A8C813",
-    desc: "Millalongo · Sta. Victoria 99 · Sta. Victoria 155", icon: ICON.DV, logo: "/sanvest-azul.png" },
+    desc: "Millalongo · Sta. Victoria 99 · Sta. Victoria 155", icon: ICON.DV, logo: "/logos/danacorp.png", blend: true },
   { id: "RR", label: "Renta Residencial", sub: "Multifamily — LAR Group", color: "#3796AA",
     desc: "Holding LAR · SOHO · PARK", icon: ICON.RR, logo: "/logos/lar.png" },
   { id: "Hotel", label: "OLÁ Hotel", sub: "Hotelería", color: "#FACF22",
@@ -44,7 +45,7 @@ const TILES: Tile[] = [
   { id: "USA", label: "USA", sub: "Estados Unidos", color: "#EF731B",
     desc: "Bemiston · Mila · St Grand", icon: ICON.USA, logo: "/logos/double-eagle.png" },
   { id: "ICEMM", label: "Construcción", sub: "ICEMM", color: "#D83252",
-    desc: "Indicadores Financieros · Flujo de Caja", icon: ICON.ICEMM, logo: "/logos/emm.png" },
+    desc: "Indicadores Financieros · Flujo de Caja", icon: ICON.ICEMM, logo: "/logos/emm.png", blend: true },
   // Atémpora no tiene logo limpio aún (ver logos/README.txt) → mantiene su ícono
   { id: "Atempora", label: "Atémpora", sub: "Multi-uso — Civitas", color: "#8b6fd6",
     desc: "Oficinas · Locales · Arriendos · Morosidad", icon: ICON.Atempora },
@@ -97,7 +98,8 @@ export function MainMenu({ onPick }: { onPick: (id: string) => void }) {
           <button className="tile tile--featured" style={{ ["--tile" as any]: featured.color }}
             onClick={() => onPick(featured.id)}>
             {featured.logo
-              ? <img className="tile__logo" src={featured.logo} alt={featured.label} />
+              ? <img className={"tile__logo" + (featured.blend ? " tile__logo--blend" : "")}
+                  src={featured.logo} alt={featured.label} />
               : <span className="tile__icon">{featured.icon}</span>}
             <span className="tile__body">
               <span className="tile__sub">{featured.sub}</span>
@@ -114,7 +116,8 @@ export function MainMenu({ onPick }: { onPick: (id: string) => void }) {
           <button key={t.id} className="tile" style={{ ["--tile" as any]: t.color }}
             onClick={() => onPick(t.id)}>
             {t.logo
-              ? <img className="tile__logo" src={t.logo} alt={t.label} />
+              ? <img className={"tile__logo" + (t.blend ? " tile__logo--blend" : "")}
+                  src={t.logo} alt={t.label} />
               : <span className="tile__icon">{t.icon}</span>}
             <span className="tile__sub">{t.sub}</span>
             <span className="tile__label">{t.label}</span>

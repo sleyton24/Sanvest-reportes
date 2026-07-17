@@ -267,8 +267,8 @@ body {
 .dash__logo--flat { height: 52px; border-radius: 0; }
 .dash__logo--tile { height: 72px; }
 /* EMM: logo apaisado con subtítulo fino — a menor altura queda proporcionado
-   con el título y el subtítulo completo dentro del header */
-.dash__logo--emm { height: 52px; border-radius: 0; }
+   con el título; multiply funde el fondo blanco del PNG con la página */
+.dash__logo--emm { height: 52px; border-radius: 0; mix-blend-mode: multiply; }
 
 .dash__header h1::before {            /* barra de color de la unidad */
   content: "";
@@ -439,6 +439,8 @@ body {
   height: 50px; max-width: 190px; object-fit: contain; object-position: left center;
   border-radius: 10px; margin-bottom: 14px;
 }
+/* funde el fondo blanco del PNG con la tarjeta (Danacorp, EMM): sin caja blanca */
+.tile__logo--blend { mix-blend-mode: multiply; border-radius: 0; }
 .tile.tile--featured .tile__logo { align-self: center; object-position: center; height: 54px; }
 .tile__sub { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--navy); }
 .tile__label { font-size: 20px; font-weight: 700; color: var(--strong); margin-top: 3px; line-height: 1.15; }
