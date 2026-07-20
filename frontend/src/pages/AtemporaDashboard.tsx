@@ -6,7 +6,7 @@ import { fmtNum, fmtUF, fmtCLP } from "../format";
 import { Slicer } from "../components/Slicer";
 import { Gauge } from "../components/Gauge";
 import { KpiCard } from "../components/KpiCard";
-import { HoldingPnL, PnLRow } from "../components/HoldingPnL";
+import { HoldingPnLMulti, PnLMultiRow } from "../components/HoldingPnL";
 import { PivotTable } from "../components/PivotTable";
 import { ColumnLinesChart } from "../components/charts/Charts";
 
@@ -92,18 +92,29 @@ export function AtemporaDashboard() {
   // HoldingPnL trata índice >2 como línea de total, así que se acota a 2 para que
   // "Otros gastos" muestre detalle + subtotal. EBITDA y Resultado se calculan como
   // en los combos (Ingresos − Gastos Op. − Otros gastos).
-  const civPnL = (real: string, ppto: string) => {
+  // Informe de Gestión UNIFICADO Mes | YTD (una sola tabla, como RR/ICEMM):
+  // cada fila trae los dos grupos de columnas. EBITDA/Resultado al cierre.
+  const civPnLMulti = (): PnLMultiRow[] => {
     const sum = (ix: number, col: string) =>
       eerrPoint.filter((r) => num(r["Indice "]) === ix).reduce((a, r) => a + (num(r[col]) ?? 0), 0);
-    const rows: PnLRow[] = eerrPoint.map((r) => ({
+    const rows: PnLMultiRow[] = eerrPoint.map((r) => ({
       nivel1: String(r["Nivel 2 "] ?? "").trim(), nivel2: String(r["Nivel 1 "] ?? "").trim(),
-      indice: Math.min(num(r["Indice "]) ?? 2, 2), real: num(r[real]), ppto: num(r[ppto]),
+      indice: Math.min(num(r["Indice "]) ?? 2, 2),
+      vals: [
+        { real: num(r["Monto"]), ppto: num(r["ppto"]) },       // Mes
+        { real: num(r["YTD Real"]), ppto: num(r["YTD PPTO"]) }, // YTD
+      ],
     }));
-    if (!rows.length) return { rows };
-    rows.push({ nivel1: "Gastos Operacionales", nivel2: "EBITDA", indice: 4,
-      real: sum(1, real) - sum(2, real), ppto: sum(1, ppto) - sum(2, ppto) });
-    return { rows, result: { label: "Resultado", real: sum(1, real) - sum(2, real) - sum(3, real),
-      ppto: sum(1, ppto) - sum(2, ppto) - sum(3, ppto) } };
+    if (!rows.length) return [];
+    const ebitda = (c: string) => sum(1, c) - sum(2, c);
+    const result = (c: string) => sum(1, c) - sum(2, c) - sum(3, c);
+    rows.push({ nivel1: "Gastos Operacionales", nivel2: "EBITDA", indice: 4, vals: [
+      { real: ebitda("Monto"), ppto: ebitda("ppto") },
+      { real: ebitda("YTD Real"), ppto: ebitda("YTD PPTO") }] });
+    rows.push({ nivel1: "", nivel2: "Resultado", indice: 5, vals: [
+      { real: result("Monto"), ppto: result("ppto") },
+      { real: result("YTD Real"), ppto: result("YTD PPTO") }] });
+    return rows;
   };
 
   // KPIs del mes
@@ -221,17 +232,16 @@ export function AtemporaDashboard() {
   return (
     <div className="dash">
       <header className="dash__header">
-        <h1><img className="dash__logo dash__logo--flat" src="/sanvest-azul.png" alt="Sanvest" />Atémpora · <b className="dash__proj">Civitas</b></h1>
+        <h1>Atémpora · <b className="dash__proj">Civitas</b></h1>
         <div className="dash__slicers">
           <Slicer label="Año" value={year} options={years.map((y) => ({ value: y, label: String(y) }))} onChange={setYear} />
           <Slicer label="Mes" value={month} options={Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: MESES[i + 1] }))} onChange={setMonth} />
         </div>
       </header>
 
-      {/* Informe de Gestión (EERR Civitas): Mes + YTD, como la vista holding de RR */}
-      <section className="row row--two">
-        <HoldingPnL title="Informe de Gestión — Mes (UF)" {...civPnL("Monto", "ppto")} />
-        <HoldingPnL title="Informe de Gestión — YTD (UF)" {...civPnL("YTD Real", "YTD PPTO")} />
+      {/* Informe de Gestión (EERR Civitas): Mes | YTD unificado, como RR/ICEMM */}
+      <section>
+        <HoldingPnLMulti title="Informe de Gestión (UF)" rows={civPnLMulti()} groups={["Mes", "YTD"]} />
       </section>
 
       {/* Ocupación + Deuda */}

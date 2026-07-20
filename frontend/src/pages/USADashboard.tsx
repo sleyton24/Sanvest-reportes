@@ -37,28 +37,6 @@ const card = (title: string, labels: string[], fmt = "num"): CardSpec => ({
 });
 const isoOf = (r: Row, c: string) => String(r[c] ?? "").slice(0, 10);
 
-// Bandera de EE.UU. simplificada (SVG inline: Windows no renderiza los emoji de
-// bandera). 7 franjas rojas/blancas + cantón azul con 3 puntos; esquinas
-// redondeadas vía clipPath para que las franjas no sobresalgan del borde.
-const UsaFlag = () => (
-  <svg width={26} height={18} viewBox="0 0 26 18" aria-hidden="true"
-    style={{ verticalAlign: "-2px", marginRight: 8, flexShrink: 0 }}>
-    <clipPath id="usa-flag-clip"><rect width="26" height="18" rx="2" /></clipPath>
-    <g clipPath="url(#usa-flag-clip)">
-      <rect width="26" height="18" fill="#fff" />
-      {[0, 2, 4, 6].map((i) => (
-        <rect key={i} y={(i * 18) / 7} width="26" height={18 / 7} fill="#B22234" />
-      ))}
-      <rect width="11" height={(4 * 18) / 7} fill="#3C3B6E" />
-      <circle cx="3.7" cy="3.5" r="0.9" fill="#fff" />
-      <circle cx="7.3" cy="3.5" r="0.9" fill="#fff" />
-      <circle cx="5.5" cy="6.8" r="0.9" fill="#fff" />
-    </g>
-    {/* contorno sutil para que se lea bien sobre fondos claros u oscuros */}
-    <rect x="0.5" y="0.5" width="25" height="17" rx="1.6" fill="none" stroke="rgba(128,128,128,.35)" />
-  </svg>
-);
-
 export function USADashboard() {
   const { user } = useAuth();
   const [prop, setProp] = useState("Bemiston");
@@ -274,7 +252,7 @@ export function USADashboard() {
   return (
     <div className="dash">
       <header className="dash__header">
-        <h1><UsaFlag /><img className="dash__logo" src="/logos/double-eagle.png" alt="Double Eagle Development" />USA · <b className="dash__proj">{prop}</b></h1>
+        <h1><img className="dash__logo dash__logo--emm" src="/logos/double-eagle.png" alt="Double Eagle Development" />USA · <b className="dash__proj">{prop}</b></h1>
         <div className="dash__slicers">
           {/* botón Gestión / EV (reunión JMB): replica las dos páginas por propiedad del BI */}
           <div className="viewtoggle">

@@ -162,7 +162,7 @@ export function DVDashboard() {
   return (
     <div className="dash">
       <header className="dash__header">
-        <h1><img className="dash__logo dash__logo--flat" src="/sanvest-azul.png" alt="Sanvest" />Desarrollo para la Venta · <b className="dash__proj">{project.label}</b></h1>
+        <h1><img className="dash__logo dash__logo--emm" src="/logos/danacorp.png" alt="Danacorp" />Desarrollo para la Venta · <b className="dash__proj">{project.label}</b></h1>
         <div className="dash__slicers">
           <Slicer
             label="Proyecto"

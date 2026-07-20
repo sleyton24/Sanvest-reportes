@@ -47,7 +47,6 @@ export function App() {
         <nav className="topnav">
           <button className="brand brand--btn" onClick={() => setUnit("menu")} title="Menú principal">
             <img className="brand__logo" src="/sanvest-blanco.png" alt="Sanvest" />
-            <span className="brand__tag">BI</span>
           </button>
           {units.map((u) => (
             <button

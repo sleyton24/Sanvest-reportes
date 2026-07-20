@@ -268,7 +268,8 @@ body {
 .dash__logo--tile { height: 72px; }
 /* EMM: logo apaisado con subtítulo fino — a menor altura queda proporcionado
    con el título; multiply funde el fondo blanco del PNG con la página */
-.dash__logo--emm { height: 52px; border-radius: 0; mix-blend-mode: multiply; }
+/* logos apaisados transparentes (Danacorp, Double Eagle, EMM): limpios, sin caja */
+.dash__logo--emm { height: 52px; border-radius: 0; }
 
 .dash__header h1::before {            /* barra de color de la unidad */
   content: "";
@@ -669,10 +670,13 @@ body {
 .pivot__table .grp { border-left: 1px solid var(--border-strong); }
 .pivot__table thead .grp { text-align: center; }
 .pivot__table .strong { font-weight: 700; }
-/* totales FIJOS abajo (reunión JMB): el tfoot queda visible al hacer scroll */
+/* totales FIJOS abajo (reunión JMB): el tfoot queda visible al hacer scroll.
+   Fondo OPACO (tinte navy compuesto sobre crema sólido) para que la fila de
+   datos de atrás NO se transparente a través del total sticky. */
 .pivot__table tfoot td {
-  border-top: 2px solid var(--border-strong); background: var(--surface-2); font-weight: 700;
-  position: sticky; bottom: 0; z-index: 1;
+  border-top: 2px solid var(--border-strong); font-weight: 700;
+  background: linear-gradient(var(--surface-2), var(--surface-2)), var(--surface);
+  position: sticky; bottom: 0; z-index: 2;
 }
 
 /* balance contable (secciones > segmentos colapsables > detalle, + cuadre) */
