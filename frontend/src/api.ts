@@ -277,6 +277,18 @@ export async function saveDvDebt(body: DvDebtInput): Promise<any> {
   return data;
 }
 
+// Ingreso manual del avance de construcción de un proyecto DV (%). El gauge toma
+// el máximo entre versiones; el backend lo setea en el proyecto+período.
+export interface DvAvanceInput { proyecto: string; anio: number; mes: number; avance: number; }
+export async function saveDvAvance(body: DvAvanceInput): Promise<any> {
+  const res = await apiFetch(`/units/DV/avance-construccion`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new UploadError(res.status, (data as any).detail ?? data);
+  return data;
+}
+
 export async function saveUsaKpis(body: UsaKpiInput): Promise<any> {
   const res = await apiFetch(`/units/USA/kpis`, {
     method: "POST",

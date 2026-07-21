@@ -651,6 +651,40 @@ def upsert_dv_debt(body: DvDebtBody):
             "egresos": egresos, "preventas": preventas, "capital_socios": capital}
 
 
+# ----------------------------- avance de construcción DV ---------------------
+class DvAvanceBody(BaseModel):
+    proyecto: str
+    anio: int
+    mes: int
+    avance: float                 # % (95) o fracción (0.95); se guarda como fracción
+
+
+@app.post("/units/DV/avance-construccion", tags=["carga"], dependencies=[Depends(auth.require_admin)])
+def upsert_dv_avance(body: DvAvanceBody):
+    """Fija el AVANCE_CONSTRUCCIÓN de un proyecto DV en un período. El gauge toma el
+    MÁXIMO entre versiones, así que se actualiza en TODAS las filas del proyecto+período
+    (si no hay, inserta una fila PROYECCIÓN). Acepta % o fracción; guarda fracción."""
+    if not (1 <= body.mes <= 12):
+        raise HTTPException(400, "mes debe ser 1-12")
+    proyecto = body.proyecto.strip()
+    fid = body.anio * 100 + body.mes
+    fecha = f"{body.anio}-{body.mes:02d}-01"
+    frac = body.avance / 100.0 if body.avance > 1.5 else body.avance
+    T = qi("dv_construccion")
+    NP, AV, FID, VER, PE, TD, MC, AC = (qi("Nombre proyecto"), qi("AVANCE_CONSTRUCCIÓN"),
+                                        qi("Fecha ID "), qi("Versión"), qi("Periodo"),
+                                        qi("Tipo de datos"), qi("Mes de carga "), qi("Año de carga"))
+    with engine.begin() as con:
+        r = con.execute(text(f"UPDATE {T} SET {AV}=:v WHERE {NP}=:p AND {FID}=:f"),
+                        {"v": frac, "p": proyecto, "f": fid})
+        if r.rowcount == 0:
+            con.execute(text(
+                f"INSERT INTO {T} ({NP},{VER},{AV},{PE},{FID},{TD},{MC},{AC}) "
+                f"VALUES (:p,'PROYECCIÓN',:v,:pe,:f,'MANUAL',:mc,:ac)"),
+                {"p": proyecto, "v": frac, "pe": fecha, "f": fid, "mc": body.mes, "ac": body.anio})
+    return {"ok": True, "proyecto": proyecto, "periodo": fid, "avance": frac}
+
+
 RESERVED = {"limit", "offset", "order_by", "order_dir"}
 AGGS = {"sum": "SUM", "avg": "AVG", "min": "MIN", "max": "MAX", "count": "COUNT"}
 

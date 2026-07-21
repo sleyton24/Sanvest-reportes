@@ -11,6 +11,7 @@ import { KpiCard } from "../components/KpiCard";
 import { PivotTable } from "../components/PivotTable";
 import { ClusteredColumnChart, ComboChart, StackedColumnChart } from "../components/charts/Charts";
 import { DvDebtEntry } from "../components/DvDebtEntry";
+import { DvAvanceEntry } from "../components/DvAvanceEntry";
 import { Button } from "../components/Button";
 import { useAuth } from "../auth";
 
@@ -33,6 +34,7 @@ export function DVDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [debtOpen, setDebtOpen] = useState(false);
+  const [avanceOpen, setAvanceOpen] = useState(false);
   const { user } = useAuth();
 
   const project = PROJECTS.find((p) => p.id === projectId)!;
@@ -203,6 +205,11 @@ export function DVDashboard() {
               ✎ Actualizar deuda
             </Button>
           )}
+          {user?.can_upload && (
+            <Button variant="primary" onClick={() => setAvanceOpen((o) => !o)}>
+              ✎ Actualizar avance
+            </Button>
+          )}
         </div>
       </header>
 
@@ -214,6 +221,15 @@ export function DVDashboard() {
             defaultYear={year !== "" ? year : (lastRealFid ? Math.floor(lastRealFid / 100) : undefined)}
             defaultMonth={month !== "" ? month : (lastRealFid ? lastRealFid % 100 : undefined)}
             open={debtOpen} onToggle={() => setDebtOpen((o) => !o)}
+            onSaved={() => setRefresh((r) => r + 1)} />
+        </section>
+      )}
+      {avanceOpen && user?.can_upload && (
+        <section className="row" style={{ gridTemplateColumns: "1fr" }}>
+          <DvAvanceEntry proyecto={project.nombre} label={project.label}
+            defaultYear={year !== "" ? year : (lastRealFid ? Math.floor(lastRealFid / 100) : undefined)}
+            defaultMonth={month !== "" ? month : (lastRealFid ? lastRealFid % 100 : undefined)}
+            open={avanceOpen} onToggle={() => setAvanceOpen((o) => !o)}
             onSaved={() => setRefresh((r) => r + 1)} />
         </section>
       )}
