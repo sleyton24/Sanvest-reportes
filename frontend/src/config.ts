@@ -48,13 +48,13 @@ export interface FieldSpec {
   agg: Agg;
   label: string;
   fmt: Fmt;
-  sub?: string;       // subtítulo aclaratorio bajo el label
-  accent?: boolean;   // pinta el valor en verde (para destacarlo)
+  accent?: boolean;   // pinta el valor en verde si >=0, rojo si negativo
 }
 
 export interface CardSpec {
   title: string;
   fields: FieldSpec[];
+  note?: string;      // nota aclaratoria al pie de la tarjeta
 }
 
 // 4 KPI cards (campos y agregación tal como en el layout).
@@ -83,11 +83,12 @@ export const CARDS: CardSpec[] = [
       { table: "dv_ventas", col: "RESERVAS_Y_PROMESAS", agg: "sum", label: "Reservas y promesas", fmt: "int" },
       { table: "dv_ventas", col: "UNIDADES_ESCRITURADAS_FIRMADAS", agg: "sum", label: "Uds. escrituradas firmadas", fmt: "int" },
       { table: "dv_ventas", col: "UNIDADES_ESCRITURADAS_RECAUDADAS", agg: "sum", label: "Uds. escrituradas recaudadas", fmt: "int" },
-      { table: "financieros_sanvest", col: "UF/m2 Venta Dpto actual", agg: "sum", label: "UF/m² venta dpto actual", fmt: "num", sub: "superficie útil + media terraza" },
-      { table: "financieros_sanvest", col: "UF/m2 venta total actual", agg: "sum", label: "UF/m² venta total actual", fmt: "num", sub: "superficie útil + media terraza" },
-      { table: "financieros_sanvest", col: "UF/m2 Venta Dpto Ev. Original", agg: "sum", label: "UF/m² venta dpto (Ev. Original)", fmt: "num", sub: "superficie útil + media terraza" },
-      { table: "financieros_sanvest", col: "UF/m2 venta total EV. Original", agg: "sum", label: "UF/m² venta total (Ev. Original)", fmt: "num", sub: "superficie útil + media terraza" },
+      { table: "financieros_sanvest", col: "UF/m2 Venta Dpto actual", agg: "sum", label: "UF/m² venta dpto actual", fmt: "num" },
+      { table: "financieros_sanvest", col: "UF/m2 venta total actual", agg: "sum", label: "UF/m² venta total actual", fmt: "num" },
+      { table: "financieros_sanvest", col: "UF/m2 Venta Dpto Ev. Original", agg: "sum", label: "UF/m² venta dpto (Ev. Original)", fmt: "num" },
+      { table: "financieros_sanvest", col: "UF/m2 venta total EV. Original", agg: "sum", label: "UF/m² venta total (Ev. Original)", fmt: "num" },
     ],
+    note: "UF/m² calculado sobre superficie útil + media terraza.",
   },
   {
     title: "Ev. Original Información de Construcción",

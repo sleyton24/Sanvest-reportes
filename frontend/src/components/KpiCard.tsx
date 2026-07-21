@@ -30,11 +30,11 @@ export function KpiCard({
             <div className="kpi__item" key={f.label}>
               <div className="kpi__value" style={color ? { color } : undefined}>{FMT[f.fmt](v)}</div>
               <div className="kpi__label">{f.label}</div>
-              {f.sub && <div className="kpi__sub">{f.sub}</div>}
             </div>
           );
         })}
       </div>
+      {spec.note && <div className="kpi__note">{spec.note}</div>}
     </div>
   );
 }
