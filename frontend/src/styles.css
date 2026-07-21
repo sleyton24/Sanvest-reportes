@@ -665,7 +665,7 @@ body {
    celda pinta su propio borde y el header sticky de dos filas queda sin costura. */
 .pivot__table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
 .pivot__table th, .pivot__table td { padding: 6px 9px; border-bottom: 1px solid var(--border); text-align: left; }
-.pivot__table th { background: var(--bg-2); color: var(--muted); position: sticky; top: 0; font-weight: 600; }
+.pivot__table th { background: var(--navy); color: #fff; position: sticky; top: 0; font-weight: 600; }
 /* Cabecera de alto DETERMINISTA (box-border + line-height fija + sin padding vertical):
    la fila de grupos mide EXACTAMENTE 30px (borde incluido) y la 2ª fila sticky se pega
    a 30px, justo debajo, sin solape que tape texto ni hueco que muestre el fondo. */
@@ -676,7 +676,7 @@ body {
 .pivot__table thead tr:nth-child(2) th { top: 30px; }
 .pivot__table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .pivot__table .grp { border-left: 1px solid var(--border-strong); }
-.pivot__table thead .grp { text-align: center; }
+.pivot__table thead .grp { text-align: center; border-left-color: rgba(255, 255, 255, 0.28); }
 .pivot__table .strong { font-weight: 700; }
 /* totales FIJOS abajo (reunión JMB): el tfoot queda visible al hacer scroll.
    Fondo OPACO (tinte navy compuesto sobre crema sólido) para que la fila de

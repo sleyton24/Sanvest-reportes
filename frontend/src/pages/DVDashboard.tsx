@@ -161,6 +161,12 @@ export function DVDashboard() {
     .find((v): v is number => v != null);
   const soldUnits = aggregate(pointRows["dv_kpis"] ?? [], "UNIDADES_VENDIDAS", "max");
 
+  // "Saldo deuda" del cuadro Estado de Deuda = LÍNEA DE CRÉDITO GIRADA de Usos y
+  // Fondos (lo que se ingresa por el botón Actualizar deuda), no la tabla amortizacion.
+  const deudaGirada = (pointRows["dv_uso_y_fondo"] ?? [])
+    .filter((r) => String(r["SUBCATEGORIA"] ?? "").trim().toUpperCase() === "LÍNEA DE CRÉDITO GIRADA")
+    .reduce((a, r) => a + (num(r["Monto"]) ?? 0), 0);
+
   if (error) return <div className="state state--error">Error cargando datos: {error}</div>;
   if (loading) return <div className="state">Cargando {project.label}…</div>;
 
@@ -268,7 +274,7 @@ export function DVDashboard() {
             valueField={PIVOT.value}
           />
           <KpiCard spec={CARDS[3]}
-            values={CARDS[3].fields.map((f) => aggregate(pointRows[f.table], f.col, f.agg))} />
+            values={[deudaGirada, aggregate(pointRows["amortizacion"], "Amortizado", "max")]} />
         </div>
         <ClusteredColumnChart
           title={CHARTS[2].title}
