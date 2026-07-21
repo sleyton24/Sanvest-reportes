@@ -505,6 +505,65 @@ def upsert_usa_kpis(body: UsaKpiBody):
     return {"ok": True, "activo": body.activo, "periodo": fid, "campos": written}
 
 
+# ----------------------------- deuda DV (Usos y Fondos) ----------------------
+# Ingreso manual de la DEUDA (línea de crédito girada) por proyecto DV, que
+# recalcula el CAPITAL SOCIOS como residual que cierra la identidad Usos=Fondos:
+#   capital socios = EGRESOS A LA FECHA − LÍNEA DE CRÉDITO GIRADA − PREVENTAS
+# Escribe en dv_uso_y_fondo (la misma tabla que alimenta el pivot Usos y Fondos),
+# así el cambio se ve sin plumbing extra. Verificado: la fórmula reproduce 1:1 el
+# capital socios ya cargado en los 6 proyectos.
+class DvDebtBody(BaseModel):
+    proyecto: str                 # "Nombre proyecto" exacto: Millalongo / Sta. Victoria 155 / Sta. Victoria 99
+    anio: int
+    mes: int
+    deuda: float                  # LÍNEA DE CRÉDITO GIRADA (UF)
+
+
+_DV_UF = "dv_uso_y_fondo"
+_DV_GIRADA = "LÍNEA DE CRÉDITO GIRADA"
+_DV_CAPITAL = "CAPITAL SOCIOS FONDOS"
+
+
+@app.post("/units/DV/uso-fondo", tags=["carga"], dependencies=[Depends(auth.require_admin)])
+def upsert_dv_debt(body: DvDebtBody):
+    """Fija la deuda (línea girada) de un proyecto DV en un período y recalcula el
+    capital socios (= egresos − deuda − preventas). Upsert por (proyecto, período,
+    subcategoría) sobre dv_uso_y_fondo."""
+    if not (1 <= body.mes <= 12):
+        raise HTTPException(400, "mes debe ser 1-12")
+    proyecto = body.proyecto.strip()
+    fid = body.anio * 100 + body.mes
+    fecha = f"{body.anio}-{body.mes:02d}-01"
+    T = qi(_DV_UF)
+    NP, SUB, CAT, MON, FID, FE = (qi("Nombre proyecto"), qi("SUBCATEGORIA"),
+                                  qi("Categoria"), qi("Monto"), qi("Fecha ID"), qi("Fecha"))
+    MC, AC, TD = qi("Mes de carga"), qi("Año de carga"), qi("Tipo de datos")
+
+    def _sum(con, subcat: str) -> float:
+        v = con.execute(text(f"SELECT SUM({MON}) FROM {T} WHERE {NP}=:p AND {FID}=:f AND {SUB}=:s"),
+                        {"p": proyecto, "f": fid, "s": subcat}).scalar()
+        return float(v) if v is not None else 0.0
+
+    def _upsert(con, subcat: str, monto: float) -> None:
+        r = con.execute(text(f"UPDATE {T} SET {MON}=:m WHERE {NP}=:p AND {FID}=:f AND {SUB}=:s"),
+                        {"m": monto, "p": proyecto, "f": fid, "s": subcat})
+        if r.rowcount == 0:  # período/proyecto sin esa línea aún → insertar
+            con.execute(text(
+                f"INSERT INTO {T} ({NP},{CAT},{SUB},{MON},{FE},{FID},{TD},{MC},{AC}) "
+                f"VALUES (:p,'FONDOS',:s,:m,:fe,:f,'MANUAL',:mc,:ac)"),
+                {"p": proyecto, "s": subcat, "m": monto, "fe": fecha, "f": fid,
+                 "mc": body.mes, "ac": body.anio})
+
+    with engine.begin() as con:
+        egresos = _sum(con, "EGRESOS A LA FECHA")
+        preventas = _sum(con, "PREVENTAS")
+        _upsert(con, _DV_GIRADA, body.deuda)
+        capital = egresos - body.deuda - preventas
+        _upsert(con, _DV_CAPITAL, capital)
+    return {"ok": True, "proyecto": proyecto, "periodo": fid, "deuda": body.deuda,
+            "egresos": egresos, "preventas": preventas, "capital_socios": capital}
+
+
 RESERVED = {"limit", "offset", "order_by", "order_dir"}
 AGGS = {"sum": "SUM", "avg": "AVG", "min": "MIN", "max": "MAX", "count": "COUNT"}
 

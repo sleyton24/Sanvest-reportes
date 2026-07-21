@@ -10,6 +10,9 @@ import { Gauge } from "../components/Gauge";
 import { KpiCard } from "../components/KpiCard";
 import { PivotTable } from "../components/PivotTable";
 import { ClusteredColumnChart, ComboChart, StackedColumnChart } from "../components/charts/Charts";
+import { DvDebtEntry } from "../components/DvDebtEntry";
+import { Button } from "../components/Button";
+import { useAuth } from "../auth";
 
 // tablas que se cargan una vez por proyecto (filtradas proyecto+versión)
 const DATASET_SLUGS = [
@@ -28,7 +31,9 @@ export function DVDashboard() {
   const [data, setData] = useState<Record<string, Row[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refresh] = useState(0);
+  const [refresh, setRefresh] = useState(0);
+  const [debtOpen, setDebtOpen] = useState(false);
+  const { user } = useAuth();
 
   const project = PROJECTS.find((p) => p.id === projectId)!;
 
@@ -183,8 +188,25 @@ export function DVDashboard() {
             options={months.map((m) => ({ value: m, label: MESES[m] ?? String(m) }))}
             onChange={setMonth}
           />
+          {user?.can_upload && (
+            <Button variant="primary" onClick={() => setDebtOpen((o) => !o)}>
+              ✎ Actualizar deuda
+            </Button>
+          )}
         </div>
       </header>
+
+      {/* Ingreso manual de la deuda (línea girada) → recalcula capital socios en
+          Usos y Fondos. Solo admin. */}
+      {debtOpen && user?.can_upload && (
+        <section className="row" style={{ gridTemplateColumns: "1fr" }}>
+          <DvDebtEntry proyecto={project.nombre} label={project.label}
+            defaultYear={year !== "" ? year : (lastRealFid ? Math.floor(lastRealFid / 100) : undefined)}
+            defaultMonth={month !== "" ? month : (lastRealFid ? lastRealFid % 100 : undefined)}
+            open={debtOpen} onToggle={() => setDebtOpen((o) => !o)}
+            onSaved={() => setRefresh((r) => r + 1)} />
+        </section>
+      )}
 
       {/* Resumen: avance (gauges) + ventas a la fecha */}
       <section className="row row--top">
