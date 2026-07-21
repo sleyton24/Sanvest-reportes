@@ -13,6 +13,9 @@ import { AdminPage } from "./pages/AdminPage";
 import { ChangePassword } from "./components/ChangePassword";
 import { useAuth } from "./auth";
 import { UNITS } from "./units";
+import { logUnitAccess } from "./api";
+
+const UNIT_IDS = new Set(UNITS.map((u) => u.id));
 
 export function App() {
   const { user, loading, logout } = useAuth();
@@ -33,6 +36,12 @@ export function App() {
     setPrintLabels(true);
     window.setTimeout(() => window.print(), 400);
   };
+
+  // Bitácora: al abrir el dashboard de una unidad de negocio, registra el acceso
+  // (una vez por apertura). No cuenta "menu" ni "admin".
+  useEffect(() => {
+    if (user && UNIT_IDS.has(unit)) logUnitAccess(unit);
+  }, [unit, user]);
 
   // Gate de sesión: mientras rehidrata, spinner; sin usuario, pantalla de login.
   if (loading) return <div className="state">Cargando…</div>;

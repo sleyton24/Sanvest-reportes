@@ -123,15 +123,58 @@ class UpdateUserBody(BaseModel):
     active: bool | None = None
 
 
+def _client_ip(request: Request) -> str | None:
+    """IP real del cliente detrás de nginx (X-Forwarded-For), con fallback directo."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else None
+
+
 @app.post("/auth/login", tags=["auth"])
-def login(body: LoginBody):
+def login(body: LoginBody, request: Request):
     """Login usuario/contraseña. Devuelve token firmado + perfil (unidades y
     permisos). El front guarda el token y lo manda como Bearer en cada llamada."""
     u = auth.authenticate(body.username.strip(), body.password)
     if not u:
         raise HTTPException(401, "Usuario o contraseña incorrectos.")
+    auth.log_access(u["username"], "login", ip=_client_ip(request))
     return {"token": auth.make_token(u["username"], u["role"]),
             "user": auth.public_user(u)}
+
+
+class UnitAccessBody(BaseModel):
+    unit: str
+
+
+@app.post("/auth/access/unit", tags=["auth"])
+def log_unit_access(body: UnitAccessBody, request: Request,
+                    user: dict = Depends(auth.current_user)):
+    """Registra que el usuario ABRIÓ el dashboard de una unidad (1 evento por
+    apertura). El front lo llama al navegar; valida que la unidad exista y que el
+    usuario tenga acceso, así la bitácora no acumula ids inválidos."""
+    unit = body.unit.strip()
+    if not cat.get_unit(unit):
+        raise HTTPException(404, f"unidad '{unit}' no existe")
+    if not auth.user_can_see(user, unit):
+        raise HTTPException(403, f"Sin acceso a la unidad '{unit}'.")
+    auth.log_access(user["username"], "unit", unit=unit, ip=_client_ip(request))
+    return {"ok": True}
+
+
+@app.get("/auth/access/stats", tags=["auth"])
+def access_stats(days: int = Query(30, ge=1, le=365),
+                 _admin: dict = Depends(auth.require_admin)):
+    """Métricas de acceso (solo admin): totales, por usuario, por unidad, por día
+    y el cruce usuario×unidad, en la ventana de `days` días."""
+    return auth.access_stats(days)
+
+
+@app.get("/auth/access/log", tags=["auth"])
+def access_log(limit: int = Query(200, ge=1, le=1000),
+               _admin: dict = Depends(auth.require_admin)):
+    """Bitácora cruda de accesos más recientes (solo admin)."""
+    return auth.recent_access(limit)
 
 
 @app.get("/auth/me", tags=["auth"])

@@ -22,7 +22,7 @@ import json
 import os
 import secrets
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import Depends, Header, HTTPException
@@ -40,7 +40,7 @@ PBKDF2_ITERS = 200_000
 
 # ----------------------------- tabla -----------------------------------------
 def init_db() -> None:
-    """Crea la tabla app_users si no existe. Idempotente y portable."""
+    """Crea las tablas app_users y access_log si no existen. Idempotente y portable."""
     with engine.begin() as con:
         con.execute(text(
             """
@@ -55,6 +55,20 @@ def init_db() -> None:
             )
             """
         ))
+        # Bitácora de accesos: sin PK autoincremental (no es portable SQLite/PG);
+        # solo columnas + índice por fecha. `event` = 'login' | 'unit'.
+        con.execute(text(
+            """
+            CREATE TABLE IF NOT EXISTS access_log (
+              ts       TEXT NOT NULL,
+              username TEXT NOT NULL,
+              event    TEXT NOT NULL,
+              unit     TEXT,
+              ip       TEXT
+            )
+            """
+        ))
+        con.execute(text("CREATE INDEX IF NOT EXISTS ix_access_log_ts ON access_log (ts)"))
 
 
 # ----------------------------- password (pbkdf2) ------------------------------
@@ -220,6 +234,105 @@ def set_active(username: str, active: bool) -> bool:
 def count_users() -> int:
     with engine.connect() as con:
         return con.execute(text("SELECT COUNT(*) FROM app_users")).scalar() or 0
+
+
+# ----------------------------- bitácora de accesos ---------------------------
+# Registro de quién entra y a qué unidades. El INSERT es best-effort: un fallo
+# acá NUNCA debe tumbar el login ni la navegación (se traga la excepción). Las
+# consultas de estadísticas usan SQL portable (SQLite dev / Postgres prod):
+#   - SUBSTR(ts,1,10) para agrupar por día (ts es ISO, ordena cronológicamente)
+#   - SUM(CASE WHEN ...) y COUNT(DISTINCT ...) en vez de dialecto específico.
+def log_access(username: str, event: str, unit: str | None = None,
+               ip: str | None = None) -> None:
+    """Anota un evento ('login' | 'unit'). Silencioso ante cualquier error."""
+    try:
+        with engine.begin() as con:
+            con.execute(text(
+                "INSERT INTO access_log (ts, username, event, unit, ip) "
+                "VALUES (:ts, :u, :e, :un, :ip)"),
+                {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                 "u": username, "e": event, "un": unit, "ip": ip})
+    except Exception as e:  # noqa: BLE001 — la bitácora jamás bloquea el flujo
+        print(f"[access_log] no se pudo registrar {event} de {username}: {e}")
+
+
+def _i(v: Any) -> int:
+    return int(v) if v is not None else 0
+
+
+def access_stats(days: int = 30) -> dict:
+    """Métricas agregadas de acceso en la ventana [hoy-days, hoy]: totales,
+    por usuario, por unidad, por día y el cruce usuario×unidad (para el front)."""
+    since = (datetime.now(timezone.utc) - timedelta(days=max(1, days))
+             ).isoformat(timespec="seconds")
+    with engine.connect() as con:
+        by_user = [dict(r) for r in con.execute(text(
+            """
+            SELECT a.username AS username,
+                   u.full_name AS full_name,
+                   SUM(CASE WHEN a.event='login' THEN 1 ELSE 0 END) AS logins,
+                   SUM(CASE WHEN a.event='unit'  THEN 1 ELSE 0 END) AS views,
+                   MAX(a.ts) AS last_seen
+            FROM access_log a
+            LEFT JOIN app_users u ON u.username = a.username
+            WHERE a.ts >= :since
+            GROUP BY a.username, u.full_name
+            ORDER BY logins DESC, views DESC
+            """), {"since": since}).mappings().all()]
+        by_unit = [dict(r) for r in con.execute(text(
+            """
+            SELECT unit AS unit,
+                   COUNT(*) AS views,
+                   COUNT(DISTINCT username) AS users
+            FROM access_log
+            WHERE event='unit' AND unit IS NOT NULL AND ts >= :since
+            GROUP BY unit
+            ORDER BY views DESC
+            """), {"since": since}).mappings().all()]
+        by_day = [dict(r) for r in con.execute(text(
+            """
+            SELECT SUBSTR(ts, 1, 10) AS day,
+                   SUM(CASE WHEN event='login' THEN 1 ELSE 0 END) AS logins,
+                   SUM(CASE WHEN event='unit'  THEN 1 ELSE 0 END) AS views
+            FROM access_log
+            WHERE ts >= :since
+            GROUP BY SUBSTR(ts, 1, 10)
+            ORDER BY day
+            """), {"since": since}).mappings().all()]
+        by_user_unit = [dict(r) for r in con.execute(text(
+            """
+            SELECT username AS username, unit AS unit, COUNT(*) AS views
+            FROM access_log
+            WHERE event='unit' AND unit IS NOT NULL AND ts >= :since
+            GROUP BY username, unit
+            ORDER BY username, views DESC
+            """), {"since": since}).mappings().all()]
+        totals = con.execute(text(
+            """
+            SELECT SUM(CASE WHEN event='login' THEN 1 ELSE 0 END) AS logins,
+                   SUM(CASE WHEN event='unit'  THEN 1 ELSE 0 END) AS views,
+                   COUNT(DISTINCT username) AS active_users
+            FROM access_log WHERE ts >= :since
+            """), {"since": since}).mappings().first() or {}
+    return {
+        "days": days,
+        "since": since,
+        "totals": {"logins": _i(totals.get("logins")), "views": _i(totals.get("views")),
+                   "active_users": _i(totals.get("active_users"))},
+        "by_user": [{**r, "logins": _i(r["logins"]), "views": _i(r["views"])} for r in by_user],
+        "by_unit": [{**r, "views": _i(r["views"]), "users": _i(r["users"])} for r in by_unit],
+        "by_day": [{**r, "logins": _i(r["logins"]), "views": _i(r["views"])} for r in by_day],
+        "by_user_unit": [{**r, "views": _i(r["views"])} for r in by_user_unit],
+    }
+
+
+def recent_access(limit: int = 200) -> list[dict]:
+    """Últimos eventos de acceso (más recientes primero) para la bitácora."""
+    with engine.connect() as con:
+        rows = con.execute(text(
+            "SELECT ts, username, event, unit, ip FROM access_log "
+            "ORDER BY ts DESC LIMIT :lim"), {"lim": max(1, min(limit, 1000))}).mappings().all()
+    return [dict(r) for r in rows]
 
 
 # ----------------------------- perfilado -------------------------------------

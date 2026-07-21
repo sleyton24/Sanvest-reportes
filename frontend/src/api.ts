@@ -114,6 +114,38 @@ export async function listUsers(): Promise<AppUser[]> {
   return jsonOrThrow(await apiFetch(`/auth/users`), "listar usuarios");
 }
 
+// --- bitácora / estadísticas de acceso ---
+// Registra que el usuario abrió una unidad. Fire-and-forget: no bloquea la
+// navegación ni propaga errores (la métrica es secundaria).
+export function logUnitAccess(unit: string): void {
+  apiFetch(`/auth/access/unit`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ unit }),
+  }).catch(() => {});
+}
+
+export interface AccessStats {
+  days: number;
+  since: string;
+  totals: { logins: number; views: number; active_users: number };
+  by_user: { username: string; full_name: string | null; logins: number; views: number; last_seen: string | null }[];
+  by_unit: { unit: string; views: number; users: number }[];
+  by_day: { day: string; logins: number; views: number }[];
+  by_user_unit: { username: string; unit: string; views: number }[];
+}
+
+export async function fetchAccessStats(days = 30): Promise<AccessStats> {
+  return jsonOrThrow(await apiFetch(`/auth/access/stats?days=${days}`), "estadísticas de acceso");
+}
+
+export interface AccessLogRow {
+  ts: string; username: string; event: string; unit: string | null; ip: string | null;
+}
+
+export async function fetchAccessLog(limit = 200): Promise<AccessLogRow[]> {
+  return jsonOrThrow(await apiFetch(`/auth/access/log?limit=${limit}`), "bitácora de acceso");
+}
+
 export async function createUser(body: NewUser): Promise<{ ok: boolean; user: AppUser }> {
   return jsonOrThrow(await apiFetch(`/auth/users`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
