@@ -175,7 +175,11 @@ export function USADashboard() {
       if (anio == null || mes == null) continue;
       const key = `${anio}-${String(mes).padStart(2, "0")}`;
       const e = m.get(key) ?? { key, iso: `${key}-01`, Actual: 0, Ppto: 0, _a: false, _p: false };
-      const a = num(r["Real"]), b = num(r["Ppto"]);
+      let a = num(r["Real"]), b = num(r["Ppto"]);
+      // OpEx = costo: se normaliza a NEGATIVO venga como venga del origen
+      // (Bemiston/Mila lo traen negativo; St Grand lo trae POSITIVO). Así el gráfico
+      // de gastos (pos()) y el NOI (Revenue + OpEx) quedan correctos para las 3.
+      if (secU(r) === OPEX) { if (a != null) a = -Math.abs(a); if (b != null) b = -Math.abs(b); }
       if (a != null) { e.Actual += a; e._a = true; }
       if (b != null) { e.Ppto += b; e._p = true; }
       m.set(key, e);
