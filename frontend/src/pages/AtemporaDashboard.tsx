@@ -243,7 +243,7 @@ export function AtemporaDashboard() {
       </header>
 
       {/* Informe de Gestión (EERR Civitas): Mes | YTD unificado, como RR/ICEMM */}
-      <section>
+      <section style={{ marginBottom: 22 }}>
         <HoldingPnLMulti title="Informe de Gestión (UF)" rows={civPnLMulti()} groups={["Mes", "YTD"]} />
       </section>
 
