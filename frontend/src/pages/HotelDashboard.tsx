@@ -186,10 +186,9 @@ export function HotelDashboard() {
       byLoan.set(String(r["Activo"]), r);
     return [...byLoan.values()];
   })();
-  const deudaTot = deudaHotel.reduce((a: { saldo: number; total: number; cuota: number }, r) => ({
+  const deudaTot = deudaHotel.reduce((a: { saldo: number; total: number }, r) => ({
     saldo: a.saldo + (num(r["por pagar"]) ?? 0), total: a.total + (num(r["Deuda total"]) ?? 0),
-    cuota: a.cuota + (num(r["Cuota"]) ?? 0),
-  }), { saldo: 0, total: 0, cuota: 0 });
+  }), { saldo: 0, total: 0 });
 
   const indItems = [...new Set((pointRows[FULL] ?? []).map((r) => String(r["Item"])))];
   const indRowMY = (item: string): IndicatorRowMY => {
@@ -232,7 +231,7 @@ export function HotelDashboard() {
           gridTemplateColumns: `repeat(${deudaHotel.length + (deudaHotel.length > 1 ? 1 : 0)}, 1fr)`,
         }}>
           {deudaHotel.map((r) => {
-            const saldo = num(r["por pagar"]), total = num(r["Deuda total"]), cuota = num(r["Cuota"]);
+            const saldo = num(r["por pagar"]), total = num(r["Deuda total"]);
             const amort = total && saldo != null ? (total - saldo) / total : null;
             return (
               <div className="card" key={String(r["Activo"])}>
@@ -240,7 +239,6 @@ export function HotelDashboard() {
                 <div className="kpi__grid">
                   <div className="kpi__item"><div className="kpi__value">{fmtUF(saldo)}</div><div className="kpi__label">Saldo por pagar (UF)</div></div>
                   <div className="kpi__item"><div className="kpi__value">{fmtUF(total)}</div><div className="kpi__label">Deuda total (UF)</div></div>
-                  <div className="kpi__item"><div className="kpi__value">{fmtUF(cuota)}</div><div className="kpi__label">Cuota del mes (UF)</div></div>
                   <div className="kpi__item"><div className="kpi__value">{amort != null ? fmtPct(amort, 1) : "—"}</div><div className="kpi__label">% Amortizado</div></div>
                 </div>
               </div>
@@ -252,7 +250,6 @@ export function HotelDashboard() {
               <div className="kpi__grid">
                 <div className="kpi__item"><div className="kpi__value">{fmtUF(deudaTot.saldo)}</div><div className="kpi__label">Saldo por pagar (UF)</div></div>
                 <div className="kpi__item"><div className="kpi__value">{fmtUF(deudaTot.total)}</div><div className="kpi__label">Deuda total (UF)</div></div>
-                <div className="kpi__item"><div className="kpi__value">{fmtUF(deudaTot.cuota)}</div><div className="kpi__label">Cuota del mes (UF)</div></div>
                 <div className="kpi__item"><div className="kpi__value">{deudaTot.total ? fmtPct((deudaTot.total - deudaTot.saldo) / deudaTot.total, 1) : "—"}</div><div className="kpi__label">% Amortizado</div></div>
               </div>
             </div>

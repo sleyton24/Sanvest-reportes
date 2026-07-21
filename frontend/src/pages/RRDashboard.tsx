@@ -360,7 +360,7 @@ export function RRDashboard() {
 
           {/* Deuda (cronograma de amortización) — solo si hay tabla deuda_activos */}
           {deudaPt && (() => {
-            const saldo = num(deudaPt["por pagar"]), total = num(deudaPt["Deuda total"]), cuota = num(deudaPt["Cuota"]);
+            const saldo = num(deudaPt["por pagar"]), total = num(deudaPt["Deuda total"]);
             const amort = total && saldo != null ? (total - saldo) / total : null;
             return (
               <section className="row" style={{ gridTemplateColumns: "1fr" }}>
@@ -369,7 +369,6 @@ export function RRDashboard() {
                   <div className="kpi__grid">
                     <div className="kpi__item"><div className="kpi__value">{fmtUF(saldo)}</div><div className="kpi__label">Saldo por pagar (UF)</div></div>
                     <div className="kpi__item"><div className="kpi__value">{fmtUF(total)}</div><div className="kpi__label">Deuda total (UF)</div></div>
-                    <div className="kpi__item"><div className="kpi__value">{fmtUF(cuota)}</div><div className="kpi__label">Cuota del mes (UF)</div></div>
                     <div className="kpi__item"><div className="kpi__value">{amort != null ? fmtPct(amort, 1) : "—"}</div><div className="kpi__label">% Amortizado</div></div>
                   </div>
                 </div>
