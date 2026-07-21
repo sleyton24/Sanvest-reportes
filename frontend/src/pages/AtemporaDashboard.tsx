@@ -106,8 +106,11 @@ export function AtemporaDashboard() {
       ],
     }));
     if (!rows.length) return [];
-    const ebitda = (c: string) => sum(1, c) - sum(2, c);
-    const result = (c: string) => sum(1, c) - sum(2, c) - sum(3, c);
+    // Gastos vienen con SIGNO NEGATIVO en el dato (Gastos Op. y Otros gastos), así
+    // que EBITDA/Resultado se SUMAN (no se restan): Ingresos + Gastos + Otros.
+    // Antes se restaban y, al restar negativos, inflaban el resultado (bug de signo).
+    const ebitda = (c: string) => sum(1, c) + sum(2, c);
+    const result = (c: string) => sum(1, c) + sum(2, c) + sum(3, c);
     rows.push({ nivel1: "Gastos Operacionales", nivel2: "EBITDA", indice: 4, vals: [
       { real: ebitda("Monto"), ppto: ebitda("ppto") },
       { real: ebitda("YTD Real"), ppto: ebitda("YTD PPTO") }] });
@@ -265,8 +268,9 @@ export function AtemporaDashboard() {
         {COMBO("Gastos Operacionales (UF)", (e) => e.gopR, (e) => e.gopP)}
       </section>
       <section className="row row--two">
-        {COMBO("EBITDA (UF)", (e) => e.ingR - e.gopR, (e) => e.ingP - e.gopP)}
-        {COMBO("Resultado (UF)", (e) => e.ingR - e.gopR - e.otrR, (e) => e.ingP - e.gopP - e.otrP)}
+        {/* gastos vienen negativos → EBITDA/Resultado se SUMAN (ver civPnLMulti) */}
+        {COMBO("EBITDA (UF)", (e) => e.ingR + e.gopR, (e) => e.ingP + e.gopP)}
+        {COMBO("Resultado (UF)", (e) => e.ingR + e.gopR + e.otrR, (e) => e.ingP + e.gopP + e.otrP)}
       </section>
 
       {/* Cuadros */}
@@ -350,7 +354,7 @@ export function AtemporaDashboard() {
       <footer className="dash__footer">
         Gestión Atémpora (Civitas): EERR (Ingresos / Gastos Operacionales / Otros gastos), KPIs de
         Oficinas y Locales, ocupación, deuda, y cuadros de arriendos, ventas y morosidad. Datos del
-        Excel CIVITAS; combos EBITDA = Ingresos − Gastos Op., Resultado = − Otros gastos.
+        Excel CIVITAS; los gastos vienen con signo negativo, por eso EBITDA = Ingresos + Gastos Op. y Resultado = + Otros gastos.
       </footer>
     </div>
   );

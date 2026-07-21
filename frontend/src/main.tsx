@@ -4,15 +4,14 @@ import { App } from "./App";
 import { AuthProvider } from "./auth";
 import "./styles.css";
 
-// Escalado "fit-to-width": el panel se diseñó a ~1320px de ancho y, en pantallas
-// grandes (1920), a zoom 1.45 (tamaño "directorio"). Para que TODAS las pantallas
-// —chicas o cuadradas— muestren EXACTAMENTE el mismo layout sin re-acomodarse ni
-// apilar columnas, ajustamos el zoom para que el ancho de layout quede fijo (~1320px)
-// y todo se achique/agrande proporcionalmente hasta llenar el ancho de la ventana.
-// Cap en 1.45 (no agranda más que el tamaño actual). Los breakpoints que apilaban se
-// eliminaron en styles.css: acá el layout es único y solo se escala.
+// Escalado "fit-to-width": el panel se diseñó a ~1320px. En pantallas MÁS ANGOSTAS
+// que eso se achica proporcionalmente para que quepa sin scroll horizontal ni
+// reacomodar columnas. En pantallas más anchas NO magnifica: 100% del navegador =
+// tamaño real (MAX_ZOOM = 1.0). Antes el cap era 1.45 (tamaño "directorio"), que se
+// veía enorme a 100% y obligaba a bajar el zoom del navegador. Si se quiere el modo
+// grande para una TV/presentación, subir MAX_ZOOM o usar el zoom del navegador.
 const DESIGN_W = 1320;
-const MAX_ZOOM = 1.45;
+const MAX_ZOOM = 1.0;
 const MIN_ZOOM = 0.5;
 function fitZoom() {
   // clientWidth excluye la barra de scroll vertical → evita scroll horizontal

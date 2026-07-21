@@ -76,9 +76,9 @@ body {
   background: var(--bg);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
-  /* Zoom base (fallback sin JS). En runtime, main.tsx lo sobreescribe con un zoom
-     "fit-to-width" para que el layout se vea igual y completo en cualquier pantalla. */
-  zoom: 1.45;
+  /* Zoom base (fallback sin JS). En runtime, main.tsx lo ajusta "fit-to-width":
+     100% = tamaño real; solo achica en pantallas más angostas que el diseño. */
+  zoom: 1;
 }
 
 /* ----------------------------- top nav ------------------------------------ */
@@ -93,9 +93,6 @@ body {
   position: sticky;
   top: 0;
   z-index: 20;
-  /* red de seguridad: si el contenido no cabe, la barra navy se extiende (con
-     scroll) en vez de cortarse a media palabra sobre el fondo claro */
-  min-width: max-content;
 }
 /* logotipo oficial SANVEST (archivo de marca — blanco, sobre navy) */
 .brand {
@@ -107,6 +104,9 @@ body {
   flex-shrink: 0;                     /* el logo nunca se aplasta */
 }
 .brand--btn { background: transparent; border: none; cursor: pointer; padding: 0; }
+/* sin recuadro blanco al hacer clic (contorno de foco solo por teclado, a11y) */
+.brand--btn:focus { outline: none; }
+.brand--btn:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.6); outline-offset: 3px; border-radius: 6px; }
 .brand__logo { height: 54px; width: auto; display: block; }
 .brand__tag {
   font-size: 13px;
@@ -661,10 +661,13 @@ body {
 .pivot__scroll { overflow: auto; max-height: 360px; }
 .pivot__table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .pivot__table th, .pivot__table td { padding: 6px 9px; border-bottom: 1px solid var(--border); text-align: left; }
-.pivot__table th { background: var(--bg-2); color: var(--muted); position: sticky; top: 0; font-weight: 600; }
-/* cabecera de DOS filas (grupos Q1 | año ant., Mensual | YTD, etc.): la 2ª fila
-   se pega DEBAJO de la 1ª en vez de superponerse (ambas quedaban en top:0 y la
-   fila de grupos desaparecía) */
+.pivot__table th {
+  background: var(--bg-2); color: var(--muted); position: sticky; top: 0; font-weight: 600;
+  height: 30px;   /* alto FIJO de cabecera: la 2ª fila sticky calza sin dejar "hoyo" */
+}
+/* cabecera de DOS filas (grupos Q1 | año ant., Mes | YTD, etc.): la 2ª fila se pega
+   a 29px = 1px de SOLAPE con la 1ª (evita el hueco por el que se transparentaban
+   las filas de datos al hacer scroll). Ambas filas son opacas (bg-2). */
 .pivot__table thead tr:nth-child(2) th { top: 29px; }
 .pivot__table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .pivot__table .grp { border-left: 1px solid var(--border-strong); }
@@ -675,9 +678,10 @@ body {
    datos de atrás NO se transparente a través del total sticky. */
 .pivot__table tfoot td {
   border-top: 2px solid var(--border-strong); font-weight: 700;
-  background: linear-gradient(var(--surface-2), var(--surface-2)), var(--surface);
-  position: sticky; bottom: 0; z-index: 2;
+  background-color: #EDEAE0;      /* crema + tinte navy, OPACO (no translúcido) */
+  position: sticky; bottom: 0; z-index: 3;
 }
+.pivot__table tfoot tr { background-color: #EDEAE0; }   /* refuerzo por si la fila se ve */
 
 /* balance contable (secciones > segmentos colapsables > detalle, + cuadre) */
 .bsheet__table .bsheet__section { cursor: pointer; }
