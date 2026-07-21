@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { fetchRows, num, Row } from "../api";
 import { CardSpec } from "../config";
 import { last12 } from "../data";
-import { fmtNum, fmtPct, fmtInt, fmtRatio, periodKey } from "../format";
+import { fmtNum, fmtPct, fmtInt, fmtRatio } from "../format";
 import { Slicer } from "../components/Slicer";
 import { Gauge } from "../components/Gauge";
 import { KpiCard } from "../components/KpiCard";
@@ -36,6 +36,9 @@ const card = (title: string, labels: string[], fmt = "num"): CardSpec => ({
   title, fields: labels.map((l) => ({ table: "", col: "", agg: "max" as const, label: l, fmt: fmt as any })),
 });
 const isoOf = (r: Row, c: string) => String(r[c] ?? "").slice(0, 10);
+// Secciones del Operating Statements (usa_pnl) que alimentan los combos.
+const REV = "REVENUE", OPEX = "OPERATING EXPENSES";
+const secU = (r: Row) => String(r["Seccion"] ?? "").trim().toUpperCase();
 
 export function USADashboard() {
   const { user } = useAuth();
@@ -45,7 +48,6 @@ export function USADashboard() {
   const [year, setYear] = useState<number | "">("");
   const [month, setMonth] = useState<number | "">("");
   const [pnl, setPnl] = useState<Row[]>([]);
-  const [graf, setGraf] = useState<Row[]>([]);
   const [ocup, setOcup] = useState<Row[]>([]);
   const [kpis, setKpis] = useState<Row[]>([]);
   const [modelo, setModelo] = useState<Row[]>([]);   // usa_modelo_original_bemiston (términos por propiedad)
@@ -87,14 +89,14 @@ export function USADashboard() {
 
   useEffect(() => {
     let off = false; setLoading(true); setError(null);
-    Promise.all([fetchRows("USA", "usa_pnl"), fetchRows("USA", "usa_graficos"),
+    Promise.all([fetchRows("USA", "usa_pnl"),
                  fetchRows("USA", "ocupacion_ppto"), fetchRows("USA", "usa_kpis_gestion"),
                  fetchRows("USA", "usa_modelo_original_bemiston"),
                  fetchRows("USA", "bemiston_gp_and_lp_information"),
                  fetchRows("USA", "bemiston_property_info"),
                  fetchRows("USA", "usa_bemiston_tipologias"),
                  fetchRows("USA", "uso_y_fondo_bemiston")])
-      .then(([a, b, c, d, mo, gl, pi, tp, us]) => { if (!off) { setPnl(a); setGraf(b); setOcup(c); setKpis(d); setModelo(mo); setGplp(gl); setPropInfo(pi); setTipol(tp); setUsos(us); } })
+      .then(([a, c, d, mo, gl, pi, tp, us]) => { if (!off) { setPnl(a); setOcup(c); setKpis(d); setModelo(mo); setGplp(gl); setPropInfo(pi); setTipol(tp); setUsos(us); } })
       .catch((e) => !off && setError(String(e))).finally(() => !off && setLoading(false));
     return () => { off = true; };
   }, [refresh]);
@@ -159,32 +161,25 @@ export function USADashboard() {
   const rentSeries = kpiRows.map((r) => ({ key: `${num(r["YEAR"])}-${String(num(r["Month"])).padStart(2, "0")}`, iso: `${num(r["YEAR"])}-${String(num(r["Month"])).padStart(2, "0")}-01`,
     "Actual": num(r["Dólar SQF AC MONTH"]), "Ppto": num(r["Dólar SQF BD MONTH"]) }));
 
-  // --- Revenue/OpEx/NOI (combos) desde usa_graficos ---
-  // Trae años COMPLETOS (elegido + anterior) para que el YTD acumule desde enero;
-  // la ventana de 12 meses se recorta con last12 DESPUÉS del acumulado.
-  const grafRows = useMemo(() => graf.filter((r) => String(r["Activo"]).trim() === P.graf
-    && (year === "" || num(r["año"]) === year || num(r["año"]) === year - 1)), [graf, P, year]);
-  const comboByItem = (item: string, aCol: string, bCol: string) => {
+  // --- Revenue/OpEx/NOI (combos) desde el OPERATING STATEMENTS (usa_pnl) ---
+  // Fuente única con los mismos números de la tabla (usa_graficos se quedaba corto
+  // de meses). Serie mensual = suma de Real/Ppto por mes de la(s) sección(es); NOI =
+  // REVENUE + OPERATING EXPENSES (gastos en negativo; excluye OTHER EXPENSES). El YTD
+  // se calcula con cumulative() SOBRE el Real mensual —no la columna YTD del origen,
+  // que en OpEx trae signos inconsistentes (positivo ene-abr, negativo may-jun)—.
+  const stmtSeries = (secs: string[]) => {
     const m = new Map<string, any>();
-    for (const r of grafRows.filter((r) => String(r["Item"]) === item)) {
-      const k = periodKey(isoOf(r, "Fecha"));
-      m.set(k, { key: k, iso: isoOf(r, "Fecha"), Actual: num(r[aCol]), Ppto: num(r[bCol]) });
-    }
-    return [...m.values()].sort((a, b) => a.key.localeCompare(b.key));
-  };
-  // NOI = Revenue + Operating Expenses (gastos en negativo); EXCLUYE Other Expenses
-  // (sumar todo daría Net Income, no NOI).
-  const noiCombo = (aCol: string, bCol: string) => {
-    const m = new Map<string, any>();
-    for (const r of grafRows.filter((r) => String(r["Item"]) !== "Other Expenses")) {
-      const k = periodKey(isoOf(r, "Fecha"));
-      const e = m.get(k) ?? { key: k, iso: isoOf(r, "Fecha"), Actual: 0, Ppto: 0, _a: false, _p: false };
-      const a = num(r[aCol]), b = num(r[bCol]);
+    for (const r of pnlRows) {
+      if (!secs.includes(secU(r))) continue;
+      const anio = num(r["Anio"]), mes = num(r["Mes"]);
+      if (anio == null || mes == null) continue;
+      const key = `${anio}-${String(mes).padStart(2, "0")}`;
+      const e = m.get(key) ?? { key, iso: `${key}-01`, Actual: 0, Ppto: 0, _a: false, _p: false };
+      const a = num(r["Real"]), b = num(r["Ppto"]);
       if (a != null) { e.Actual += a; e._a = true; }
       if (b != null) { e.Ppto += b; e._p = true; }
-      m.set(k, e);
+      m.set(key, e);
     }
-    // si un mes no tiene ningún componente con dato, queda null (sin punto) en vez de 0
     return [...m.values()]
       .map((e) => ({ key: e.key, iso: e.iso, Actual: e._a ? e.Actual : null, Ppto: e._p ? e.Ppto : null }))
       .sort((a, b) => a.key.localeCompare(b.key));
@@ -201,15 +196,17 @@ export function USADashboard() {
   const pos = (data: any[]) => data.map((d) => ({
     ...d, Actual: d.Actual == null ? null : -d.Actual, Ppto: d.Ppto == null ? null : -d.Ppto,
   }));
-  // YTD acumulado a partir de los meses (la columna "YTD" del origen está mala);
-  // resetea en cada año. `data` debe venir ordenado por período.
+  // YTD acumulado a partir de los meses; resetea en cada año. Los meses SIN dato
+  // quedan en null (sin barra) en vez de arrastrar plano el último acumulado —así el
+  // YTD corta donde termina el dato real. `data` debe venir ordenado por período.
   const cumulative = (data: any[]) => {
     let ca = 0, cp = 0, cy = "";
     return data.map((d) => {
       const y = String(d.iso).slice(0, 4);
       if (y !== cy) { ca = 0; cp = 0; cy = y; }
-      ca += d.Actual ?? 0; cp += d.Ppto ?? 0;
-      return { ...d, Actual: ca, Ppto: cp };
+      const hasA = d.Actual != null, hasP = d.Ppto != null;
+      if (hasA) ca += d.Actual; if (hasP) cp += d.Ppto;
+      return { ...d, Actual: hasA ? ca : null, Ppto: hasP ? cp : null };
     });
   };
 
@@ -315,16 +312,16 @@ export function USADashboard() {
 
       {/* Revenues / OpEx / NOI (Monthly + YTD) */}
       <section className="row row--two">
-        {combo("Monthly Revenues (USD)", last12(comboByItem("Revenue", "Actual", "Budget"), winEndKey))}
-        {combo("Revenues YTD (USD)", last12(cumulative(comboByItem("Revenue", "Actual", "Budget")), winEndKey))}
+        {combo("Monthly Revenues (USD)", last12(stmtSeries([REV]), winEndKey))}
+        {combo("Revenues YTD (USD)", last12(cumulative(stmtSeries([REV])), winEndKey))}
       </section>
       <section className="row row--two">
-        {combo("Monthly Operating Expenses (USD)", last12(pos(comboByItem("Operathing Expenses", "Actual", "Budget")), winEndKey))}
-        {combo("Operating Expenses YTD (USD)", last12(pos(cumulative(comboByItem("Operathing Expenses", "Actual", "Budget"))), winEndKey))}
+        {combo("Monthly Operating Expenses (USD)", last12(pos(stmtSeries([OPEX])), winEndKey))}
+        {combo("Operating Expenses YTD (USD)", last12(pos(cumulative(stmtSeries([OPEX]))), winEndKey))}
       </section>
       <section className="row row--two">
-        {combo("Monthly NOI (USD)", last12(noiCombo("Actual", "Budget"), winEndKey))}
-        {combo("Net Operating Income YTD (USD)", last12(cumulative(noiCombo("Actual", "Budget")), winEndKey))}
+        {combo("Monthly NOI (USD)", last12(stmtSeries([REV, OPEX]), winEndKey))}
+        {combo("Net Operating Income YTD (USD)", last12(cumulative(stmtSeries([REV, OPEX])), winEndKey))}
       </section>
       </>)}
 
