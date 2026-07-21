@@ -20,17 +20,20 @@ const PNL = [
 
 // 8 combos: barra=Real (o YTD Real), líneas=Proy+PPTO (o YTD); filtran por Nivel 1.
 // Resultado Operacional = Ingresos+Gastos Op.; EBITDA = +Gastos Oficina Central (verificado).
+// flip: los gastos se guardan en NEGATIVO; en los gráficos SOLO de gastos se muestran
+// como magnitud positiva (hacia arriba). EBITDA/Resultado NO se voltean: son netos
+// (ingresos − gastos) y deben conservar su signo real.
 const ING = ["Ingresos"], GOP = ["Ingresos", "Gastos Operacionales"];
 const GOC = ["Ingresos", "Gastos Operacionales", "Gastos Oficina Central"];
 const COMBOS = [
-  { t: "Ingreso Mensual", niv: ING, bar: "Real", lines: ["Proy", "PPTO"] },
-  { t: "Ingresos YTD", niv: ING, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"] },
-  { t: "Gastos Operación Mensual", niv: ["Gastos Operacionales"], bar: "Real", lines: ["Proy", "PPTO"] },
-  { t: "Gastos Operación YTD", niv: ["Gastos Operacionales"], bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"] },
-  { t: "EBITDA Mensual", niv: GOC, bar: "Real", lines: ["Proy", "PPTO"] },
-  { t: "EBITDA YTD", niv: GOC, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"] },
-  { t: "Resultado Operacional Mensual", niv: GOP, bar: "Real", lines: ["Proy", "PPTO"] },
-  { t: "Resultado Operacional YTD", niv: GOP, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"] },
+  { t: "Ingreso Mensual", niv: ING, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
+  { t: "Ingresos YTD", niv: ING, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
+  { t: "Gastos Operación Mensual", niv: ["Gastos Operacionales"], bar: "Real", lines: ["Proy", "PPTO"], flip: true },
+  { t: "Gastos Operación YTD", niv: ["Gastos Operacionales"], bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: true },
+  { t: "EBITDA Mensual", niv: GOC, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
+  { t: "EBITDA YTD", niv: GOC, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
+  { t: "Resultado Operacional Mensual", niv: GOP, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
+  { t: "Resultado Operacional YTD", niv: GOP, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
 ];
 
 export function ICEMMDashboard() {
@@ -100,15 +103,16 @@ export function ICEMMDashboard() {
     ? `${Math.floor(pointFid / 100)}-${String(pointFid % 100).padStart(2, "0")}`
     : undefined;
 
-  const comboData = (niveles: string[], barCol: string, lineCols: string[]) => {
+  const comboData = (niveles: string[], barCol: string, lineCols: string[], flip = false) => {
+    const s = flip ? -1 : 1;   // gastos (negativos) -> magnitud positiva hacia arriba
     const m = new Map<string, any>();
     for (const r of chartRows) {
       if (!niveles.includes(n1(r))) continue;
       const iso = String(r["Fecha"]).slice(0, 10);
       const k = periodKey(iso);
       const e = m.get(k) ?? { key: k, iso, bar: 0, l0: 0, l1: 0 };
-      e.bar += num(r[barCol]) ?? 0;
-      lineCols.forEach((c, i) => { e["l" + i] += num(r[c]) ?? 0; });
+      e.bar += s * (num(r[barCol]) ?? 0);
+      lineCols.forEach((c, i) => { e["l" + i] += s * (num(r[c]) ?? 0); });
       m.set(k, e);
     }
     return last12([...m.values()].sort((a, b) => a.key.localeCompare(b.key)), endKey);
@@ -150,7 +154,7 @@ export function ICEMMDashboard() {
             const c = COMBOS[i];
             return (
               <ColumnLinesChart key={c.t} title={c.t}
-                data={comboData(c.niv, c.bar, c.lines)}
+                data={comboData(c.niv, c.bar, c.lines, c.flip)}
                 bar={{ key: "bar", label: c.bar.includes("YTD") ? "Real YTD" : "Real" }}
                 lines={[{ key: "l0", label: "Proy" }, { key: "l1", label: "Ppto" }]}
                 tipFmt={fmtUF} />
