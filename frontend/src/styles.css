@@ -832,6 +832,18 @@ body {
 .access__logscroll { max-height: 420px; overflow-y: auto; }
 .access .admin-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 
+/* ----------------------------- auditoría de datos ------------------------- */
+.audit { display: flex; flex-direction: column; gap: 16px; }
+.audit__bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.audit__hint { font-size: 12px; color: var(--muted); line-height: 1.5; max-width: 640px; }
+.audit__kpis { margin: 0; }
+.audit__foot { font-size: 11px; color: var(--muted); }
+.audit .admin-table code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.audit-sev { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.audit-sev--error { background: rgba(216, 50, 82, 0.15); color: var(--neg); }
+.audit-sev--warn { background: rgba(184, 134, 11, 0.16); color: #8a6300; }
+.audit-sev--info { background: rgba(55, 150, 170, 0.15); color: #2b7a8c; }
+
 /* ----------------------------- reporte PDF (impresión) -------------------- */
 @media print {
   /* zoom base a 1: en pantalla se usa 1.45 / fit-to-width (main.tsx), pero un zoom

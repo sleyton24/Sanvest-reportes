@@ -146,6 +146,21 @@ export async function fetchAccessLog(limit = 200): Promise<AccessLogRow[]> {
   return jsonOrThrow(await apiFetch(`/auth/access/log?limit=${limit}`), "bitácora de acceso");
 }
 
+// --- auditoría de datos (solo admin) ---
+export interface AuditAlert {
+  severity: "error" | "warn" | "info";
+  unit: string; table: string; check: string; message: string;
+}
+export interface AuditResult {
+  generated: string;
+  summary: { errores: number; advertencias: number; info: number };
+  alerts: AuditAlert[];
+}
+
+export async function runAudit(): Promise<AuditResult> {
+  return jsonOrThrow(await apiFetch(`/audit/run`), "auditoría de datos");
+}
+
 export async function createUser(body: NewUser): Promise<{ ok: boolean; user: AppUser }> {
   return jsonOrThrow(await apiFetch(`/auth/users`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),

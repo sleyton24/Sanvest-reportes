@@ -28,6 +28,7 @@ from etl.connect_dv import apply_dv
 from etl.connect_grupo import apply_grupo, build_grupo, classify_grupo_file
 from etl.validators import ValidationError, raise_if_bad
 from etl import spec_store as sstore
+from etl import audit as data_audit
 
 from sqlalchemy import inspect as sa_inspect
 
@@ -175,6 +176,14 @@ def access_log(limit: int = Query(200, ge=1, le=1000),
                _admin: dict = Depends(auth.require_admin)):
     """Bitácora cruda de accesos más recientes (solo admin)."""
     return auth.recent_access(limit)
+
+
+@app.get("/audit/run", tags=["auditoria"])
+def run_data_audit(_admin: dict = Depends(auth.require_admin)):
+    """Auditoría de datos cargados (solo admin): chequeos deterministas READ-ONLY
+    sobre las tablas de hechos (stale/desactualizado, meses faltantes, datos
+    pegados/duplicados, vacío). Devuelve {generated, summary, alerts}."""
+    return data_audit.run_audit(engine, cat.all_units())
 
 
 @app.get("/auth/me", tags=["auth"])

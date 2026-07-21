@@ -7,9 +7,10 @@ import { UsersAdmin } from "../components/UsersAdmin";
 import { AgentChat } from "../components/AgentChat";
 import { MaintainEtlPanel } from "../components/MaintainEtlPanel";
 import { AccessStats } from "../components/AccessStats";
+import { AuditPanel } from "../components/AuditPanel";
 import { Button } from "../components/Button";
 
-type Section = "carga" | "usuarios" | "accesos" | "asistente" | "etl";
+type Section = "carga" | "usuarios" | "accesos" | "auditoria" | "asistente" | "etl";
 
 export function AdminPage() {
   const [section, setSection] = useState<Section>("carga");
@@ -21,6 +22,7 @@ export function AdminPage() {
           <Button variant="toggle" active={section === "carga"} onClick={() => setSection("carga")}>Carga</Button>
           <Button variant="toggle" active={section === "usuarios"} onClick={() => setSection("usuarios")}>Usuarios</Button>
           <Button variant="toggle" active={section === "accesos"} onClick={() => setSection("accesos")}>Accesos</Button>
+          <Button variant="toggle" active={section === "auditoria"} onClick={() => setSection("auditoria")}>Auditoría</Button>
           <Button variant="toggle" active={section === "asistente"} onClick={() => setSection("asistente")}>Asistente</Button>
           <Button variant="toggle" active={section === "etl"} onClick={() => setSection("etl")}>Mantener ETL</Button>
         </div>
@@ -28,6 +30,7 @@ export function AdminPage() {
       {section === "carga" && <CargaCentral />}
       {section === "usuarios" && <UsersAdmin />}
       {section === "accesos" && <AccessStats />}
+      {section === "auditoria" && <AuditPanel />}
       {section === "asistente" && <AgentChat />}
       {section === "etl" && <MaintainEtlPanel />}
     </div>
