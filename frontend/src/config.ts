@@ -77,7 +77,7 @@ export const CARDS: CardSpec[] = [
       { table: "dv_ventas", col: "UF_RECAUDADAS         ", agg: "sum", label: "UF recaudadas", fmt: "uf" },
       { table: "dv_ventas", col: "UF_POR_RECAUDAR", agg: "sum", label: "UF por recaudar", fmt: "uf" },
       { table: "dv_escrituras", col: "PROYECCIÓN_VENTA_TOTAL(UF)", agg: "max", label: "Proyección venta total", fmt: "uf" },
-      { table: "dv_ventas", col: "RESERVAS_Y_PROMESAS", agg: "sum", label: "Reservas y promesas", fmt: "uf" },
+      { table: "dv_ventas", col: "RESERVAS_Y_PROMESAS", agg: "sum", label: "Reservas y promesas", fmt: "int" },
       { table: "dv_kpis", col: "VENTAS NETAS_DEL_MES", agg: "max", label: "Ventas netas del mes (uds.)", fmt: "int" },
       { table: "dv_ventas", col: "UNIDADES_ESCRITURADAS_FIRMADAS", agg: "sum", label: "Uds. escrituradas firmadas", fmt: "int" },
       { table: "dv_ventas", col: "UNIDADES_ESCRITURADAS_RECAUDADAS", agg: "sum", label: "Uds. escrituradas recaudadas", fmt: "int" },
