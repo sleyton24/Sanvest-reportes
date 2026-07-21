@@ -4,14 +4,13 @@ import { App } from "./App";
 import { AuthProvider } from "./auth";
 import "./styles.css";
 
-// Escalado "fit-to-width": el panel se diseñó a ~1320px. En pantallas MÁS ANGOSTAS
-// que eso se achica proporcionalmente para que quepa sin scroll horizontal ni
-// reacomodar columnas. En pantallas más anchas NO magnifica: 100% del navegador =
-// tamaño real (MAX_ZOOM = 1.0). Antes el cap era 1.45 (tamaño "directorio"), que se
-// veía enorme a 100% y obligaba a bajar el zoom del navegador. Si se quiere el modo
-// grande para una TV/presentación, subir MAX_ZOOM o usar el zoom del navegador.
+// Escalado "fit-to-width": el panel se diseñó a ~1320px y se escala proporcional al
+// ANCHO de la pantalla para CUADRAR con el tamaño del PC — se achica en pantallas
+// angostas (sin scroll horizontal) y se agranda en las anchas para llenar el ancho
+// (hasta MAX_ZOOM). Cap en 1.6 para que no se vea desproporcionado en monitores muy
+// anchos; si igual queda muy grande/chico, ajustar MAX_ZOOM o el zoom del navegador.
 const DESIGN_W = 1320;
-const MAX_ZOOM = 1.0;
+const MAX_ZOOM = 1.6;
 const MIN_ZOOM = 0.5;
 function fitZoom() {
   // clientWidth excluye la barra de scroll vertical → evita scroll horizontal

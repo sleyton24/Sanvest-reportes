@@ -23,9 +23,10 @@ export function KpiCard({
       <div className="card__title">{spec.title}</div>
       <div className="kpi__grid">
         {spec.fields.map((f, i) => {
-          // accent: verde si el valor es >= 0, rojo si es negativo
+          // accent: verde (el mismo de los relojes, --green #A8C813) si el valor es
+          // >= 0, rojo si es negativo
           const v = values[i];
-          const color = f.accent && v != null ? (v >= 0 ? "var(--pos)" : "var(--neg)") : undefined;
+          const color = f.accent && v != null ? (v >= 0 ? "var(--green)" : "var(--neg)") : undefined;
           return (
             <div className="kpi__item" key={f.label}>
               <div className="kpi__value" style={color ? { color } : undefined}>{FMT[f.fmt](v)}</div>
