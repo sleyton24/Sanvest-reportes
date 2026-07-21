@@ -48,6 +48,8 @@ export interface FieldSpec {
   agg: Agg;
   label: string;
   fmt: Fmt;
+  sub?: string;       // subtítulo aclaratorio bajo el label
+  accent?: boolean;   // pinta el valor en verde (para destacarlo)
 }
 
 export interface CardSpec {
@@ -66,7 +68,7 @@ export const CARDS: CardSpec[] = [
       { table: "financieros_sanvest", col: "Margen % (UT/VTA)", agg: "sum", label: "Margen % (UT/VTA)", fmt: "pct" },
       { table: "financieros_sanvest", col: "Margen Sanvest UF", agg: "sum", label: "Margen Sanvest UF", fmt: "uf" },
       { table: "financieros_sanvest", col: "TIR Sanvest", agg: "sum", label: "TIR Sanvest", fmt: "pct" },
-      { table: "financieros_sanvest", col: "ROI Sanvest", agg: "sum", label: "ROI Sanvest", fmt: "num" },
+      { table: "financieros_sanvest", col: "ROI Sanvest", agg: "sum", label: "ROI Sanvest", fmt: "pct" },
       { table: "financieros_sanvest", col: "Margen Proyecto UF", agg: "sum", label: "Margen Proyecto UF", fmt: "uf" },
     ],
   },
@@ -77,12 +79,14 @@ export const CARDS: CardSpec[] = [
       { table: "dv_ventas", col: "UF_RECAUDADAS         ", agg: "sum", label: "UF recaudadas", fmt: "uf" },
       { table: "dv_ventas", col: "UF_POR_RECAUDAR", agg: "sum", label: "UF por recaudar", fmt: "uf" },
       { table: "dv_escrituras", col: "PROYECCIÓN_VENTA_TOTAL(UF)", agg: "max", label: "Proyección venta total", fmt: "uf" },
-      { table: "dv_kpis", col: "VENTAS NETAS_DEL_MES", agg: "max", label: "Ventas netas del mes (uds.)", fmt: "int" },
+      { table: "dv_kpis", col: "VENTAS NETAS_DEL_MES", agg: "max", label: "Ventas netas del mes (uds.)", fmt: "int", accent: true },
       { table: "dv_ventas", col: "RESERVAS_Y_PROMESAS", agg: "sum", label: "Reservas y promesas", fmt: "int" },
       { table: "dv_ventas", col: "UNIDADES_ESCRITURADAS_FIRMADAS", agg: "sum", label: "Uds. escrituradas firmadas", fmt: "int" },
       { table: "dv_ventas", col: "UNIDADES_ESCRITURADAS_RECAUDADAS", agg: "sum", label: "Uds. escrituradas recaudadas", fmt: "int" },
-      { table: "financieros_sanvest", col: "UF/m2 Venta Dpto actual", agg: "sum", label: "UF/m² venta dpto actual", fmt: "num" },
-      { table: "financieros_sanvest", col: "UF/m2 venta total actual", agg: "sum", label: "UF/m² venta total actual", fmt: "num" },
+      { table: "financieros_sanvest", col: "UF/m2 Venta Dpto actual", agg: "sum", label: "UF/m² venta dpto actual", fmt: "num", sub: "superficie útil + media terraza" },
+      { table: "financieros_sanvest", col: "UF/m2 venta total actual", agg: "sum", label: "UF/m² venta total actual", fmt: "num", sub: "superficie útil + media terraza" },
+      { table: "financieros_sanvest", col: "UF/m2 Venta Dpto Ev. Original", agg: "sum", label: "UF/m² venta dpto (Ev. Original)", fmt: "num", sub: "superficie útil + media terraza" },
+      { table: "financieros_sanvest", col: "UF/m2 venta total EV. Original", agg: "sum", label: "UF/m² venta total (Ev. Original)", fmt: "num", sub: "superficie útil + media terraza" },
     ],
   },
   {

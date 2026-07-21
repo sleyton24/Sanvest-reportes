@@ -22,12 +22,18 @@ export function KpiCard({
     <div className="card kpi">
       <div className="card__title">{spec.title}</div>
       <div className="kpi__grid">
-        {spec.fields.map((f, i) => (
-          <div className="kpi__item" key={f.label}>
-            <div className="kpi__value">{FMT[f.fmt](values[i])}</div>
-            <div className="kpi__label">{f.label}</div>
-          </div>
-        ))}
+        {spec.fields.map((f, i) => {
+          // accent: verde si el valor es >= 0, rojo si es negativo
+          const v = values[i];
+          const color = f.accent && v != null ? (v >= 0 ? "var(--pos)" : "var(--neg)") : undefined;
+          return (
+            <div className="kpi__item" key={f.label}>
+              <div className="kpi__value" style={color ? { color } : undefined}>{FMT[f.fmt](v)}</div>
+              <div className="kpi__label">{f.label}</div>
+              {f.sub && <div className="kpi__sub">{f.sub}</div>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
