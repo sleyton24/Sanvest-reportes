@@ -6,6 +6,9 @@ EBITDA/Cuota, etc.) y todos los meses no tocados.
 """
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import pandas as pd
 from sqlalchemy.engine import Engine
 
@@ -14,6 +17,53 @@ from .hotel_ccpp import ccpp_to_hotel_full, ccpp_to_hotel_real
 
 # columnas LY del transform -> nombre exacto en hotel_real
 LY_RENAME = {"Costos operacionales UF LY": "Costos operacionales LY"}
+
+_MES_ABBR = {"ene": 1, "feb": 2, "mar": 3, "abr": 4, "may": 5, "jun": 6,
+             "jul": 7, "ago": 8, "sep": 9, "set": 9, "oct": 10, "nov": 11, "dic": 12}
+
+
+def _filename_period(path) -> tuple[int, int] | None:
+    """(anio, mes) declarado en el NOMBRE del CCPP ('...2026 Jun...'). El nombre es
+    la fuente CONFIABLE del período: la hoja 'RESUMEN formato Sanvest' a veces queda
+    con el año de la plantilla sin actualizar (p.ej. dice 2025 siendo 2026)."""
+    name = Path(str(path)).stem.lower()
+    m = re.search(r"(20\d\d)\s+([a-záéíóú]{3,4})", name)
+    if not m:
+        return None
+    mes = _MES_ABBR.get(m.group(2)[:3])
+    return (int(m.group(1)), mes) if mes else None
+
+
+def _align_years_to_filename(dfs: list[pd.DataFrame], path) -> int:
+    """Corrige el año usando el NOMBRE del archivo: si declara (fyear, fmonth) y el
+    último mes reportado del archivo cae en fmonth pero con OTRO año, desplaza TODOS
+    los años el mismo delta (plantilla con el año interno desactualizado). Exigir que
+    el MES calce con el nombre evita corregir un archivo realmente equivocado.
+    Devuelve el delta aplicado (0 si no aplica)."""
+    fp = _filename_period(path)
+    if not fp:
+        return 0
+    fyear, fmonth = fp
+    ref = next((d for d in dfs if {"anio", "mes"} <= set(d.columns) and len(d)), None)
+    if ref is None:
+        return 0
+    last = int((ref["anio"].astype(int) * 100 + ref["mes"].astype(int)).max())
+    lyear, lmonth = last // 100, last % 100
+    if lmonth != fmonth or lyear == fyear:
+        return 0
+    delta = fyear - lyear
+    for d in dfs:
+        if "anio" not in d.columns:
+            continue
+        d["anio"] = d["anio"].astype(int) + delta
+        for fcol in ("FechaID", "fechaID"):
+            if fcol in d.columns:
+                d[fcol] = d["anio"] * 100 + d["mes"].astype(int)
+        if "Periodo" in d.columns:
+            d["Periodo"] = pd.to_datetime(
+                d["anio"].astype(str) + "-"
+                + d["mes"].astype(int).astype(str).str.zfill(2) + "-01")
+    return delta
 
 
 def _upsert_wide(engine: Engine, table: str, new_df: pd.DataFrame,
@@ -111,11 +161,15 @@ def apply_ccpp(engine: Engine, path, allow_backfill: bool = False) -> dict:
     real = ccpp_to_hotel_real(path, ppto=False).rename(columns=LY_RENAME)
     ppto = ccpp_to_hotel_real(path, ppto=True)
     full = ccpp_to_hotel_full(path)
+    # corrige el año con el NOMBRE del archivo si la hoja quedó con el año viejo
+    # (los valores Real ya son del período correcto; solo el rótulo estaba corrido).
+    year_shift = _align_years_to_filename([real, ppto, full], path)
     if not allow_backfill:
         _guard_no_regresion(_read(engine, "hotel_full"), full)
     real_cols = [c for c in real.columns if c not in ("Nombre activo", "FechaID", "Periodo", "anio", "mes")]
     ppto_cols = [c for c in ppto.columns if c not in ("Nombre activo", "FechaID", "Periodo", "anio", "mes")]
     return {
+        "year_shift": year_shift,
         "hotel_real": _upsert_wide(engine, "hotel_real", real, "FechaID", real_cols),
         "hotel_ppto": _upsert_wide(engine, "hotel_ppto", ppto, "FechaID", ppto_cols),
         "hotel_full": _upsert_full(engine, full),
