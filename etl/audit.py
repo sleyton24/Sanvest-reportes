@@ -192,3 +192,83 @@ def run_audit(engine: Engine, units: dict[str, dict], today: dt.date | None = No
         "info": sum(1 for a in alerts if a["severity"] == "info"),
     }
     return {"generated": today.isoformat(), "alerts": alerts, "summary": summary}
+
+
+# ============================ Excel cargado vs app ===========================
+# Re-parsea el Excel con el MISMO transform del ETL (sin escribir) y lo compara
+# contra lo que hay en la BD (lo que muestra la app). Detecta cargas que no
+# cuadran con el archivo original. Hoy: ICEMM y Hotel (transform separable).
+def _icemm_transform(path):
+    from .icemm_crudo import crudo_to_icemm_mensual
+    return crudo_to_icemm_mensual(path)
+
+
+def _hotel_transform(path):
+    from .connect_hotel import _align_years_to_filename, LY_RENAME
+    from .hotel_ccpp import ccpp_to_hotel_real
+    df = ccpp_to_hotel_real(path, ppto=False).rename(columns=LY_RENAME)
+    _align_years_to_filename([df], path)   # corrige año por el nombre, como en la carga
+    return df
+
+
+COMPARE_SPECS = {
+    "ICEMM": {"table": "icemm_mensual", "transform": _icemm_transform,
+              "keys": ["Nivel 1", "Nivel 2", "FechID"]},
+    "Hotel": {"table": "hotel_real", "transform": _hotel_transform,
+              "keys": ["Nombre activo", "FechaID"]},
+}
+
+
+def _keyval(v):
+    """Normaliza un valor de clave para casar Excel vs BD (int para numéricos,
+    string sin espacios sobrantes para texto)."""
+    import pandas as pd
+    if v is None or (isinstance(v, float) and pd.isna(v)):
+        return ""
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        return str(int(v))
+    s = str(v).strip()
+    try:
+        return str(int(float(s)))   # "202606.0" -> "202606"
+    except (TypeError, ValueError):
+        return s
+
+
+def compare_excel(engine: Engine, unit: str, path) -> dict:
+    """Compara el Excel (re-parseado) contra la BD. Devuelve las diferencias por
+    (clave, columna): valor del Excel vs valor de la app, y las filas del archivo
+    que no existen en la BD."""
+    import pandas as pd
+    spec = COMPARE_SPECS.get(unit)
+    if not spec:
+        raise ValueError(f"La comparación Excel-vs-app aún no está disponible para "
+                         f"'{unit}' (hoy: {', '.join(COMPARE_SPECS)}).")
+    df = spec["transform"](path)
+    table, keys = spec["table"], spec["keys"]
+    db = pd.read_sql(f'SELECT * FROM {_q(table)}', engine)
+    meas = [c for c in df.columns if c in db.columns and c not in keys
+            and pd.api.types.is_numeric_dtype(df[c])]
+    db_idx = {tuple(_keyval(r[k]) for k in keys): r for _, r in db.iterrows()}
+    diffs, missing = [], []
+    checked = 0
+    for _, r in df.iterrows():
+        k = tuple(_keyval(r[k2]) for k2 in keys)
+        dbrow = db_idx.get(k)
+        if dbrow is None:
+            missing.append(" | ".join(k))
+            continue
+        checked += 1
+        for c in meas:
+            fv, dv = r[c], dbrow[c]
+            fvf = float(fv) if pd.notna(fv) else 0.0
+            dvf = float(dv) if pd.notna(dv) else 0.0
+            if abs(fvf - dvf) > 0.5:
+                diffs.append({"clave": " | ".join(k), "columna": c,
+                              "excel": round(fvf, 1), "app": round(dvf, 1),
+                              "dif": round(fvf - dvf, 1)})
+    diffs.sort(key=lambda d: -abs(d["dif"]))
+    return {"unit": unit, "table": table, "filas_excel": int(len(df)),
+            "comparadas": checked, "columnas_medida": len(meas),
+            "n_diferencias": len(diffs), "diferencias": diffs[:200],
+            "n_faltan_en_app": len(missing), "faltan_en_app": missing[:50],
+            "ok": len(diffs) == 0 and len(missing) == 0}

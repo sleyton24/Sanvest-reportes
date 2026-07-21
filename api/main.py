@@ -186,6 +186,28 @@ def run_data_audit(_admin: dict = Depends(auth.require_admin)):
     return data_audit.run_audit(engine, cat.all_units())
 
 
+@app.post("/audit/compare", tags=["auditoria"], dependencies=[Depends(auth.require_admin)])
+async def audit_compare(unit: str = Query(...), file: UploadFile = File(...)):
+    """Compara un Excel cargado contra lo que muestra la app: re-parsea el archivo
+    con el MISMO transform del ETL (SIN escribir en la BD) y lista las diferencias
+    por (clave, columna). Hoy: ICEMM y Hotel. Solo admin."""
+    if not (file.filename or "").lower().endswith((".xlsx", ".xlsm")):
+        raise HTTPException(400, "el archivo debe ser .xlsx o .xlsm")
+    tmpdir = tempfile.mkdtemp(prefix="sanvest_cmp_")
+    tmp = Path(tmpdir) / (file.filename or "cmp.xlsx")
+    try:
+        with tmp.open("wb") as f:
+            shutil.copyfileobj(file.file, f)
+        try:
+            return data_audit.compare_excel(engine, unit, tmp)
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(422, f"No pude comparar el archivo: {e}")
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
 @app.get("/auth/me", tags=["auth"])
 def whoami(user: dict = Depends(auth.current_user)):
     """Perfil del usuario autenticado (para rehidratar la sesión en el front)."""

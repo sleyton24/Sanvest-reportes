@@ -161,6 +161,21 @@ export async function runAudit(): Promise<AuditResult> {
   return jsonOrThrow(await apiFetch(`/audit/run`), "auditoría de datos");
 }
 
+// Comparación Excel-cargado vs app (re-parsea el archivo y lo diffea contra la BD).
+export interface AuditDiff { clave: string; columna: string; excel: number; app: number; dif: number; }
+export interface AuditCompareResult {
+  unit: string; table: string; filas_excel: number; comparadas: number; columnas_medida: number;
+  n_diferencias: number; diferencias: AuditDiff[]; n_faltan_en_app: number; faltan_en_app: string[]; ok: boolean;
+}
+export async function compareAudit(unit: string, file: File): Promise<AuditCompareResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await apiFetch(`/audit/compare?unit=${encodeURIComponent(unit)}`, { method: "POST", body: fd });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new UploadError(res.status, (data as any).detail ?? data);
+  return data as AuditCompareResult;
+}
+
 export async function createUser(body: NewUser): Promise<{ ok: boolean; user: AppUser }> {
   return jsonOrThrow(await apiFetch(`/auth/users`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
