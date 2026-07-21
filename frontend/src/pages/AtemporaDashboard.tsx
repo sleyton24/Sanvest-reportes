@@ -97,27 +97,31 @@ export function AtemporaDashboard() {
   const civPnLMulti = (): PnLMultiRow[] => {
     const sum = (ix: number, col: string) =>
       eerrPoint.filter((r) => num(r["Indice "]) === ix).reduce((a, r) => a + (num(r[col]) ?? 0), 0);
-    const rows: PnLMultiRow[] = eerrPoint.map((r) => ({
-      nivel1: String(r["Nivel 2 "] ?? "").trim(), nivel2: String(r["Nivel 1 "] ?? "").trim(),
-      indice: Math.min(num(r["Indice "]) ?? 2, 2),
-      vals: [
-        { real: num(r["Monto"]), ppto: num(r["ppto"]) },       // Mes
-        { real: num(r["YTD Real"]), ppto: num(r["YTD PPTO"]) }, // YTD
-      ],
-    }));
-    if (!rows.length) return [];
-    // Gastos vienen con SIGNO NEGATIVO en el dato (Gastos Op. y Otros gastos), así
-    // que EBITDA/Resultado se SUMAN (no se restan): Ingresos + Gastos + Otros.
-    // Antes se restaban y, al restar negativos, inflaban el resultado (bug de signo).
-    const ebitda = (c: string) => sum(1, c) + sum(2, c);
-    const result = (c: string) => sum(1, c) + sum(2, c) + sum(3, c);
-    rows.push({ nivel1: "Gastos Operacionales", nivel2: "EBITDA", indice: 4, vals: [
-      { real: ebitda("Monto"), ppto: ebitda("ppto") },
-      { real: ebitda("YTD Real"), ppto: ebitda("YTD PPTO") }] });
-    rows.push({ nivel1: "", nivel2: "Resultado", indice: 5, vals: [
-      { real: result("Monto"), ppto: result("ppto") },
-      { real: result("YTD Real"), ppto: result("YTD PPTO") }] });
-    return rows;
+    if (!eerrPoint.length) return [];
+    // detalle por sección real (Indice 1=Ingresos, 2=Gastos Op., 3=Otros gastos)
+    const detail = (ix: number): PnLMultiRow[] =>
+      eerrPoint.filter((r) => num(r["Indice "]) === ix).map((r) => ({
+        nivel1: String(r["Nivel 2 "] ?? "").trim(), nivel2: String(r["Nivel 1 "] ?? "").trim(),
+        vals: [
+          { real: num(r["Monto"]), ppto: num(r["ppto"]) },       // Mes
+          { real: num(r["YTD Real"]), ppto: num(r["YTD PPTO"]) }, // YTD
+        ],
+      }));
+    // Gastos vienen con SIGNO NEGATIVO en el dato, así que los subtotales se SUMAN.
+    const line = (nombre: string, f: (c: string) => number): PnLMultiRow => ({
+      nivel1: "", nivel2: nombre, result: true,
+      vals: [{ real: f("Monto"), ppto: f("ppto") }, { real: f("YTD Real"), ppto: f("YTD PPTO") }],
+    });
+    const noi = (c: string) => sum(1, c) + sum(2, c);              // NOI = Ingresos + Gastos Op.
+    const resultado = (c: string) => sum(1, c) + sum(2, c) + sum(3, c);
+    // Orden ESPECÍFICO de Civitas: Ingresos, Gastos Op., NOI, Otros gastos, Resultado.
+    return [
+      ...detail(1),          // Ingresos
+      ...detail(2),          // Gastos Operacionales
+      line("NOI", noi),      // subtotal operativo (antes decía EBITDA)
+      ...detail(3),          // Otros gastos
+      line("Resultado", resultado),
+    ];
   };
 
   // KPIs del mes
@@ -269,7 +273,7 @@ export function AtemporaDashboard() {
       </section>
       <section className="row row--two">
         {/* gastos vienen negativos → EBITDA/Resultado se SUMAN (ver civPnLMulti) */}
-        {COMBO("EBITDA (UF)", (e) => e.ingR + e.gopR, (e) => e.ingP + e.gopP)}
+        {COMBO("NOI (UF)", (e) => e.ingR + e.gopR, (e) => e.ingP + e.gopP)}
         {COMBO("Resultado (UF)", (e) => e.ingR + e.gopR + e.otrR, (e) => e.ingP + e.gopP + e.otrP)}
       </section>
 
@@ -354,7 +358,7 @@ export function AtemporaDashboard() {
       <footer className="dash__footer">
         Gestión Atémpora (Civitas): EERR (Ingresos / Gastos Operacionales / Otros gastos), KPIs de
         Oficinas y Locales, ocupación, deuda, y cuadros de arriendos, ventas y morosidad. Datos del
-        Excel CIVITAS; los gastos vienen con signo negativo, por eso EBITDA = Ingresos + Gastos Op. y Resultado = + Otros gastos.
+        Excel CIVITAS; los gastos vienen con signo negativo, por eso NOI = Ingresos + Gastos Op. y Resultado = NOI + Otros gastos.
       </footer>
     </div>
   );

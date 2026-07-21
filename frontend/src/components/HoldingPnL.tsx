@@ -22,6 +22,10 @@ export interface PnLMultiRow {
   nivel1: string;
   nivel2: string;
   indice?: number;
+  // línea de resultado/subtotal (EBITDA, NOI, Resultado): se dibuja como pnl__result
+  // en su POSICIÓN dentro del array (permite intercalar subtotales entre secciones).
+  // Si no se indica, se infiere por indice >= 4 (compatibilidad con RR/ICEMM).
+  result?: boolean;
   vals: { real: number | null; ppto: number | null }[];
 }
 export function HoldingPnLMulti({ title, rows, groups, unit = "UF", grandTotal, defaultCollapsed = true }: {
@@ -29,10 +33,18 @@ export function HoldingPnLMulti({ title, rows, groups, unit = "UF", grandTotal, 
   grandTotal?: string;       // fila de total al pie: suma de TODAS las secciones por grupo
   defaultCollapsed?: boolean; // arranca con las secciones colapsadas (por defecto SÍ)
 }) {
-  const detailRows = rows.filter((r) => r.indice == null || r.indice <= 2);
-  const resultRows = rows.filter((r) => (r.indice ?? 0) >= 4);
+  const isResult = (r: PnLMultiRow) => r.result ?? ((r.indice ?? 0) >= 4);
+  const detailRows = rows.filter((r) => !isResult(r));
   // secciones en el orden en que llegan las filas (el caller ya ordena el EERR)
   const secs = Array.from(new Set(detailRows.map((r) => r.nivel1)));
+  // orden de render: recorriendo `rows`, cada sección se emite en su 1ª aparición y
+  // cada línea de resultado en su lugar → permite subtotales intercalados (NOI).
+  const blocks: ({ t: "sec"; g: string } | { t: "res"; r: PnLMultiRow })[] = [];
+  const seen = new Set<string>();
+  for (const r of rows) {
+    if (isResult(r)) blocks.push({ t: "res", r });
+    else if (!seen.has(r.nivel1)) { seen.add(r.nivel1); blocks.push({ t: "sec", g: r.nivel1 }); }
+  }
   // arranca colapsado si el caller lo pide (el dashboard no monta la tabla hasta
   // terminar el fetch, así que `secs` ya viene poblado en el primer render)
   const [collapsed, setCollapsed] = useState<Set<string>>(() => defaultCollapsed ? new Set(secs) : new Set());
@@ -80,7 +92,16 @@ export function HoldingPnLMulti({ title, rows, groups, unit = "UF", grandTotal, 
             </tr>
           </thead>
           <tbody>
-            {secs.map((g) => {
+            {blocks.map((b, bi) => {
+              if (b.t === "res") {
+                return (
+                  <tr key={"res_" + b.r.nivel2 + bi} className="pnl__result">
+                    <td className="strong">{b.r.nivel2}</td>
+                    {b.r.vals.map((v, gi) => <Fragment key={gi}>{cells(v, true)}</Fragment>)}
+                  </tr>
+                );
+              }
+              const g = b.g;
               const detail = detailRows.filter((r) => r.nivel1 === g);
               const sub = groups.map((_, gi) => ({
                 real: detail.reduce((a, r) => a + (r.vals[gi]?.real ?? 0), 0),
@@ -104,12 +125,6 @@ export function HoldingPnLMulti({ title, rows, groups, unit = "UF", grandTotal, 
                 </Fragment>
               );
             })}
-            {resultRows.map((r) => (
-              <tr key={"res_" + r.nivel2} className="pnl__result">
-                <td className="strong">{r.nivel2}</td>
-                {r.vals.map((v, gi) => <Fragment key={gi}>{cells(v, true)}</Fragment>)}
-              </tr>
-            ))}
             {grandTotal && (() => {
               // total al pie = suma de todas las secciones (Ingresos + Gastos + Otros),
               // por cada grupo de columnas; los gastos ya vienen en negativo
