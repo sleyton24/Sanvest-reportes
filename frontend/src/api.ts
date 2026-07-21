@@ -373,6 +373,38 @@ export async function askEtlAgent(unit: string, messages: ChatMsg[], handlers: A
     "El mantenedor de ETL no está habilitado (falta ANTHROPIC_API_KEY o SANVEST_ETL_AGENT_ENABLED=1).");
 }
 
+// --- PPT Directorio (PDF) ---
+export interface PptMeta { exists: boolean; size?: number; uploaded_at?: string; }
+export async function pptMeta(): Promise<PptMeta> {
+  return jsonOrThrow(await apiFetch(`/docs/ppt-directorio/meta`), "estado PPT Directorio");
+}
+// Descarga el PDF como blob (con auth) para mostrarlo en línea sin descarga.
+export async function fetchPptBlob(): Promise<Blob> {
+  const res = await apiFetch(`/docs/ppt-directorio`);
+  if (!res.ok) throw new Error(res.status === 404 ? "Aún no se ha subido la PPT Directorio." : `PPT: ${res.status}`);
+  return res.blob();
+}
+export async function uploadPpt(file: File): Promise<void> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await apiFetch(`/docs/ppt-directorio`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const d = (await res.json().catch(() => ({})))?.detail;
+    throw new Error(typeof d === "string" ? d : `subir PDF: ${res.status}`);
+  }
+}
+
+// --- comentarios (foro por unidad) ---
+export interface Comment { ts: string; unit: string; username: string; full_name: string | null; body: string; }
+export async function listComments(unit: string): Promise<Comment[]> {
+  return jsonOrThrow(await apiFetch(`/units/${unit}/comments`), "comentarios");
+}
+export async function postComment(unit: string, body: string): Promise<Comment> {
+  return jsonOrThrow(await apiFetch(`/units/${unit}/comments`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }),
+  }), "publicar comentario");
+}
+
 // num() seguro: convierte celda a número o null
 export const num = (v: unknown): number | null => {
   if (v == null || v === "") return null;

@@ -29,3 +29,6 @@ etl/specs/_backups/
 # SO / editor
 Thumbs.db
 .DS_Store
+
+# PDF PPT Directorio y otros archivos subidos (no van al repo)
+data/

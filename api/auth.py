@@ -69,6 +69,20 @@ def init_db() -> None:
             """
         ))
         con.execute(text("CREATE INDEX IF NOT EXISTS ix_access_log_ts ON access_log (ts)"))
+        # Foro de comentarios por unidad de negocio (directores). Sin PK
+        # autoincremental (portable); índice por (unit, ts).
+        con.execute(text(
+            """
+            CREATE TABLE IF NOT EXISTS comments (
+              ts        TEXT NOT NULL,
+              unit      TEXT NOT NULL,
+              username  TEXT NOT NULL,
+              full_name TEXT,
+              body      TEXT NOT NULL
+            )
+            """
+        ))
+        con.execute(text("CREATE INDEX IF NOT EXISTS ix_comments_unit_ts ON comments (unit, ts)"))
 
 
 # ----------------------------- password (pbkdf2) ------------------------------
@@ -332,6 +346,28 @@ def recent_access(limit: int = 200) -> list[dict]:
         rows = con.execute(text(
             "SELECT ts, username, event, unit, ip FROM access_log "
             "ORDER BY ts DESC LIMIT :lim"), {"lim": max(1, min(limit, 1000))}).mappings().all()
+    return [dict(r) for r in rows]
+
+
+# ----------------------------- foro de comentarios ---------------------------
+def add_comment(unit: str, username: str, full_name: str | None, body: str) -> dict:
+    """Agrega un comentario a la unidad y lo devuelve."""
+    row = {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+           "unit": unit, "username": username, "full_name": full_name, "body": body}
+    with engine.begin() as con:
+        con.execute(text(
+            "INSERT INTO comments (ts, unit, username, full_name, body) "
+            "VALUES (:ts, :unit, :username, :full_name, :body)"), row)
+    return row
+
+
+def list_comments(unit: str, limit: int = 500) -> list[dict]:
+    """Comentarios de una unidad, del más antiguo al más nuevo (orden de foro)."""
+    with engine.connect() as con:
+        rows = con.execute(text(
+            "SELECT ts, unit, username, full_name, body FROM comments "
+            "WHERE unit = :u ORDER BY ts ASC LIMIT :lim"),
+            {"u": unit, "lim": max(1, min(limit, 2000))}).mappings().all()
     return [dict(r) for r in rows]
 
 

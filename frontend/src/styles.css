@@ -851,6 +851,35 @@ body {
 .audit__cmpsum--ok { background: rgba(47, 125, 50, 0.12); color: #2f7d32; }
 .audit__cmpsum--bad { background: rgba(184, 134, 11, 0.16); color: #8a6300; }
 
+/* ----------------------------- PPT Directorio (PDF) ----------------------- */
+.ppt__upload { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ppt__frame { width: 100%; height: calc(100vh - 170px); min-height: 500px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface); }
+
+/* ----------------------------- comentarios (foro) ------------------------- */
+.cmodal__backdrop { position: fixed; inset: 0; background: rgba(11, 23, 41, 0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+.cmodal { width: min(680px, 96vw); max-height: 86vh; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: 14px; overflow: hidden; }
+.cmodal__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;
+  border-bottom: 1px solid var(--border); font-weight: 700; color: var(--strong); }
+.cmodal__close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); }
+.cmodal__thread { flex: 1 1 auto; overflow-y: auto; padding: 14px 18px; display: flex;
+  flex-direction: column; gap: 12px; min-height: 180px; }
+.cmodal__empty { color: var(--muted); font-style: italic; font-size: 14px; }
+.cmt { border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; background: var(--surface-2); }
+.cmt--mine { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.cmt__head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.cmt__author { font-weight: 700; font-size: 13px; color: var(--ink); }
+.cmt__ts { font-size: 11px; color: var(--muted); }
+.cmt__body { font-size: 14px; color: var(--ink); white-space: pre-wrap; line-height: 1.5; }
+.cmodal__err { color: var(--neg); font-size: 13px; padding: 0 18px; }
+.cmodal__compose { display: flex; gap: 10px; align-items: flex-end; padding: 12px 18px; border-top: 1px solid var(--border); }
+.cmodal__compose textarea { flex: 1; resize: vertical; min-height: 46px; background: var(--surface-2);
+  border: 1px solid var(--border-strong); border-radius: 8px; padding: 9px 11px; font: inherit; font-size: 14px; color: var(--ink); }
+.cmodal__compose textarea:focus { outline: none; border-color: var(--accent); }
+@media print { .cmodal__backdrop, .topnav__comments { display: none !important; } }
+
 /* ----------------------------- reporte PDF (impresión) -------------------- */
 @media print {
   /* zoom base a 1: en pantalla se usa 1.45 / fit-to-width (main.tsx), pero un zoom

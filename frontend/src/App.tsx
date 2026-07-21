@@ -10,7 +10,9 @@ import { GrupoDashboard } from "./pages/GrupoDashboard";
 import { MainMenu } from "./pages/MainMenu";
 import { Login } from "./pages/Login";
 import { AdminPage } from "./pages/AdminPage";
+import { PptDirectorio } from "./pages/PptDirectorio";
 import { ChangePassword } from "./components/ChangePassword";
+import { Comments } from "./components/Comments";
 import { useAuth } from "./auth";
 import { UNITS } from "./units";
 import { logUnitAccess } from "./api";
@@ -23,6 +25,7 @@ export function App() {
   // Reporte PDF: mientras está activo, los gráficos dibujan sus etiquetas de datos.
   const [printLabels, setPrintLabels] = useState(false);
   const [showPw, setShowPw] = useState(false);   // modal "cambiar mi contraseña"
+  const [showComments, setShowComments] = useState(false);  // modal foro de la unidad
 
   // Al cerrar el diálogo de impresión (afterprint) apagamos las etiquetas.
   useEffect(() => {
@@ -49,6 +52,7 @@ export function App() {
 
   // Solo las unidades visibles para el usuario (admin ve todas).
   const units = UNITS.filter((u) => user.is_admin || user.units.includes(u.id));
+  const currentUnit = UNITS.find((u) => u.id === unit);   // para el foro de comentarios
 
   return (
     <PrintLabelsProvider value={printLabels}>
@@ -66,6 +70,13 @@ export function App() {
               {u.label}
             </button>
           ))}
+          {/* PPT Directorio: PDF visible en línea para todos */}
+          <button
+            className={"topnav__tab" + (unit === "ppt" ? " topnav__tab--active" : "")}
+            onClick={() => setUnit("ppt")}
+          >
+            PPT Directorio
+          </button>
           {/* pestaña Admin: carga centralizada + gestión de usuarios (solo admin) */}
           {user.is_admin && (
             <button
@@ -73,6 +84,13 @@ export function App() {
               onClick={() => setUnit("admin")}
             >
               Admin
+            </button>
+          )}
+          {/* comentarios de la unidad abierta (foro de directores) */}
+          {currentUnit && (
+            <button className="topnav__pdf topnav__comments" onClick={() => setShowComments(true)}
+              title={`Comentarios de ${currentUnit.label}`}>
+              💬 Comentarios
             </button>
           )}
           {/* a la derecha: exporta la vista actual a PDF con etiquetas de datos */}
@@ -92,6 +110,9 @@ export function App() {
           </div>
         </nav>
         {showPw && <ChangePassword onClose={() => setShowPw(false)} />}
+        {showComments && currentUnit && (
+          <Comments unit={currentUnit.id} unitLabel={currentUnit.label} onClose={() => setShowComments(false)} />
+        )}
         {unit === "menu" && <MainMenu onPick={setUnit} />}
         {unit === "DV" && <DVDashboard />}
         {unit === "RR" && <RRDashboard />}
@@ -100,6 +121,7 @@ export function App() {
         {unit === "ICEMM" && <ICEMMDashboard />}
         {unit === "Atempora" && <AtemporaDashboard />}
         {unit === "Grupo" && <GrupoDashboard />}
+        {unit === "ppt" && <PptDirectorio />}
         {unit === "admin" && user.is_admin && <AdminPage />}
       </div>
     </PrintLabelsProvider>

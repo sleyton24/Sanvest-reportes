@@ -14,7 +14,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -60,6 +60,10 @@ ASK_ENABLED = os.environ.get("SANVEST_ASK_ENABLED", "").lower() in ("1", "true",
 # Mantenedor de ETL (F4): agente que ajusta specs con validación + aprobación humana.
 # Apagado por defecto (superficie de gasto LLM + escribe specs); se enciende aparte.
 ETL_AGENT_ENABLED = os.environ.get("SANVEST_ETL_AGENT_ENABLED", "").lower() in ("1", "true", "yes", "on")
+# Carpeta para archivos subidos que NO viven en el repo (p.ej. la PPT Directorio en
+# PDF). Sobrevive a `git reset --hard` (es untracked) y se puede mover con env.
+DATA_DIR = Path(os.environ.get("SANVEST_DATA_DIR") or (Path(__file__).resolve().parent.parent / "data"))
+PPT_PDF = DATA_DIR / "ppt_directorio.pdf"
 
 
 def require_write(authorization: str | None = Header(None),
@@ -422,6 +426,67 @@ def etl_discard(unit: str):
     _require_spec_driven(unit)
     sstore.clear_staging(unit)
     return {"ok": True, "status": sstore.status(unit)}
+
+
+# ----------------------------- foro de comentarios ---------------------------
+class CommentBody(BaseModel):
+    body: str
+
+
+@app.get("/units/{unit}/comments", tags=["comentarios"],
+         dependencies=[Depends(auth.require_unit_access)])
+def get_comments(unit: str):
+    """Comentarios (foro) de la unidad, del más antiguo al más nuevo."""
+    if not cat.get_unit(unit):
+        raise HTTPException(404, f"unidad '{unit}' no existe")
+    return auth.list_comments(unit)
+
+
+@app.post("/units/{unit}/comments", tags=["comentarios"])
+def post_comment(unit: str, body: CommentBody, user: dict = Depends(auth.current_user)):
+    """Publica un comentario en la unidad (cualquier usuario con acceso a ella)."""
+    if not cat.get_unit(unit):
+        raise HTTPException(404, f"unidad '{unit}' no existe")
+    if not auth.user_can_see(user, unit):
+        raise HTTPException(403, f"Sin acceso a la unidad '{unit}'.")
+    text_body = (body.body or "").strip()
+    if not text_body:
+        raise HTTPException(400, "El comentario está vacío.")
+    if len(text_body) > 4000:
+        raise HTTPException(400, "El comentario es demasiado largo (máx. 4000 caracteres).")
+    return auth.add_comment(unit, user["username"], user.get("full_name"), text_body)
+
+
+# ----------------------------- PPT Directorio (PDF) --------------------------
+@app.get("/docs/ppt-directorio/meta", tags=["documentos"])
+def ppt_meta(_user: dict = Depends(auth.current_user)):
+    """¿Hay PPT Directorio cargada? (para que el front sepa si mostrarla)."""
+    if PPT_PDF.exists():
+        st = PPT_PDF.stat()
+        from datetime import datetime as _dt, timezone as _tz
+        return {"exists": True, "size": st.st_size,
+                "uploaded_at": _dt.fromtimestamp(st.st_mtime, _tz.utc).isoformat(timespec="seconds")}
+    return {"exists": False}
+
+
+@app.get("/docs/ppt-directorio", tags=["documentos"])
+def ppt_get(_user: dict = Depends(auth.current_user)):
+    """Sirve el PDF de la PPT Directorio en línea (el front lo muestra sin descargar)."""
+    if not PPT_PDF.exists():
+        raise HTTPException(404, "Aún no se ha subido la PPT Directorio.")
+    return FileResponse(str(PPT_PDF), media_type="application/pdf",
+                        headers={"Content-Disposition": 'inline; filename="ppt_directorio.pdf"'})
+
+
+@app.post("/docs/ppt-directorio", tags=["documentos"], dependencies=[Depends(auth.require_admin)])
+async def ppt_upload(file: UploadFile = File(...)):
+    """Sube/reemplaza la PPT Directorio (PDF). Solo admin."""
+    if not (file.filename or "").lower().endswith(".pdf"):
+        raise HTTPException(400, "el archivo debe ser .pdf")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with PPT_PDF.open("wb") as f:
+        shutil.copyfileobj(file.file, f)
+    return {"ok": True, "size": PPT_PDF.stat().st_size}
 
 
 # ----------------------------- ingreso manual KPIs USA -----------------------
