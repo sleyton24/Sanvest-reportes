@@ -11,27 +11,46 @@ Reglas verificadas por value-match contra icemm_mensual reconciliado (202603):
    (tras EBITDA)→Otros no operacionales.
  - Gastos Operacionales: Nivel 2 = el PROYECTO (su fila-encabezado trae el total),
    no las líneas de detalle (Materiales/Mano de Obra/…).
- - Alias Nivel 2: 'Agua del Palo' (crudo) → 'Puerto Camoens' (panel).
+ - Nivel 2 canónico (panel): 'Agua del Palo' → 'Puerto Camoens'; el proyecto
+   Costanera se homologa a 'Olá Costanera' venga con o sin tilde en el crudo (en
+   Ingresos aparece 'Olá Costanera' y en Costos de Obra 'Ola Costanera'). El match
+   de sección y la homologación son INSENSIBLES a tildes por eso mismo.
  - YTD = cumsum del año; FY = suma 12 meses (constante); YTG = FY − YTD.
 """
 from __future__ import annotations
 
 import datetime as dt
 import re
+import unicodedata
 from pathlib import Path
 
 import openpyxl
 import pandas as pd
 
-ALIAS_N2 = {"agua del palo": "Puerto Camoens"}
+# Nombre canónico de Nivel 2 (el del panel), keyed por su forma normalizada SIN
+# tildes: el crudo escribe el mismo proyecto con y sin tilde según la sección, y
+# 'Agua del Palo' es el nombre viejo de 'Puerto Camoens'. Lo demás conserva su raw.
+CANON_N2 = {
+    "la quebrada": "La Quebrada",
+    "ola costanera": "Olá Costanera",
+    "agua del palo": "Puerto Camoens",
+    "otros ingresos": "Otros Ingresos",
+    "otros costos operacionales": "Otros Costos Operacionales",
+}
 
-# Nivel 2 permitidos por sección (lo demás en la sección se ignora)
-ING_N2 = {"la quebrada", "olá costanera", "agua del palo", "otros ingresos"}
-GOP_N2 = {"la quebrada", "olá costanera", "agua del palo", "otros costos operacionales"}
+# Nivel 2 permitidos por sección (forma sin tildes; lo demás en la sección se ignora)
+ING_N2 = {"la quebrada", "ola costanera", "agua del palo", "otros ingresos"}
+GOP_N2 = {"la quebrada", "ola costanera", "agua del palo", "otros costos operacionales"}
 
 
 def _norm(s) -> str:
     return re.sub(r"\s+", " ", str(s).strip()).lower() if s is not None else ""
+
+
+def _norm_na(s) -> str:
+    """Como _norm pero además sin tildes (NFKD): el crudo alterna 'Olá'/'Ola'."""
+    return "".join(c for c in unicodedata.normalize("NFKD", _norm(s))
+                   if not unicodedata.combining(c))
 
 
 def _num(v):
@@ -72,7 +91,7 @@ def parse_informe_gestion(rows: list) -> list[dict]:
 
     def emit(n1: str, i: int):
         raw = str(rows[i][1]).strip()
-        n2 = ALIAS_N2.get(_norm(raw), raw)
+        n2 = CANON_N2.get(_norm_na(raw), raw)
         for d, ci in months:
             recs.append({
                 "Nivel 1": n1, "Nivel 2": n2,
@@ -96,7 +115,7 @@ def parse_informe_gestion(rows: list) -> list[dict]:
             raw = str(rows[i][1]).strip() if len(rows[i]) > 1 and rows[i][1] else ""
             if not raw:
                 continue
-            if allowed is None or _norm(raw) in allowed:
+            if allowed is None or _norm_na(raw) in allowed:
                 emit(n1, i)
 
     # Otros no operacionales: filas tras EBITDA
