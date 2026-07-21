@@ -24,7 +24,7 @@ const negColor = (v: number | null | undefined) => (v != null && v < 0 ? "var(--
 // con encabezado colapsable y subtotal, fila calculada "Flujo Neto del Mes" (suma de
 // las secciones de flujo; check: Caja Inicial + Flujo Neto = Caja Final), Caja Final
 // como cierre y columna Total del año (en las cajas, saldo inicial/final, no suma).
-export function FlujoPivot({ title, rows, defaultCollapsed = false }: {
+export function FlujoPivot({ title, rows, defaultCollapsed = true }: {
   title: string; rows: Row[]; defaultCollapsed?: boolean;
 }) {
   const periods = [...new Set(rows.map((r) => String(r["Fecha"]).slice(0, 7)))]

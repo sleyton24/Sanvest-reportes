@@ -661,13 +661,13 @@ body {
 .pivot__scroll { overflow: auto; max-height: 360px; }
 .pivot__table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .pivot__table th, .pivot__table td { padding: 6px 9px; border-bottom: 1px solid var(--border); text-align: left; }
-.pivot__table th {
-  background: var(--bg-2); color: var(--muted); position: sticky; top: 0; font-weight: 600;
-  height: 30px;   /* alto FIJO de cabecera: la 2ª fila sticky calza sin dejar "hoyo" */
+.pivot__table th { background: var(--bg-2); color: var(--muted); position: sticky; top: 0; font-weight: 600; }
+/* Cabecera de alto DETERMINISTA (line-height fija + sin padding vertical) para que
+   la fila de grupos mida EXACTAMENTE 30px y la 2ª fila sticky calce sin dejar el
+   "hoyo" entre ambas. La 2ª fila se pega a 29px = 1px de solape (invisible, bg opaco). */
+.pivot__table thead th {
+  height: 30px; line-height: 30px; padding-top: 0; padding-bottom: 0; vertical-align: middle;
 }
-/* cabecera de DOS filas (grupos Q1 | año ant., Mes | YTD, etc.): la 2ª fila se pega
-   a 29px = 1px de SOLAPE con la 1ª (evita el hueco por el que se transparentaban
-   las filas de datos al hacer scroll). Ambas filas son opacas (bg-2). */
 .pivot__table thead tr:nth-child(2) th { top: 29px; }
 .pivot__table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .pivot__table .grp { border-left: 1px solid var(--border-strong); }

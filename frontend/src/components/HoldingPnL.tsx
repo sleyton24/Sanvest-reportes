@@ -24,10 +24,10 @@ export interface PnLMultiRow {
   indice?: number;
   vals: { real: number | null; ppto: number | null }[];
 }
-export function HoldingPnLMulti({ title, rows, groups, unit = "UF", grandTotal, defaultCollapsed = false }: {
+export function HoldingPnLMulti({ title, rows, groups, unit = "UF", grandTotal, defaultCollapsed = true }: {
   title: string; rows: PnLMultiRow[]; groups: string[]; unit?: string;
   grandTotal?: string;       // fila de total al pie: suma de TODAS las secciones por grupo
-  defaultCollapsed?: boolean; // arranca con las secciones colapsadas
+  defaultCollapsed?: boolean; // arranca con las secciones colapsadas (por defecto SÍ)
 }) {
   const detailRows = rows.filter((r) => r.indice == null || r.indice <= 2);
   const resultRows = rows.filter((r) => (r.indice ?? 0) >= 4);
