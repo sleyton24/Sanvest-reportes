@@ -659,16 +659,21 @@ body {
 
 /* pivot / tablas */
 .pivot__scroll { overflow: auto; max-height: 360px; }
-.pivot__table { width: 100%; border-collapse: collapse; font-size: 12px; }
+/* border-collapse: SEPARATE (no collapse): con collapse, los bordes pertenecen a la
+   tabla y NO viajan con las celdas sticky — Chrome deja un "hoyo" (se ve el fondo)
+   entre las dos filas de cabecera al hacer scroll. Con separate + spacing 0 cada
+   celda pinta su propio borde y el header sticky de dos filas queda sin costura. */
+.pivot__table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
 .pivot__table th, .pivot__table td { padding: 6px 9px; border-bottom: 1px solid var(--border); text-align: left; }
 .pivot__table th { background: var(--bg-2); color: var(--muted); position: sticky; top: 0; font-weight: 600; }
-/* Cabecera de alto DETERMINISTA (line-height fija + sin padding vertical) para que
-   la fila de grupos mida EXACTAMENTE 30px y la 2ª fila sticky calce sin dejar el
-   "hoyo" entre ambas. La 2ª fila se pega a 29px = 1px de solape (invisible, bg opaco). */
+/* Cabecera de alto DETERMINISTA (box-border + line-height fija + sin padding vertical):
+   la fila de grupos mide EXACTAMENTE 30px (borde incluido) y la 2ª fila sticky se pega
+   a 30px, justo debajo, sin solape que tape texto ni hueco que muestre el fondo. */
 .pivot__table thead th {
-  height: 30px; line-height: 30px; padding-top: 0; padding-bottom: 0; vertical-align: middle;
+  height: 30px; line-height: 30px; padding-top: 0; padding-bottom: 0;
+  vertical-align: middle; box-sizing: border-box;
 }
-.pivot__table thead tr:nth-child(2) th { top: 29px; }
+.pivot__table thead tr:nth-child(2) th { top: 30px; }
 .pivot__table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .pivot__table .grp { border-left: 1px solid var(--border-strong); }
 .pivot__table thead .grp { text-align: center; }
