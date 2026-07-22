@@ -280,6 +280,15 @@ export async function saveDvDebt(body: DvDebtInput): Promise<any> {
   return data;
 }
 
+// Recalcula los KPIs por edificio del RR desde la BD operativa SQLLAR (ocupación /
+// arriendo UF/m² / deptos) y actualiza rr_edificios_lar al mes vigente.
+export async function refreshRrEdificios(): Promise<any> {
+  const res = await apiFetch(`/units/RR/edificios-refresh`, { method: "POST" });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new UploadError(res.status, (data as any).detail ?? data);
+  return data;
+}
+
 // Ingreso manual del avance de construcción de un proyecto DV (%). El gauge toma
 // el máximo entre versiones; el backend lo setea en el proyecto+período.
 export interface DvAvanceInput { proyecto: string; anio: number; mes: number; avance: number; }

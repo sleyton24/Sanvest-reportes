@@ -27,6 +27,7 @@ from etl.connect_icemm import apply_icemm
 from etl.connect_dv import apply_dv
 from etl.connect_grupo import apply_grupo, build_grupo, classify_grupo_file
 from etl.connect_atempora import apply_atempora, apply_atempora_kpis, apply_atempora_morosidad
+from etl.connect_sqllar import refresh_rr_edificios
 from etl.validators import ValidationError, raise_if_bad
 from etl import spec_store as sstore
 from etl import audit as data_audit
@@ -1016,6 +1017,21 @@ async def upload_excel(unit: str, file: UploadFile = File(...)):
                 "total_rows": sum(loaded.values())}
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+# ------------------- RR: KPIs por edificio en vivo desde SQLLAR --------------
+@app.post("/units/RR/edificios-refresh", tags=["carga"], dependencies=[Depends(auth.require_admin)])
+def refresh_rr_edificios_endpoint():
+    """Recalcula los KPIs por edificio (ocupación / arriendo UF/m² / deptos) desde la
+    BD operativa SQLLAR y hace upsert en rr_edificios_lar para el mes vigente."""
+    import datetime as _dt
+    now = _dt.datetime.now()
+    fid = now.year * 100 + now.month
+    try:
+        res = refresh_rr_edificios(engine, fid)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(422, f"No pude actualizar KPIs por edificio desde SQLLAR: {e}")
+    return {"ok": True, "periodo": fid, "resultado": res}
 
 
 @app.post("/units/{unit}/upload-informes", tags=["carga"], dependencies=[Depends(auth.require_admin)])
