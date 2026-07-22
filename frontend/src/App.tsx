@@ -16,6 +16,7 @@ import { Comments } from "./components/Comments";
 import { useAuth } from "./auth";
 import { UNITS } from "./units";
 import { logUnitAccess } from "./api";
+import { scheduleFit } from "./fit";
 
 const UNIT_IDS = new Set(UNITS.map((u) => u.id));
 
@@ -45,6 +46,15 @@ export function App() {
   useEffect(() => {
     if (user && UNIT_IDS.has(unit)) logUnitAccess(unit);
   }, [unit, user]);
+
+  // Re-ajusta el zoom fit-to-width tras render (montaje, login, cambio de unidad):
+  // el contenido ya está en el DOM y se mide su ancho real. Un reintento diferido
+  // cubre el layout que llega tarde (fuentes, imágenes de cabecera).
+  useEffect(() => {
+    scheduleFit();
+    const t = window.setTimeout(scheduleFit, 350);
+    return () => window.clearTimeout(t);
+  }, [unit, user, loading]);
 
   // Gate de sesión: mientras rehidrata, spinner; sin usuario, pantalla de login.
   if (loading) return <div className="state">Cargando…</div>;
