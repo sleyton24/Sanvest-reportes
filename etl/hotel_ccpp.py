@@ -129,6 +129,20 @@ def _ig_val(rows, ri, ci):
     return float(v) if isinstance(v, (int, float)) else None
 
 
+def _ig_col(ig_months, anio, mes):
+    """Columna del bloque de 'Informe gestión' para (anio, mes). Cae a match por MES
+    si el AÑO no coincide: la hoja RESUMEN a veces trae el año de la plantilla
+    desfasado del de 'Informe gestión' (p.ej. RESUMEN=2025 e Informe gestión=2026),
+    y como un CCPP cubre UN solo año, el mes basta para casar REVPAR/Flujo."""
+    ci = ig_months.get((int(anio), int(mes)))
+    if ci is not None:
+        return ci
+    for (_yy, mm), cc in ig_months.items():
+        if mm == int(mes):
+            return cc
+    return None
+
+
 def ccpp_to_hotel_full(path) -> pd.DataFrame:
     """Formato largo (Item x Versión_Real/Ppto + YTD) para hotel_full."""
     rows = _load(path)
@@ -157,7 +171,7 @@ def ccpp_to_hotel_full(path) -> pd.DataFrame:
     for i, r in df.iterrows():
         if str(r["Item"]).strip() != "Flujo Caja Consolidado":
             continue
-        ci = ig_months.get((int(r["anio"]), int(r["mes"])))
+        ci = _ig_col(ig_months, r["anio"], r["mes"])
         vr, vp = _ig_val(ig_rows, r_flujo, ci), _ig_val(ig_rows, r_flujo, ci + 1 if ci is not None else None)
         if vr is not None:
             df.at[i, "Versión_Real"] = vr
@@ -218,8 +232,7 @@ def ccpp_to_hotel_real(path, ppto=False) -> pd.DataFrame:
     latest = max(((int(a) * 100 + int(m)) for a, m in zip(df["anio"], df["mes"])),
                  default=None)
     for i, rw in df.iterrows():
-        key = (int(rw["anio"]), int(rw["mes"]))
-        ci = ig_months.get(key)
+        ci = _ig_col(ig_months, rw["anio"], rw["mes"])
         if ci is not None:
             col = ci + off
             fv = _ig_val(ig_rows, r[IG_FLUJO], col)
