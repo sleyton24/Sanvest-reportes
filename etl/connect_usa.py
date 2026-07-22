@@ -11,7 +11,7 @@ import pandas as pd
 from sqlalchemy.engine import Engine
 
 from .connect_lar import _fid, _read, _write
-from .usa_budget import budget_comparison_to_pnl
+from .usa_budget import budget_comparison_to_pnl, st_grand_to_pnl
 from .usa_kpis import usa_kpis_to_gestion
 
 # detección de propiedad (por nombre de archivo) -> tabla destino
@@ -127,7 +127,12 @@ import openpyxl  # noqa: E402
 
 
 def _yardi_property(path) -> str:
-    """Detecta la propiedad por el encabezado r0 ('Nombre (código)')."""
+    """Detecta la propiedad. St Grand llega como 'Consolidated Reports' con la primera
+    hoja (Cover Sheet) VACÍA, así que se reconoce por el NOMBRE del archivo; Bemiston/
+    MILA por el encabezado r0 de su primera hoja ('Nombre (código)')."""
+    fn = Path(path).name.lower()
+    if "grand" in fn or "saint" in fn:
+        return "St Grand"
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     r0 = ""
     for row in wb[wb.sheetnames[0]].iter_rows(min_row=1, max_row=1, values_only=True):
@@ -156,7 +161,9 @@ def upsert_usa_pnl(engine: Engine, activo: str, df: pd.DataFrame) -> dict:
     n_upd, inserts = 0, []
     for _, r in df.iterrows():
         line = str(r["Nivel 1"]).strip()
-        sec = secmap.get(line, "")
+        # sección: la que trae el df (St Grand la deriva del código de cuenta) o, si no,
+        # la del histórico (Bemiston/MILA se apoyan en las filas ya cargadas).
+        sec = str(r.get("Seccion") or secmap.get(line, "") or "")
         sign = 1 if "REVENUE" in sec.upper() else -1
         vals = {"Real": sign * r["Real"] if r["Real"] is not None else None,
                 "Ppto": sign * r["Monto"] if r.get("Monto") is not None else None,
@@ -184,9 +191,11 @@ def upsert_usa_pnl(engine: Engine, activo: str, df: pd.DataFrame) -> dict:
 
 
 def apply_yardi(engine: Engine, path) -> dict:
-    """Informe Yardi (Budget_Comparison) -> usa_pnl homologado. Propiedad por r0."""
+    """Informe -> usa_pnl homologado. Bemiston/MILA = Budget_Comparison (1ª hoja);
+    St Grand = Consolidated Reports (hoja 'Budget Comp'/'Budget Comp Comm')."""
     activo = _yardi_property(path)
-    return upsert_usa_pnl(engine, activo, budget_comparison_to_pnl(path))
+    df = st_grand_to_pnl(path) if activo == "St Grand" else budget_comparison_to_pnl(path)
+    return upsert_usa_pnl(engine, activo, df)
 
 
 def apply_usa_budget(engine: Engine, path) -> dict:
