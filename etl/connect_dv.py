@@ -79,17 +79,15 @@ def apply_dv(engine: Engine, paths: dict) -> dict:
         prev_egr = prevmonto("EGRESOS A LA FECHA")
         sv155_lin = prevmonto("LÍNEA DE CRÉDITO GIRADA") if proj == SV155 else None   # manual → carry
         sv155_pag = prevmonto("PREVENTAS") if proj == SV155 else None                 # carry
-        rows += I.usos_y_fondos_rows({"egresos": prev_egr}, proj, year, month, flujo, sv155_pag, sv155_lin)
+        ml_lin = prevmonto("LÍNEA DE CRÉDITO GIRADA") if proj == ML else None          # Millalongo → carry (sigue la tabla)
+        rows += I.usos_y_fondos_rows({"egresos": prev_egr}, proj, year, month, flujo, sv155_pag, sv155_lin, ml_lin)
     res["dv_uso_y_fondo"] = _upsert(engine, "dv_uso_y_fondo", pd.DataFrame(rows), "Nombre proyecto", "Fecha ID")
 
     # ---------------- Amortización ----------------
-    am = _read(engine, "amortizacion")
-    arows = []
-    for proj in PROJ:
-        lin = next((r for r in rows if r["Nombre proyecto"] == proj
-                    and r["SUBCATEGORIA"] == "LÍNEA DE CRÉDITO GIRADA"), {}).get("Monto", 0.0)
-        arows.append(I.amortizacion_rows(proj, year, month, lin))
-    res["amortizacion"] = _upsert(engine, "amortizacion", pd.DataFrame(arows), "Proyecto", "FechaID")
+    # El AMORTIZADO ahora es MANUAL (botón "Actualizar deuda" → tabla amortizacion, por
+    # nombre corto Sv99/Sv155/Millalongo). La carga mensual NO lo pisa; el dashboard
+    # arrastra el último valor por período ("a la fecha"). Antes se reescribía con las
+    # constantes congeladas AMORT y con el nombre largo, que el front ni siquiera leía.
 
     # ---------------- Evolución de Costos (Costos Reales = Egresos/1000) ----------------
     ec = _read(engine, "dv_evolucion_de_costos")

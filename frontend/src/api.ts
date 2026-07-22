@@ -265,9 +265,12 @@ export interface UsaKpiInput {
   sqf_actual?: number | null;          // $/SQF Residencial Actual (mes)
   sqf_retail_actual?: number | null;   // $/SQF Retail Actual (mes)
 }
-// Ingreso manual de la DEUDA (línea de crédito girada) de un proyecto DV; el
-// backend recalcula el capital socios (= egresos − deuda − preventas).
-export interface DvDebtInput { proyecto: string; anio: number; mes: number; deuda: number; }
+// Ingreso manual de la DEUDA de un proyecto DV: línea girada (recalcula capital
+// socios = egresos − deuda − preventas) y/o amortizado (Saldo = línea − amortizado).
+export interface DvDebtInput {
+  proyecto: string; anio: number; mes: number;
+  deuda?: number | null; amortizado?: number | null;
+}
 export async function saveDvDebt(body: DvDebtInput): Promise<any> {
   const res = await apiFetch(`/units/DV/uso-fondo`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),

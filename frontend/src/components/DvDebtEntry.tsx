@@ -23,15 +23,17 @@ export function DvDebtEntry({ proyecto, label, defaultYear, defaultMonth, open, 
   const [anio, setAnio] = useState(String(defaultYear ?? 2026));
   const [mes, setMes] = useState(String(defaultMonth ?? 1));
   const [deuda, setDeuda] = useState("");
+  const [amort, setAmort] = useState("");
   const [st, setSt] = useState<St>({ k: "idle" });
   useEffect(() => { if (defaultYear) setAnio(String(defaultYear)); if (defaultMonth) setMes(String(defaultMonth)); }, [defaultYear, defaultMonth]);
 
   async function submit() {
     const d = parse(deuda);
-    if (d == null) { setSt({ k: "err", msg: "Ingresa la deuda (línea de crédito girada)." }); return; }
+    const a = parse(amort);
+    if (d == null && a == null) { setSt({ k: "err", msg: "Ingresa la línea girada y/o el amortizado." }); return; }
     setSt({ k: "loading" });
     try {
-      const res = await saveDvDebt({ proyecto, anio: Number(anio), mes: Number(mes), deuda: d });
+      const res = await saveDvDebt({ proyecto, anio: Number(anio), mes: Number(mes), deuda: d, amortizado: a });
       setSt({ k: "ok", res });
       onSaved();
     } catch (e) {
@@ -54,9 +56,12 @@ export function DvDebtEntry({ proyecto, label, defaultYear, defaultMonth, open, 
               <select value={mes} onChange={(e) => setMes(e.target.value)}>
                 {Array.from({ length: 12 }, (_, i) => <option key={i + 1} value={i + 1}>{MESES[i + 1]}</option>)}
               </select></label>
-            <label className="kpi-in"><span>Deuda — Línea de crédito girada (UF)</span>
+            <label className="kpi-in"><span>Línea de crédito girada (UF)</span>
               <input inputMode="decimal" placeholder="ej: 225.597" value={deuda}
-                onChange={(e) => setDeuda(e.target.value)} style={{ width: 180 }} /></label>
+                onChange={(e) => setDeuda(e.target.value)} style={{ width: 160 }} /></label>
+            <label className="kpi-in"><span>Amortizado acumulado (UF)</span>
+              <input inputMode="decimal" placeholder="ej: 176.005" value={amort}
+                onChange={(e) => setAmort(e.target.value)} style={{ width: 160 }} /></label>
           </div>
           <div className="kpi-entry__foot">
             <Button variant="primary" onClick={submit} disabled={st.k === "loading"}>
@@ -64,7 +69,9 @@ export function DvDebtEntry({ proyecto, label, defaultYear, defaultMonth, open, 
             </Button>
             {st.k === "ok" && (
               <span className="upload__msg upload__msg--ok">
-                ✓ {label} {MESES[Number(mes)]} {anio} — Capital socios: <b>{fmtUF(st.res.capital_socios)}</b> UF
+                ✓ {label} {MESES[Number(mes)]} {anio}
+                {st.res.capital_socios != null && <> — Capital socios: <b>{fmtUF(st.res.capital_socios)}</b> UF</>}
+                {st.res.saldo_deuda != null && <> — Saldo deuda: <b>{fmtUF(st.res.saldo_deuda)}</b> UF</>}
               </span>
             )}
             {st.k === "err" && <span className="upload__msg upload__msg--err">✗ {st.msg}</span>}

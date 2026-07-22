@@ -125,17 +125,24 @@ def _estad_block(sh) -> dict:
 # --------------------------- USOS Y FONDOS -----------------------------------
 def usos_y_fondos_rows(prev: dict, project: str, year: int, month: int,
                        flujo: dict, sv155_pagado: float | None,
-                       sv155_linea: float | None) -> list[dict]:
+                       sv155_linea: float | None, ml_linea: float | None = None) -> list[dict]:
     """4 filas (USOS/EGRESOS, FONDOS/LÍNEA, PREVENTAS, CAPITAL) del mes nuevo.
 
     prev = {'egresos': monto_egresos_mes_anterior}. Aplica acumulación, congelados
     y residual exactamente como la guía.
+    Línea de crédito girada por proyecto: SV155 manual (giros banco); Millalongo
+    ARRASTRA el valor del mes anterior (sigue la curva de la tabla: crece hasta el
+    máximo y luego se mantiene mientras amortiza); SV99 fija.
     """
     egresos = prev["egresos"] + flujo["socio"] + flujo["danacorp"]
     if project == "Sta. Victoria 155":
         linea = sv155_linea if sv155_linea is not None else prev.get("linea", 0.0)  # MANUAL/rojo
         preventas = sv155_pagado if sv155_pagado is not None else prev.get("preventas", 0.0)
-    else:
+    elif project == "Millalongo":
+        # carry: sigue el último valor de la tabla (o el máximo conocido como piso)
+        linea = ml_linea if ml_linea is not None else LINEA_FROZEN[project]
+        preventas = PREVENTAS_FROZEN[project]
+    else:  # Sta. Victoria 99: fija
         linea = LINEA_FROZEN[project]
         preventas = PREVENTAS_FROZEN[project]
     capital = egresos - linea - preventas  # residual

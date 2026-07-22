@@ -604,21 +604,30 @@ class DvDebtBody(BaseModel):
     proyecto: str                 # "Nombre proyecto" exacto: Millalongo / Sta. Victoria 155 / Sta. Victoria 99
     anio: int
     mes: int
-    deuda: float                  # LÍNEA DE CRÉDITO GIRADA (UF)
+    deuda: float | None = None        # LÍNEA DE CRÉDITO GIRADA (UF) — opcional
+    amortizado: float | None = None   # AMORTIZADO acumulado (UF) — opcional; Saldo = línea − amortizado
 
 
 _DV_UF = "dv_uso_y_fondo"
 _DV_GIRADA = "LÍNEA DE CRÉDITO GIRADA"
 _DV_CAPITAL = "CAPITAL SOCIOS FONDOS"
+_DV_AMORT = "amortizacion"
+# dv_uso_y_fondo usa el nombre largo ("Nombre proyecto"); amortizacion usa el nombre
+# corto ("Proyecto") que es el que filtra el dashboard (PROJECTS[].amort). Mapear.
+_DV_AMORT_NAME = {"Millalongo": "Millalongo", "Sta. Victoria 155": "Sv155",
+                  "Sta. Victoria 99": "Sv99"}
 
 
 @app.post("/units/DV/uso-fondo", tags=["carga"], dependencies=[Depends(auth.require_admin)])
 def upsert_dv_debt(body: DvDebtBody):
-    """Fija la deuda (línea girada) de un proyecto DV en un período y recalcula el
-    capital socios (= egresos − deuda − preventas). Upsert por (proyecto, período,
-    subcategoría) sobre dv_uso_y_fondo."""
+    """Actualiza la deuda de un proyecto DV en un período:
+    - `deuda` (línea girada) → recalcula capital socios (= egresos − deuda − preventas) en dv_uso_y_fondo.
+    - `amortizado` → escribe en la tabla amortizacion (Saldo = línea girada − amortizado).
+    Ambos opcionales; se toma el que venga. Upsert in-place por (proyecto, período)."""
     if not (1 <= body.mes <= 12):
         raise HTTPException(400, "mes debe ser 1-12")
+    if body.deuda is None and body.amortizado is None:
+        raise HTTPException(400, "envía al menos deuda (línea girada) o amortizado")
     proyecto = body.proyecto.strip()
     fid = body.anio * 100 + body.mes
     fecha = f"{body.anio}-{body.mes:02d}-01"
@@ -642,14 +651,37 @@ def upsert_dv_debt(body: DvDebtBody):
                 {"p": proyecto, "s": subcat, "m": monto, "fe": fecha, "f": fid,
                  "mc": body.mes, "ac": body.anio})
 
+    # amortización: upsert in-place por (Proyecto, FechaID). Saldo = línea − amortizado.
+    AT, AP, AAM, ASA, AFE, AFID = (qi(_DV_AMORT), qi("Proyecto"), qi("Amortizado"),
+                                   qi("Saldo"), qi("Fecha"), qi("FechaID"))
+
+    amort_proj = _DV_AMORT_NAME.get(proyecto, proyecto)   # nombre corto que lee el dashboard
+
+    def _upsert_amort(con, linea: float, amort: float) -> float:
+        saldo = max(0.0, linea - amort)
+        r = con.execute(text(f"UPDATE {AT} SET {AAM}=:a, {ASA}=:s, {AFE}=:fe WHERE {AP}=:p AND {AFID}=:f"),
+                        {"a": amort, "s": saldo, "fe": fecha, "p": amort_proj, "f": fid})
+        if r.rowcount == 0:
+            con.execute(text(f"INSERT INTO {AT} ({AP},{AAM},{ASA},{AFE},{AFID}) VALUES (:p,:a,:s,:fe,:f)"),
+                        {"p": amort_proj, "a": amort, "s": saldo, "fe": fecha, "f": fid})
+        return saldo
+
+    out = {"ok": True, "proyecto": proyecto, "periodo": fid}
     with engine.begin() as con:
-        egresos = _sum(con, "EGRESOS A LA FECHA")
-        preventas = _sum(con, "PREVENTAS")
-        _upsert(con, _DV_GIRADA, body.deuda)
-        capital = egresos - body.deuda - preventas
-        _upsert(con, _DV_CAPITAL, capital)
-    return {"ok": True, "proyecto": proyecto, "periodo": fid, "deuda": body.deuda,
-            "egresos": egresos, "preventas": preventas, "capital_socios": capital}
+        if body.deuda is not None:
+            egresos = _sum(con, "EGRESOS A LA FECHA")
+            preventas = _sum(con, "PREVENTAS")
+            _upsert(con, _DV_GIRADA, body.deuda)
+            capital = egresos - body.deuda - preventas
+            _upsert(con, _DV_CAPITAL, capital)
+            out.update({"deuda": body.deuda, "egresos": egresos, "preventas": preventas,
+                        "capital_socios": capital})
+        if body.amortizado is not None:
+            # línea vigente del período: la recién ingresada o la que ya está en Usos y Fondos
+            linea = body.deuda if body.deuda is not None else _sum(con, _DV_GIRADA)
+            saldo = _upsert_amort(con, linea, body.amortizado)
+            out.update({"amortizado": body.amortizado, "saldo_deuda": saldo, "linea_girada": linea})
+    return out
 
 
 # ----------------------------- avance de construcción DV ---------------------
