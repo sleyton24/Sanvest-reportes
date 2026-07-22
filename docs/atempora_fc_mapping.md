@@ -94,12 +94,12 @@ Conclusión: el presupuesto (PPTO) es un **dato aparte del actual**, no derivabl
 
 - **Real (`Monto`)** → del FC actual, bloque UF (filas 152–189), columna del mes, con ventas eliminadas.
   Un solo archivo mensual basta.
-- **PPTO (`ppto`)** → **no** sale del FC mensual corriente. Opciones para el ETL:
-  1. **Baseline congelado (recomendado):** cargar una vez el FC de presupuesto del año (p. ej. el
-     primer FC del año o un "vF_ppto") y guardar su bloque UF como `ppto` de los 12 meses. Luego los
-     cargues mensuales solo hacen upsert de `Monto` (Real) preservando `ppto`.
-  2. **PPTO := Real** (para arrancar): variance = 0, pipeline funciona, pero el análisis de desvío queda plano.
-  3. Persistir `ppto` en la tabla por `(fechaID, rubro)` y que `connect_atempora` solo actualice `Monto`.
+- **PPTO (`ppto`)** → **no** sale del Real del FC. **DECISIÓN IMPLEMENTADA (22-jul-2026):**
+  - Meses **cerrados** (fechaID ≤ período del archivo): `ppto` se **deja como está** (presupuesto
+    congelado, sembrado por el `/upload` de CIVITAS.xlsx). Solo se actualiza `Monto` (Real) + `YTD Real`.
+  - Meses **futuros** (fechaID > período): `ppto` se **sobrescribe con la proyección del bloque UF del
+    FC** (y se recalcula `YTD PPTO`). Así el presupuesto forward se refresca en cada carga mensual.
+  - Las líneas de venta quedan en 0 en Real y Ppto en todos los meses.
 
 > Nota honesta: los números del FC vF3 (mayo-2026) **no** coinciden 1:1 con los del `eerr_civitas`
 > manual en varios meses de 2025 (ver §7), porque el FC es un modelo vivo que **restata** meses ya
