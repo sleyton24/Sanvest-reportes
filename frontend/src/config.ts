@@ -8,13 +8,14 @@ export interface ProjectMap {
   nombre: string; // 'Nombre proyecto' en tablas DV*
   amort: string; //  'Proyecto' en Amortizacion
   activo: string; // 'Activo' en Financieros Sanvest
+  logo?: string;  // logo del proyecto para el header (si no, Danacorp)
 }
 
 // Solo los 3 proyectos con página/financieros en el PBI (ver D3.2).
 export const PROJECTS: ProjectMap[] = [
-  { id: "millalongo", label: "Millalongo", nombre: "Millalongo", amort: "Millalongo", activo: "Millalongo" },
-  { id: "sv155", label: "Sta Victoria 155", nombre: "Sta. Victoria 155", amort: "Sv155", activo: "SV 155" },
-  { id: "sv99", label: "Sta Victoria 99", nombre: "Sta. Victoria 99", amort: "Sv99", activo: "SV 99" },
+  { id: "millalongo", label: "Millalongo", nombre: "Millalongo", amort: "Millalongo", activo: "Millalongo", logo: "/logos/millalongo.png" },
+  { id: "sv155", label: "Sta Victoria 155", nombre: "Sta. Victoria 155", amort: "Sv155", activo: "SV 155", logo: "/logos/santa-victoria.webp" },
+  { id: "sv99", label: "Sta Victoria 99", nombre: "Sta. Victoria 99", amort: "Sv99", activo: "SV 99", logo: "/logos/santa-victoria.webp" },
 ];
 
 export interface TableCfg {
