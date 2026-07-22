@@ -26,9 +26,9 @@ const STMT_GROUPS: PnLHeaderGroup[] = [{ label: "Mensual", cols: 3 }, { label: "
 
 // Mapeo de nombre de propiedad por tabla (vienen con ortografías distintas).
 const PROPS = [
-  { id: "Bemiston", pnl: "Bemiston", graf: "Bemiston", ocup: "Bemiston", kpis: "Bemiston" },
-  { id: "Mila", pnl: "Mila", graf: "Mila", ocup: "Mila", kpis: "Mila" },
-  { id: "St Grand", pnl: "St Grand", graf: "St Grand", ocup: "St. Grand", kpis: "ST grand" },
+  { id: "Bemiston", pnl: "Bemiston", graf: "Bemiston", ocup: "Bemiston", kpis: "Bemiston", logo: "/logos/bemiston.webp" },
+  { id: "Mila", pnl: "Mila", graf: "Mila", ocup: "Mila", kpis: "Mila", logo: "/logos/mila.png" },
+  { id: "St Grand", pnl: "St Grand", graf: "St Grand", ocup: "St. Grand", kpis: "ST grand", logo: "/logos/st-grand.png" },
 ];
 const MESES = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const usd = (v: number | null) => fmtNum(v, 0);
@@ -253,7 +253,7 @@ export function USADashboard() {
   return (
     <div className="dash">
       <header className="dash__header">
-        <h1><img className="dash__logo dash__logo--emm" src="/logos/double-eagle.png" alt="Double Eagle Development" />USA · <b className="dash__proj">{prop}</b></h1>
+        <h1><img className="dash__logo dash__logo--emm" src={P.logo} alt={prop} />USA · <b className="dash__proj">{prop}</b></h1>
         <div className="dash__slicers">
           {/* botón Gestión / EV (reunión JMB): replica las dos páginas por propiedad del BI */}
           <div className="viewtoggle">
