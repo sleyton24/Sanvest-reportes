@@ -113,14 +113,12 @@ export function AtemporaDashboard() {
       vals: [{ real: f("Monto"), ppto: f("ppto") }, { real: f("YTD Real"), ppto: f("YTD PPTO") }],
     });
     const noi = (c: string) => sum(1, c) + sum(2, c);              // NOI = Ingresos + Gastos Op.
-    const resultado = (c: string) => sum(1, c) + sum(2, c) + sum(3, c);
-    // Orden ESPECÍFICO de Civitas: Ingresos, Gastos Op., NOI, Otros gastos, Resultado.
+    // Sólo hasta NOI: evaluamos la operación de arriendo (sin Otros gastos ni Resultado,
+    // que incluyen intereses/corrección monetaria ajenos a la operación).
     return [
       ...detail(1),          // Ingresos
       ...detail(2),          // Gastos Operacionales
-      line("NOI", noi),      // subtotal operativo (antes decía EBITDA)
-      ...detail(3),          // Otros gastos
-      line("Resultado", resultado),
+      line("NOI", noi),      // subtotal operativo — cierre de la tabla
     ];
   };
 
@@ -167,11 +165,14 @@ export function AtemporaDashboard() {
     for (const r of rs) {
       const f = num(r["fechaID"]); if (f == null) continue;
       const macro = String(r["Nivel 2 "] ?? "").trim();
-      const e = m.get(f) ?? { fid: f, iso: String(r["Fecha "]).slice(0, 10), ingR: 0, ingP: 0, gopR: 0, gopP: 0, otrR: 0, otrP: 0 };
+      const e = m.get(f) ?? { fid: f, iso: String(r["Fecha "]).slice(0, 10),
+        ingR: 0, ingP: 0, gopR: 0, gopP: 0, otrR: 0, otrP: 0,
+        ingRY: 0, ingPY: 0, gopRY: 0, gopPY: 0, otrRY: 0, otrPY: 0 };
       const re = num(r["Monto"]) ?? 0, pp = num(r["ppto"]) ?? 0;
-      if (macro === "Ingresos") { e.ingR += re; e.ingP += pp; }
-      else if (macro === "Gastos Operacionales") { e.gopR += re; e.gopP += pp; }
-      else { e.otrR += re; e.otrP += pp; }
+      const rey = num(r["YTD Real"]) ?? 0, ppy = num(r["YTD PPTO"]) ?? 0;
+      if (macro === "Ingresos") { e.ingR += re; e.ingP += pp; e.ingRY += rey; e.ingPY += ppy; }
+      else if (macro === "Gastos Operacionales") { e.gopR += re; e.gopP += pp; e.gopRY += rey; e.gopPY += ppy; }
+      else { e.otrR += re; e.otrP += pp; e.otrRY += rey; e.otrPY += ppy; }
       m.set(f, e);
     }
     return [...m.values()].sort((a, b) => a.fid - b.fid);
@@ -266,15 +267,19 @@ export function AtemporaDashboard() {
         <KpiCard spec={CARD_LC} values={lcVals} />
       </section>
 
-      {/* Resultado: combos */}
+      {/* Operación (hasta NOI): mensual a la izquierda, YTD a la derecha, mismo orden
+          Ingresos / Gastos Operacionales / NOI. Gastos vienen negativos → NOI se SUMA. */}
       <section className="row row--two">
-        {COMBO("Ingresos (UF)", (e) => e.ingR, (e) => e.ingP)}
-        {COMBO("Gastos Operacionales (UF)", (e) => e.gopR, (e) => e.gopP)}
+        {COMBO("Ingresos mensual (UF)", (e) => e.ingR, (e) => e.ingP)}
+        {COMBO("Ingresos YTD (UF)", (e) => e.ingRY, (e) => e.ingPY)}
       </section>
       <section className="row row--two">
-        {/* gastos vienen negativos → EBITDA/Resultado se SUMAN (ver civPnLMulti) */}
-        {COMBO("NOI (UF)", (e) => e.ingR + e.gopR, (e) => e.ingP + e.gopP)}
-        {COMBO("Resultado (UF)", (e) => e.ingR + e.gopR + e.otrR, (e) => e.ingP + e.gopP + e.otrP)}
+        {COMBO("Gastos Operacionales mensual (UF)", (e) => e.gopR, (e) => e.gopP)}
+        {COMBO("Gastos Operacionales YTD (UF)", (e) => e.gopRY, (e) => e.gopPY)}
+      </section>
+      <section className="row row--two">
+        {COMBO("NOI mensual (UF)", (e) => e.ingR + e.gopR, (e) => e.ingP + e.gopP)}
+        {COMBO("NOI YTD (UF)", (e) => e.ingRY + e.gopRY, (e) => e.ingPY + e.gopPY)}
       </section>
 
       {/* Cuadros */}
@@ -356,9 +361,9 @@ export function AtemporaDashboard() {
       </section>
 
       <footer className="dash__footer">
-        Gestión Atémpora (Civitas): EERR (Ingresos / Gastos Operacionales / Otros gastos), KPIs de
-        Oficinas y Locales, ocupación, deuda, y cuadros de arriendos, ventas y morosidad. Datos del
-        Excel CIVITAS; los gastos vienen con signo negativo, por eso NOI = Ingresos + Gastos Op. y Resultado = NOI + Otros gastos.
+        Gestión Atémpora (Civitas): resultado de la operación de arriendo hasta NOI (Ingresos + Gastos
+        Operacionales, sin ingresos/costos por ventas), KPIs de Oficinas y Locales, ocupación, deuda, y
+        cuadros de arriendos, ventas y morosidad. Los gastos vienen con signo negativo, por eso NOI = Ingresos + Gastos Op.
       </footer>
     </div>
   );
