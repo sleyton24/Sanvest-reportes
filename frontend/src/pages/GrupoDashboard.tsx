@@ -174,7 +174,7 @@ export function GrupoDashboard() {
         <PieChart title="Participación en Patrimonio (unidades positivas)" data={patri("Mercado UF QAC")} valueFmt={fmtUF} />
       </section>
       <section className="row" style={{ gridTemplateColumns: "1fr" }}>
-        <BalanceSheet title="Balance Grupo" rows={balRows} valueFields={BAL_FIELDS}
+        <BalanceSheet title="Balance Grupo" rows={balRows} valueFields={BAL_FIELDS} subField="N1 "
           headerGroups={[{ label: tri || "Trimestre", cols: 4 }, { label: lqLabel, cols: 4 }]}
           noteField="Nota" noteNumField="Notas" onExpand={() => setExpand("balance")} />
       </section>
@@ -194,7 +194,7 @@ export function GrupoDashboard() {
         <div className="overlay">
           <div className="overlay__main">
             {expand === "balance" ? (
-              <BalanceSheet title={`Balance Grupo — ${tri}`} rows={balRows} valueFields={BAL_FIELDS}
+              <BalanceSheet title={`Balance Grupo — ${tri}`} rows={balRows} valueFields={BAL_FIELDS} subField="N1 "
                 headerGroups={[{ label: tri || "Trimestre", cols: 4 }, { label: lqLabel, cols: 4 }]}
                 noteField="Nota" noteNumField="Notas" noteCol />
             ) : (

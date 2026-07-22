@@ -572,7 +572,7 @@ body {
 .gauge__value { fill: none; stroke: var(--accent); stroke-width: 18; stroke-linecap: round; }
 .gauge__pct { text-anchor: middle; font-size: 26px; font-weight: 700; fill: var(--strong); }
 .gauge__target { font-weight: 600; }
-.gauge__sub { margin-top: 8px; font-size: 13px; color: var(--muted); font-weight: 600; text-align: center; }
+.gauge__sub { margin-top: 8px; font-size: 16px; color: var(--muted); font-weight: 600; text-align: center; }
 
 /* ----------------------------- botones (unificado) ------------------------
    Componente <Button variant size>. Consolida los estilos que antes vivían
@@ -699,6 +699,8 @@ body {
 .bsheet__table .bsheet__group { cursor: pointer; }
 .bsheet__table .bsheet__group:hover td { background: rgba(15, 30, 54, 0.04); }
 .bsheet__table .bsheet__group td:first-child { padding-left: 30px; }
+.bsheet__table .bsheet__subgroup { cursor: pointer; font-weight: 600; }
+.bsheet__table .bsheet__subgroup:hover td { background: rgba(15, 30, 54, 0.03); }
 .bsheet__chev { display: inline-block; width: 14px; color: var(--muted); }
 .bsheet__table .bsheet__detail td { color: var(--muted); }
 .bsheet__table .bsheet__detail td:first-child { padding-left: 54px; }

@@ -1,7 +1,8 @@
 // Balance contable: secciones ACTIVOS / PASIVOS / PATRIMONIO con subtotales por
-// segmento (N3, colapsables al detalle N2), sin filas en cero, y el cuadre
-// Activos = Pasivos + Patrimonio al pie. Soporta varias columnas de valor
-// (valueFields, como el BI: Mercado/Costo en UF y USD) y notas al hover (noteField).
+// segmento (N3), tipo de cuenta (N2) y —si se pide subField (N1)— el detalle de
+// cuentas, todos colapsables; sin filas en cero, y el cuadre Activos = Pasivos +
+// Patrimonio al pie. Soporta varias columnas de valor (valueFields, como el BI:
+// Mercado/Costo en UF y USD) y notas al hover (noteField).
 import { Fragment, useMemo, useState } from "react";
 import { Row, num } from "../api";
 import { fmtUF, fmtInt } from "../format";
@@ -19,6 +20,7 @@ type Props = {
   sectionField?: string;
   groupField?: string;
   detailField?: string;
+  subField?: string;                 // 4º nivel (más profundo, p.ej. N1): detalle de cuentas
   noteField?: string;                // columna con el texto de la nota (tooltip al hover)
   noteNumField?: string;             // columna con el N° de nota (marca del tooltip, como el BI)
   noteCol?: boolean;                 // muestra una columna "Nota" con el texto (pantalla completa)
@@ -33,8 +35,9 @@ const SECTION_LABEL: Record<string, string> = {
 
 export function BalanceSheet({
   title, rows, valueField = "Mercado UF QAC", valueFields, headerGroups, sectionField = "N4",
-  groupField = "N3", detailField = "N2", noteField = "Nota", noteNumField, noteCol, onExpand, fmt = fmtUF,
+  groupField = "N3", detailField = "N2", subField, noteField = "Nota", noteNumField, noteCol, onExpand, fmt = fmtUF,
 }: Props) {
+  const HAS_SUB = !!subField;
   // columnas de valor: varias (valueFields) o la única retrocompatible (valueField)
   const fields = useMemo<BalanceValueField[]>(
     () => valueFields ?? [{ key: valueField, label: valueField.replace(/\s*(LQ|QAC)$/, "") }],
@@ -45,45 +48,51 @@ export function BalanceSheet({
   const sections = useMemo(() => {
     const zero = () => fields.map(() => 0);
     const addTo = (acc: number[], v: number[]) => v.forEach((x, i) => { acc[i] += x; });
-    const sm = new Map<string, Map<string, Map<string, { vals: number[]; notes: string[]; nums: number[] }>>>();
+    type Bucket = { vals: number[]; notes: string[]; nums: number[] };
+    // sec -> grp (N3) -> det (N2) -> sub (N1, o el propio det si no hay subField)
+    const sm = new Map<string, Map<string, Map<string, Map<string, Bucket>>>>();
     for (const r of rows) {
       const sec = String(r[sectionField] ?? "").trim();
       if (!sec) continue;
       const grp = String(r[groupField] ?? "").trim() || "Otros";
       const det = String(r[detailField] ?? "").trim() || grp;
-      if (!sm.has(sec)) sm.set(sec, new Map());
-      const gm = sm.get(sec)!;
-      if (!gm.has(grp)) gm.set(grp, new Map());
-      const dm = gm.get(grp)!;
-      const cur = dm.get(det) ?? { vals: zero(), notes: [] as string[], nums: [] as number[] };
+      const sub = subField ? (String(r[subField] ?? "").trim() || det) : det;
+      const gm = sm.get(sec) ?? sm.set(sec, new Map()).get(sec)!;
+      const dm = gm.get(grp) ?? gm.set(grp, new Map()).get(grp)!;
+      const subm = dm.get(det) ?? dm.set(det, new Map()).get(det)!;
+      const cur = subm.get(sub) ?? { vals: zero(), notes: [], nums: [] };
       fields.forEach((f, i) => { cur.vals[i] += num(r[f.key]) ?? 0; });
       const nota = String(r[noteField] ?? "").trim();
       if (nota && !cur.notes.includes(nota)) cur.notes.push(nota);
       const nn = noteNumField ? num(r[noteNumField]) : null;
       if (nn != null && nn > 0 && !cur.nums.includes(nn)) cur.nums.push(nn);
-      dm.set(det, cur);
+      subm.set(sub, cur);
     }
     const rank = (s: string) => { const i = SECTION_ORDER.indexOf(s); return i === -1 ? 99 : i; };
-    const ordered = [...sm.keys()].sort((a, b) => rank(a) - rank(b));
-    return ordered.map((sec) => {
+    const mkLeaf = (name: string, b: Bucket) => ({
+      name, values: b.vals, note: b.notes.join("\n"), noteNum: b.nums.sort((a, c) => a - c).join(", "),
+    });
+    const nz = (v: number[]) => v.some((x) => Math.abs(x) > 0.5);
+    const byVal = (a: { values?: number[]; total?: number[] }, b: { values?: number[]; total?: number[] }) =>
+      Math.abs((b.values ?? b.total!)[0]) - Math.abs((a.values ?? a.total!)[0]);
+    return [...sm.keys()].sort((a, b) => rank(a) - rank(b)).map((sec) => {
       const gm = sm.get(sec)!;
-      const groups = [...gm].map(([name, dm]) => {
-        const details = [...dm].map(([dn, d]) => ({
-          name: dn, values: d.vals, note: d.notes.join("\n"),
-          noteNum: d.nums.sort((a, b) => a - b).join(", "),
-        }))
-          .filter((x) => x.values.some((v) => Math.abs(v) > 0.5))
-          .sort((a, b) => Math.abs(b.values[0]) - Math.abs(a.values[0]));
-        const total = zero();
-        for (const x of details) addTo(total, x.values);
-        return { name, total, details };
-      }).filter((g) => g.total.some((v) => Math.abs(v) > 0.5))
-        .sort((a, b) => Math.abs(b.total[0]) - Math.abs(a.total[0]));
-      const total = zero();
-      for (const g of groups) addTo(total, g.total);
+      const groups = [...gm].map(([gname, dm]) => {
+        const details = [...dm].map(([dname, subm]) => {
+          const subs = [...subm].map(([sname, b]) => mkLeaf(sname, b))
+            .filter((x) => nz(x.values)).sort(byVal);
+          const total = zero(); for (const s of subs) addTo(total, s.values);
+          // nota del nivel N2 (cuando NO hay subField, el detalle es hoja: hereda su nota)
+          const leaf = subs.length === 1 && !HAS_SUB ? subs[0] : null;
+          return { name: dname, total, subs, note: leaf?.note ?? "", noteNum: leaf?.noteNum ?? "" };
+        }).filter((d) => nz(d.total)).sort(byVal);
+        const total = zero(); for (const d of details) addTo(total, d.total);
+        return { name: gname, total, details };
+      }).filter((g) => nz(g.total)).sort(byVal);
+      const total = zero(); for (const g of groups) addTo(total, g.total);
       return { name: sec, total, groups };
     });
-  }, [rows, fields, sectionField, groupField, detailField, noteField, noteNumField]);
+  }, [rows, fields, sectionField, groupField, detailField, subField, noteField, noteNumField, HAS_SUB]);
 
   // totales y cuadre por columna
   const zeros = fields.map(() => 0);
@@ -97,21 +106,32 @@ export function BalanceSheet({
 
   const numCells = (vals: number[]) =>
     fields.map((f, i) => <td key={i} className={"num" + (f.sep ? " grp" : "")}>{colFmt(i)(vals[i])}</td>);
-  // celda de nota (texto) al final de la fila, solo cuando noteCol está activo
-  const noteCell = (text?: string) =>
-    noteCol ? <td className="bsheet__notecell">{text ?? ""}</td> : null;
+  const noteCell = (text?: string) => noteCol ? <td className="bsheet__notecell">{text ?? ""}</td> : null;
 
   const secKey = (s: string) => "S|" + s;
   const grpKey = (s: string, g: string) => "G|" + s + "|" + g;
+  const detKey = (s: string, g: string, d: string) => "D|" + s + "|" + g + "|" + d;
   const allKeys = [
     ...sections.map((s) => secKey(s.name)),
     ...sections.flatMap((s) => s.groups.map((g) => grpKey(s.name, g.name))),
+    ...(HAS_SUB ? sections.flatMap((s) => s.groups.flatMap((g) => g.details.map((d) => detKey(s.name, g.name, d.name)))) : []),
   ];
-  // arranca colapsado: solo ACTIVOS / PASIVOS / PATRIMONIO; se va abriendo
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (k: string) =>
     setOpen((p) => { const n = new Set(p); n.has(k) ? n.delete(k) : n.add(k); return n; });
   const allOpen = allKeys.length > 0 && allKeys.every((k) => open.has(k));
+
+  // fila de detalle final (hoja): N2 cuando no hay subField, N1 cuando sí
+  const leafRow = (key: string, name: string, values: number[], note: string, noteNum: string, pad: number) => (
+    <tr className="bsheet__detail" key={key}>
+      <td style={{ paddingLeft: pad }}>
+        {name}
+        {note && <NoteTip text={note} mark={noteNum || "i"} />}
+      </td>
+      {numCells(values)}
+      {noteCol && <td className="bsheet__notecell">{noteNum && <span className="bsheet__noteno">{noteNum}</span>}{note}</td>}
+    </tr>
+  );
 
   return (
     <div className="card pivot bsheet">
@@ -156,26 +176,32 @@ export function BalanceSheet({
                     {noteCell()}
                   </tr>
                   {sOpen && sec.groups.map((g) => {
-                    const k = grpKey(sec.name, g.name);
-                    const gOpen = open.has(k);
+                    const gk = grpKey(sec.name, g.name);
+                    const gOpen = open.has(gk);
                     return (
-                      <Fragment key={k}>
-                        <tr className="bsheet__group" onClick={() => toggle(k)}>
+                      <Fragment key={gk}>
+                        <tr className="bsheet__group" onClick={() => toggle(gk)}>
                           <td><span className="bsheet__chev">{gOpen ? "▾" : "▸"}</span>{g.name}</td>
                           {numCells(g.total)}
                           {noteCell()}
                         </tr>
-                        {gOpen && g.details.map((d) => (
-                          <tr className="bsheet__detail" key={k + "|" + d.name}>
-                            {/* nota al hover: tooltip propio con el N° de nota del BI */}
-                            <td>
-                              {d.name}
-                              {d.note && <NoteTip text={d.note} mark={d.noteNum || "i"} />}
-                            </td>
-                            {numCells(d.values)}
-                            {noteCol && <td className="bsheet__notecell">{d.noteNum && <span className="bsheet__noteno">{d.noteNum}</span>}{d.note}</td>}
-                          </tr>
-                        ))}
+                        {gOpen && g.details.map((d) => {
+                          // sin subField: N2 es la hoja (comportamiento clásico)
+                          if (!HAS_SUB) return leafRow(gk + "|" + d.name, d.name, d.total, d.note, d.noteNum, 54);
+                          // con subField: N2 es subgrupo colapsable con el detalle N1 debajo
+                          const dk = detKey(sec.name, g.name, d.name);
+                          const dOpen = open.has(dk);
+                          return (
+                            <Fragment key={dk}>
+                              <tr className="bsheet__subgroup" onClick={() => toggle(dk)}>
+                                <td style={{ paddingLeft: 48 }}><span className="bsheet__chev">{dOpen ? "▾" : "▸"}</span>{d.name}</td>
+                                {numCells(d.total)}
+                                {noteCell()}
+                              </tr>
+                              {dOpen && d.subs.map((s) => leafRow(dk + "|" + s.name, s.name, s.values, s.note, s.noteNum, 68))}
+                            </Fragment>
+                          );
+                        })}
                       </Fragment>
                     );
                   })}
@@ -187,8 +213,6 @@ export function BalanceSheet({
             <tr className="bsheet__check">
               <td>TOTAL PASIVOS + PATRIMONIO</td>{numCells(pasPat)}{noteCell()}
             </tr>
-            {/* Solo se muestra si el balance NO cuadra (alerta de descuadre). Cuando
-                cuadra —el caso normal— se omite para no dejar una fila de ceros de ruido. */}
             {!cuadra && (
               <tr className="bsheet__dif">
                 <td>Diferencia (descuadre)</td>
