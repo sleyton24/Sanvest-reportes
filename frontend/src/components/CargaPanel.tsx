@@ -23,7 +23,7 @@ const CARGA: Record<string, PanelCfg[]> = {
   Hotel: [{ kind: "informe", label: "⬆ Cargar CCPP" }],
   USA: [{ kind: "informe", label: "⬆ Cargar Informe Yardi" }],
   ICEMM: [{ kind: "informe", label: "⬆ Cargar Informe ICEMM" }],
-  Atempora: [{ kind: "informe", label: "⬆ Cargar Flujo de Caja (EERR arriendo)" }, { kind: "excel" }],
+  Atempora: [{ kind: "informe", label: "⬆ Cargar Civitas (FC / KPIs / Morosidad)" }, { kind: "excel" }],
   Grupo: [{ kind: "informe", label: "⬆ Cargar Balance + E°R° (crudos)" }],
 };
 

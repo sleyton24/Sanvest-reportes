@@ -26,7 +26,7 @@ from etl.connect_usa import apply_usa_budget, apply_usa_kpis, apply_yardi
 from etl.connect_icemm import apply_icemm
 from etl.connect_dv import apply_dv
 from etl.connect_grupo import apply_grupo, build_grupo, classify_grupo_file
-from etl.connect_atempora import apply_atempora
+from etl.connect_atempora import apply_atempora, apply_atempora_kpis, apply_atempora_morosidad
 from etl.validators import ValidationError, raise_if_bad
 from etl import spec_store as sstore
 from etl import audit as data_audit
@@ -1149,9 +1149,10 @@ async def upload_informes(unit: str, files: list[UploadFile] = File(...)):
                 raise HTTPException(422, f"No pude procesar los crudos de Grupo: {e}")
             return {"ok": True, "aplicados": aplicados, "resultado": result}
         if unit == "Atempora":
-            # Flujo de Caja de Civitas -> EERR de la operación de ARRIENDO: actualiza
-            # Real (Monto) + YTD Real en eerr_civitas eliminando las líneas de venta.
-            # Preserva el presupuesto (ppto), que viene del Excel CIVITAS base.
+            # Civitas: 3 crudos, se despacha por nombre de archivo:
+            #  - "...morosidad..."  -> tabla morosidad (foto por corte, tramos)
+            #  - "...Atempora..."   -> kpis_atempora (ocupación/m²/uf-m²/unidades, hoja Estado actual)
+            #  - resto (FC/Flujo)   -> eerr_civitas (EERR de arriendo, elimina ventas, preserva ppto)
             aplicados, result = [], {}
             for f in files:
                 name = f.filename or ""
@@ -1160,11 +1161,18 @@ async def upload_informes(unit: str, files: list[UploadFile] = File(...)):
                 p = Path(tmpdir) / name
                 with p.open("wb") as out:
                     shutil.copyfileobj(f.file, out)
+                low = name.lower()
                 try:
-                    result = apply_atempora(engine, str(p))
+                    if "morosidad" in low:
+                        res, activo = apply_atempora_morosidad(engine, str(p)), "Morosidad Civitas"
+                    elif "atempora" in low or "estado actual" in low:
+                        res, activo = apply_atempora_kpis(engine, str(p)), "KPIs Civitas"
+                    else:
+                        res, activo = apply_atempora(engine, str(p)), "Civitas EERR (arriendo)"
                 except Exception as e:  # noqa: BLE001
-                    raise HTTPException(422, f"No pude procesar el Flujo de Caja de Civitas '{name}': {e}")
-                aplicados.append({"file": name, "activo": "Civitas EERR (arriendo)"})
+                    raise HTTPException(422, f"No pude procesar '{name}': {e}")
+                result.update(res)
+                aplicados.append({"file": name, "activo": activo})
             return {"ok": True, "aplicados": aplicados, "resultado": result}
         specs = []
         consolidado = None
