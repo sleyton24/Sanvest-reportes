@@ -200,6 +200,13 @@ export function RRDashboard() {
     return [...m].map(([metrica, unidades]) => ({ metrica, unidades }));
   }, [tipo]);
 
+  // Fecha del último período cargado de KPIs por edificio (para el título "actualizado")
+  const edifFecha = useMemo(() => {
+    const fids = edif.map((r) => num(r["Fecha ID"])!).filter((x) => !isNaN(x));
+    if (!fids.length) return null;
+    const mx = Math.max(...fids);
+    return `${String(mx % 100).padStart(2, "0")}/${Math.floor(mx / 100)}`;
+  }, [edif]);
   // KPIs por Edificios: último periodo cargado, edificios con deptos
   const edifRows = useMemo(() => {
     const fids = edif.map((r) => num(r["Fecha ID"])!).filter((x) => !isNaN(x));
@@ -296,7 +303,7 @@ export function RRDashboard() {
               { key: "metrica", label: "Tipología / Métrica" },
               { key: "unidades", label: "Unidades administradas", num: true, fmt: (x) => fmtInt(x) },
             ]} />
-            <KpiTable title="KPIs por Edificios" rows={edifRows} cols={[
+            <KpiTable title={`KPIs por Edificios${edifFecha ? ` — actualizado ${edifFecha}` : ""}`} rows={edifRows} cols={[
               { key: "edificio", label: "Edificio" },
               { key: "ocup", label: "Ocupación", num: true, fmt: (x) => fmtPct(x, 1) },
               { key: "ufm2", label: "Arriendo UF/m²", num: true, fmt: (x) => fmtNum(x, 3) },
