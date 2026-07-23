@@ -22,6 +22,7 @@ type Props = {
   detailField?: string;
   subField?: string;                 // 4º nivel (más profundo, p.ej. N1): detalle de cuentas
   orderField?: string;               // si se pasa, respeta ESE orden (p.ej. "Indice" del Excel) en vez de ordenar por monto
+  showZeros?: boolean;               // muestra también cuentas/grupos en cero (replica exacta del Excel)
   noteField?: string;                // columna con el texto de la nota (tooltip al hover)
   noteNumField?: string;             // columna con el N° de nota (marca del tooltip, como el BI)
   noteCol?: boolean;                 // muestra una columna "Nota" con el texto (pantalla completa)
@@ -36,7 +37,7 @@ const SECTION_LABEL: Record<string, string> = {
 
 export function BalanceSheet({
   title, rows, valueField = "Mercado UF QAC", valueFields, headerGroups, sectionField = "N4",
-  groupField = "N3", detailField = "N2", subField, orderField, noteField = "Nota", noteNumField, noteCol, onExpand, fmt = fmtUF,
+  groupField = "N3", detailField = "N2", subField, orderField, showZeros, noteField = "Nota", noteNumField, noteCol, onExpand, fmt = fmtUF,
 }: Props) {
   const HAS_SUB = !!subField;
   // columnas de valor: varias (valueFields) o la única retrocompatible (valueField)
@@ -75,7 +76,8 @@ export function BalanceSheet({
     const mkLeaf = (name: string, b: Bucket) => ({
       name, values: b.vals, note: b.notes.join("\n"), noteNum: b.nums.sort((a, c) => a - c).join(", "), ord: b.ord,
     });
-    const nz = (v: number[]) => v.some((x) => Math.abs(x) > 0.5);
+    // filtro de "no-cero": oculta filas/grupos en cero, salvo showZeros (replica del Excel)
+    const nz = (v: number[]) => showZeros || v.some((x) => Math.abs(x) > 0.5);
     // orden: por Indice del Excel (replica el balance del archivo) si se pasó orderField;
     // si no, por monto descendente (comportamiento clásico).
     const byVal = (a: { values?: number[]; total?: number[] }, b: { values?: number[]; total?: number[] }) =>
@@ -103,7 +105,7 @@ export function BalanceSheet({
       const total = zero(); for (const g of grps) addTo(total, g.total);
       return { name: sec, total, groups: grps };
     });
-  }, [rows, fields, sectionField, groupField, detailField, subField, orderField, noteField, noteNumField, HAS_SUB]);
+  }, [rows, fields, sectionField, groupField, detailField, subField, orderField, showZeros, noteField, noteNumField, HAS_SUB]);
 
   // totales y cuadre por columna
   const zeros = fields.map(() => 0);

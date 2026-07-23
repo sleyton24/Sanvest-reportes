@@ -195,8 +195,11 @@ def _apply_rentroll(engine: Engine, path: str) -> dict | None:
             continue
         if _snorm(g(r, "obs")) != "arrendado":   # solo arriendos vigentes
             continue
+        unidad = str(g(r, "unidad") or "").strip()
+        if unidad.upper().startswith("BX"):       # estacionamientos (BX) → fuera del cuadro de arriendos
+            continue
         leases.append({
-            _norm("Unidad"): (str(g(r, "unidad")).strip() if g(r, "unidad") is not None else None),
+            _norm("Unidad"): unidad or None,
             _norm("Superficie [m²]"): _n(g(r, "sup")) or None,
             _norm("Estado"): "Arrendado",
             _norm("Usuario"): str(usuario).strip(),
