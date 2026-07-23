@@ -10,6 +10,11 @@ DDL), así que respeta el esquema de la tabla. El dashboard agrupa por Comprador
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import pandas as pd
 
 from etl.db import get_engine
