@@ -123,18 +123,24 @@ export function AtemporaDashboard() {
   };
 
   // KPIs = snapshot de comercialización (ocupación/m²/unidades); NO se carga todos los
-  // meses. Se toma el del mes elegido o, si ese mes no tiene snapshot, el ÚLTIMO
-  // disponible HASTA ese mes (se arrastra el último conocido). Así nunca queda en blanco
-  // por desalineación de mes entre el FC (informe de gestión) y el Excel de KPIs.
+  // meses. Se toma el snapshot del mes elegido si existe; si ese mes no tiene, el ÚLTIMO
+  // snapshot disponible (estado de comercialización vigente). Así nunca queda en blanco
+  // por desalineación de mes entre el FC (informe de gestión) y el Excel de KPIs, y se
+  // ve siempre el snapshot más reciente cargado.
   const kpiPoint = useMemo(() => {
     const sorted = kpis.filter((r) => num(r["Fecha ID"]) != null)
       .sort((a, b) => num(a["Fecha ID"])! - num(b["Fecha ID"])!);
     if (!sorted.length) return undefined;
-    if (fid == null) return sorted[sorted.length - 1];
-    const upto = sorted.filter((r) => num(r["Fecha ID"])! <= fid);
-    return upto.length ? upto[upto.length - 1] : sorted[0];
+    if (fid != null) {
+      const exact = sorted.find((r) => num(r["Fecha ID"]) === fid);
+      if (exact) return exact;
+    }
+    return sorted[sorted.length - 1];
   }, [kpis, fid]);
   const kv = (c: string) => (kpiPoint ? num(kpiPoint[c]) : null);
+  // mes del snapshot mostrado (para rotular cuando no coincide con el mes elegido)
+  const kpiFid = kpiPoint ? num(kpiPoint["Fecha ID"]) : null;
+  const kpiMesLabel = kpiFid ? `${MESES[kpiFid % 100]}-${Math.floor(kpiFid / 100)}` : null;
   const ofVals = [kv("Ocupacion Ventas OF"), kv("Ocupacion Renta OF"), kv("M2 vendidos OF"), kv("m2 arrendados OF"),
     kv("uf/m2 venta OF"), kv("uf/m2 arriendo OF"), kv("Unidades Vendidas OF"), kv("Unidades Arrendadas OF"), kv("Unidades Disponibles OF")];
   const lcVals = [kv("Ocupacion Ventas LC"), kv("Ocupacion Renta LC"), kv("M2 vendidos LC"), kv("m2 arrendados LC"),
@@ -146,7 +152,8 @@ export function AtemporaDashboard() {
   const m2Disp = kv("Disponible OF");
   const m2Tot = m2Occ != null && m2Disp != null ? m2Occ + m2Disp : null;
   const ocupM2 = m2Tot ? m2Occ! / m2Tot : null;
-  const ocupM2Sub = m2Tot != null ? `${fmtNum(m2Occ, 0)} / ${fmtNum(m2Tot, 0)} m²` : null;
+  const ocupM2Sub = m2Tot != null
+    ? `${fmtNum(m2Occ, 0)} / ${fmtNum(m2Tot, 0)} m²${kpiMesLabel ? ` · KPIs al ${kpiMesLabel}` : ""}` : null;
 
   // Deuda: saldo (Capital) del cronograma AL MES MOSTRADO. Se topa en fid/endFid
   // porque la tabla trae meses futuros —incluida la fila de extinción del crédito
