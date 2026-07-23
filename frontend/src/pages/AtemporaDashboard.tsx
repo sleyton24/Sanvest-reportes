@@ -122,10 +122,17 @@ export function AtemporaDashboard() {
     ];
   };
 
-  // KPIs del mes
+  // KPIs = snapshot de comercialización (ocupación/m²/unidades); NO se carga todos los
+  // meses. Se toma el del mes elegido o, si ese mes no tiene snapshot, el ÚLTIMO
+  // disponible HASTA ese mes (se arrastra el último conocido). Así nunca queda en blanco
+  // por desalineación de mes entre el FC (informe de gestión) y el Excel de KPIs.
   const kpiPoint = useMemo(() => {
-    if (fid != null) return kpis.find((r) => num(r["Fecha ID"]) === fid);
-    return [...kpis].sort((a, b) => (num(a["Fecha ID"]) ?? 0) - (num(b["Fecha ID"]) ?? 0)).pop();
+    const sorted = kpis.filter((r) => num(r["Fecha ID"]) != null)
+      .sort((a, b) => num(a["Fecha ID"])! - num(b["Fecha ID"])!);
+    if (!sorted.length) return undefined;
+    if (fid == null) return sorted[sorted.length - 1];
+    const upto = sorted.filter((r) => num(r["Fecha ID"])! <= fid);
+    return upto.length ? upto[upto.length - 1] : sorted[0];
   }, [kpis, fid]);
   const kv = (c: string) => (kpiPoint ? num(kpiPoint[c]) : null);
   const ofVals = [kv("Ocupacion Ventas OF"), kv("Ocupacion Renta OF"), kv("M2 vendidos OF"), kv("m2 arrendados OF"),
