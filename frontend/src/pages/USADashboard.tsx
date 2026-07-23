@@ -120,11 +120,14 @@ export function USADashboard() {
     if (month === "" && rs.length) { const mx = Math.max(...rs.map((r) => num(r["FechaID"])!)); rs = rs.filter((r) => num(r["FechaID"]) === mx); }
     return rs;
   }, [pnlRows, year, month]);
-  // detalle del estado: excluye líneas de total del origen (Seccion nula) y la
-  // sección OTHER EXPENSES (el estado operativo termina en NOI)
-  const stmtRows = useMemo(() => pnlPoint.filter((r) =>
-    r["Seccion"] != null && String(r["Seccion"]).trim() !== ""
-    && String(r["Seccion"]).trim().toUpperCase() !== "OTHER EXPENSES"), [pnlPoint]);
+  // detalle del estado OPERATIVO: SOLO las dos secciones de la operación (Revenue y
+  // Operating Expenses). El estado termina en NOI, así que se excluye OTHER EXPENSES
+  // y toda línea ajena a la operación que algunos informes traen por debajo del NOI
+  // (cash flow, balance, o líneas sin sección que quedan como "nan"/vacío).
+  const stmtRows = useMemo(() => pnlPoint.filter((r) => {
+    const s = String(r["Seccion"] ?? "").trim().toUpperCase();
+    return s === REV || s === OPEX;
+  }), [pnlPoint]);
 
   // NOI = Revenue + OpEx (gastos en negativo), para cada medida Mensual/YTD
   const stmtResult = useMemo(() => {
