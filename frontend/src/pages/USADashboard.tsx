@@ -145,7 +145,8 @@ export function USADashboard() {
 
   // --- Ocupación (gauge + línea) --- (ventana móvil de 12 meses)
   const ocupRows = useMemo(() => ocup.filter((r) => String(r["Activo "]).trim() === P.ocup
-    && inWindow(num(r["Fecha ID"]))), [ocup, P, year, month]);
+    && inWindow(num(r["Fecha ID"])))
+    .sort((a, b) => (num(a["Fecha ID"]) ?? 0) - (num(b["Fecha ID"]) ?? 0)), [ocup, P, year, month]);
   // gauge: mes elegido, o el último REPORTADO (Occupied % R no nulo; los futuros traen solo Ppto)
   const ocupSel = month === "" ? ocupRows : ocupRows.filter((r) => (num(r["Fecha ID"]) ?? 0) % 100 === month);
   const ocupRep = ocupSel.filter((r) => num(r["Occupied % R"]) != null);
@@ -155,7 +156,8 @@ export function USADashboard() {
 
   // --- Rent KPIs ($/SQF) --- (ventana móvil de 12 meses)
   const kpiRows = useMemo(() => kpis.filter((r) => String(r["Activo"]).trim() === P.kpis
-    && inWindow(num(r["DateID"]))), [kpis, P, year, month]);
+    && inWindow(num(r["DateID"])))
+    .sort((a, b) => (num(a["DateID"]) ?? 0) - (num(b["DateID"]) ?? 0)), [kpis, P, year, month]);
   // cards: mes elegido, o el último REPORTADO ($/SQF AC no nulo)
   const kpiSel = month === "" ? kpiRows : kpiRows.filter((r) => num(r["Month"]) === month);
   const kpiRep = kpiSel.filter((r) => num(r["Dólar SQF AC MONTH"]) != null);
