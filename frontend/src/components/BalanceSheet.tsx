@@ -21,6 +21,7 @@ type Props = {
   groupField?: string;
   detailField?: string;
   subField?: string;                 // 4º nivel (más profundo, p.ej. N1): detalle de cuentas
+  orderField?: string;               // si se pasa, respeta ESE orden (p.ej. "Indice" del Excel) en vez de ordenar por monto
   noteField?: string;                // columna con el texto de la nota (tooltip al hover)
   noteNumField?: string;             // columna con el N° de nota (marca del tooltip, como el BI)
   noteCol?: boolean;                 // muestra una columna "Nota" con el texto (pantalla completa)
@@ -35,7 +36,7 @@ const SECTION_LABEL: Record<string, string> = {
 
 export function BalanceSheet({
   title, rows, valueField = "Mercado UF QAC", valueFields, headerGroups, sectionField = "N4",
-  groupField = "N3", detailField = "N2", subField, noteField = "Nota", noteNumField, noteCol, onExpand, fmt = fmtUF,
+  groupField = "N3", detailField = "N2", subField, orderField, noteField = "Nota", noteNumField, noteCol, onExpand, fmt = fmtUF,
 }: Props) {
   const HAS_SUB = !!subField;
   // columnas de valor: varias (valueFields) o la única retrocompatible (valueField)
@@ -48,7 +49,7 @@ export function BalanceSheet({
   const sections = useMemo(() => {
     const zero = () => fields.map(() => 0);
     const addTo = (acc: number[], v: number[]) => v.forEach((x, i) => { acc[i] += x; });
-    type Bucket = { vals: number[]; notes: string[]; nums: number[] };
+    type Bucket = { vals: number[]; notes: string[]; nums: number[]; ord: number };
     // sec -> grp (N3) -> det (N2) -> sub (N1, o el propio det si no hay subField)
     const sm = new Map<string, Map<string, Map<string, Map<string, Bucket>>>>();
     for (const r of rows) {
@@ -57,11 +58,13 @@ export function BalanceSheet({
       const grp = String(r[groupField] ?? "").trim() || "Otros";
       const det = String(r[detailField] ?? "").trim() || grp;
       const sub = subField ? (String(r[subField] ?? "").trim() || det) : det;
+      const ordv = orderField ? (num(r[orderField]) ?? Infinity) : 0;   // orden Excel (Indice)
       const gm = sm.get(sec) ?? sm.set(sec, new Map()).get(sec)!;
       const dm = gm.get(grp) ?? gm.set(grp, new Map()).get(grp)!;
       const subm = dm.get(det) ?? dm.set(det, new Map()).get(det)!;
-      const cur = subm.get(sub) ?? { vals: zero(), notes: [], nums: [] };
+      const cur = subm.get(sub) ?? { vals: zero(), notes: [], nums: [], ord: Infinity };
       fields.forEach((f, i) => { cur.vals[i] += num(r[f.key]) ?? 0; });
+      cur.ord = Math.min(cur.ord, ordv);
       const nota = String(r[noteField] ?? "").trim();
       if (nota && !cur.notes.includes(nota)) cur.notes.push(nota);
       const nn = noteNumField ? num(r[noteNumField]) : null;
@@ -70,29 +73,37 @@ export function BalanceSheet({
     }
     const rank = (s: string) => { const i = SECTION_ORDER.indexOf(s); return i === -1 ? 99 : i; };
     const mkLeaf = (name: string, b: Bucket) => ({
-      name, values: b.vals, note: b.notes.join("\n"), noteNum: b.nums.sort((a, c) => a - c).join(", "),
+      name, values: b.vals, note: b.notes.join("\n"), noteNum: b.nums.sort((a, c) => a - c).join(", "), ord: b.ord,
     });
     const nz = (v: number[]) => v.some((x) => Math.abs(x) > 0.5);
+    // orden: por Indice del Excel (replica el balance del archivo) si se pasó orderField;
+    // si no, por monto descendente (comportamiento clásico).
     const byVal = (a: { values?: number[]; total?: number[] }, b: { values?: number[]; total?: number[] }) =>
       Math.abs((b.values ?? b.total!)[0]) - Math.abs((a.values ?? a.total!)[0]);
+    const byOrd = (a: { ord: number }, b: { ord: number }) => a.ord - b.ord;
+    const sortNodes = <T extends { ord: number; values?: number[]; total?: number[] }>(xs: T[]) =>
+      orderField ? xs.sort(byOrd) : xs.sort(byVal);
     return [...sm.keys()].sort((a, b) => rank(a) - rank(b)).map((sec) => {
       const gm = sm.get(sec)!;
       const groups = [...gm].map(([gname, dm]) => {
         const details = [...dm].map(([dname, subm]) => {
-          const subs = [...subm].map(([sname, b]) => mkLeaf(sname, b))
-            .filter((x) => nz(x.values)).sort(byVal);
+          const subs = sortNodes([...subm].map(([sname, b]) => mkLeaf(sname, b)).filter((x) => nz(x.values)));
           const total = zero(); for (const s of subs) addTo(total, s.values);
+          const ord = subs.length ? Math.min(...subs.map((s) => s.ord)) : Infinity;
           // nota del nivel N2 (cuando NO hay subField, el detalle es hoja: hereda su nota)
           const leaf = subs.length === 1 && !HAS_SUB ? subs[0] : null;
-          return { name: dname, total, subs, note: leaf?.note ?? "", noteNum: leaf?.noteNum ?? "" };
-        }).filter((d) => nz(d.total)).sort(byVal);
-        const total = zero(); for (const d of details) addTo(total, d.total);
-        return { name: gname, total, details };
-      }).filter((g) => nz(g.total)).sort(byVal);
-      const total = zero(); for (const g of groups) addTo(total, g.total);
-      return { name: sec, total, groups };
+          return { name: dname, total, subs, ord, note: leaf?.note ?? "", noteNum: leaf?.noteNum ?? "" };
+        }).filter((d) => nz(d.total));
+        const dets = sortNodes(details);
+        const total = zero(); for (const d of dets) addTo(total, d.total);
+        const ord = dets.length ? Math.min(...dets.map((d) => d.ord)) : Infinity;
+        return { name: gname, total, details: dets, ord };
+      }).filter((g) => nz(g.total));
+      const grps = sortNodes(groups);
+      const total = zero(); for (const g of grps) addTo(total, g.total);
+      return { name: sec, total, groups: grps };
     });
-  }, [rows, fields, sectionField, groupField, detailField, subField, noteField, noteNumField, HAS_SUB]);
+  }, [rows, fields, sectionField, groupField, detailField, subField, orderField, noteField, noteNumField, HAS_SUB]);
 
   // totales y cuadre por columna
   const zeros = fields.map(() => 0);
@@ -154,7 +165,7 @@ export function BalanceSheet({
               <tr>
                 <th></th>
                 {headerGroups.map((g, i) => (
-                  <th key={g.label} className={"num" + (i > 0 ? " grp" : "")} colSpan={g.cols}>{g.label}</th>
+                  <th key={g.label} className={i > 0 ? "grp" : ""} style={{ textAlign: "center" }} colSpan={g.cols}>{g.label}</th>
                 ))}
                 {noteCol && <th></th>}
               </tr>

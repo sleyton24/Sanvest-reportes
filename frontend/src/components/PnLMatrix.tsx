@@ -129,7 +129,7 @@ export function PnLMatrix({ title, rows, levels, cols, headerGroups, fmt = (v: n
               <tr>
                 <th></th>
                 {headerGroups.map((g, i) => (
-                  <th key={g.label} className={"num" + (i > 0 ? " grp" : "")} colSpan={g.cols}>{g.label}</th>
+                  <th key={g.label} className={i > 0 ? "grp" : ""} style={{ textAlign: "center" }} colSpan={g.cols}>{g.label}</th>
                 ))}
                 {noteCol && <th></th>}
               </tr>
