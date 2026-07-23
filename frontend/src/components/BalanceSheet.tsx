@@ -89,12 +89,27 @@ export function BalanceSheet({
       const gm = sm.get(sec)!;
       const groups = [...gm].map(([gname, dm]) => {
         const details = [...dm].map(([dname, subm]) => {
-          const subs = sortNodes([...subm].map(([sname, b]) => mkLeaf(sname, b)).filter((x) => nz(x.values)));
+          let subs = sortNodes([...subm].map(([sname, b]) => mkLeaf(sname, b)).filter((x) => nz(x.values)));
           const total = zero(); for (const s of subs) addTo(total, s.values);
           const ord = subs.length ? Math.min(...subs.map((s) => s.ord)) : Infinity;
-          // nota del nivel N2 (cuando NO hay subField, el detalle es hoja: hereda su nota)
-          const leaf = subs.length === 1 && !HAS_SUB ? subs[0] : null;
-          return { name: dname, total, subs, ord, note: leaf?.note ?? "", noteNum: leaf?.noteNum ?? "" };
+          // Nota del grupo (N2), como en el Excel: la nota va en la fila del grupo, no en
+          // cada cuenta. Si TODAS las cuentas comparten una única nota, es del grupo → se
+          // muestra en el grupo y se quita de las cuentas. Si difieren, cada cuenta conserva
+          // la suya (notas a nivel de cuenta, como también las trae el Excel).
+          let dNote = "", dNum = "";
+          if (HAS_SUB) {
+            const nums = subs.map((s) => s.noteNum).filter(Boolean);
+            const uniq = [...new Set(nums)];
+            if (uniq.length === 1 && nums.length === subs.length) {
+              const src = subs.find((s) => s.noteNum);
+              dNote = src?.note ?? ""; dNum = uniq[0];
+              subs = subs.map((s) => ({ ...s, note: "", noteNum: "" }));
+            }
+          } else {
+            const leaf = subs.length === 1 ? subs[0] : null;
+            dNote = leaf?.note ?? ""; dNum = leaf?.noteNum ?? "";
+          }
+          return { name: dname, total, subs, ord, note: dNote, noteNum: dNum };
         }).filter((d) => nz(d.total));
         const dets = sortNodes(details);
         const total = zero(); for (const d of dets) addTo(total, d.total);
@@ -207,9 +222,12 @@ export function BalanceSheet({
                           return (
                             <Fragment key={dk}>
                               <tr className="bsheet__subgroup" onClick={() => toggle(dk)}>
-                                <td style={{ paddingLeft: 48 }}><span className="bsheet__chev">{dOpen ? "▾" : "▸"}</span>{d.name}</td>
+                                <td style={{ paddingLeft: 48 }}>
+                                  <span className="bsheet__chev">{dOpen ? "▾" : "▸"}</span>{d.name}
+                                  {d.note && <NoteTip text={d.note} mark={d.noteNum || "i"} />}
+                                </td>
                                 {numCells(d.total)}
-                                {noteCell()}
+                                {noteCol && <td className="bsheet__notecell">{d.noteNum && <span className="bsheet__noteno">{d.noteNum}</span>}{d.note}</td>}
                               </tr>
                               {dOpen && d.subs.map((s) => leafRow(dk + "|" + s.name, s.name, s.values, s.note, s.noteNum, 68))}
                             </Fragment>
