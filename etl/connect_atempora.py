@@ -32,6 +32,8 @@ FC_SHEET = "CIVITAS_mensual"
 TABLE = "eerr_civitas"
 KPIS_SHEET = "Estado actual"
 KPIS_TABLE = "kpis_atempora"
+RENTROLL_SHEET = "Rent roll"
+ARRIENDO_TABLE = "detalle_arriendo_civitas"
 # rubros de VENTA que se eliminan (Monto → 0) para dejar la operación de arriendo
 VENTA_RUBROS = ("Promesa Compra Venta", "Costo Venta Activo")
 # ancla única del bloque de detalle en la hoja (evita los resúmenes de arriba, que
@@ -133,6 +135,86 @@ def _n(v) -> float:
     return float(v) if isinstance(v, (int, float)) else 0.0
 
 
+def _apply_rentroll(engine: Engine, path: str) -> dict | None:
+    """Refresca `detalle_arriendo_civitas` (el 'Cuadro de Arriendos') desde la hoja
+    'Rent roll' del mismo Excel de KPIs. Full-refresh con los arriendos VIGENTES
+    (Obs = 'Arrendado'); las unidades escrituradas/disponibles no entran al cuadro
+    de arriendos. Devuelve None (y no toca nada) si el archivo no trae la hoja o la
+    tabla destino no existe. Mapea las columnas por rótulo NORMALIZADO para calzar
+    con el esquema real (nombres con '²' y espacios)."""
+    if not inspect(engine).has_table(ARRIENDO_TABLE):
+        return None
+    wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
+    try:
+        if RENTROLL_SHEET not in wb.sheetnames:
+            return None
+        rows = list(wb[RENTROLL_SHEET].iter_rows(values_only=True))
+    finally:
+        wb.close()
+
+    # cabecera: la fila con Arrendatario + Superficie
+    hdr_i = next((i for i, r in enumerate(rows)
+                  if any("arrendatario" in _norm(c) for c in r if c is not None)
+                  and any("superficie" in _norm(c) for c in r if c is not None)), None)
+    if hdr_i is None:
+        return None
+    col: dict[str, int] = {}
+    for j, c in enumerate(rows[hdr_i]):
+        n = _norm(c)
+        if not n:
+            continue
+        if "arrendatario" in n:
+            col["usuario"] = j
+        elif n == "unidad":
+            col["unidad"] = j
+        elif "superficie" in n:
+            col["sup"] = j
+        elif "uf/m" in n:                       # Valor arriendo [UF/m²] (antes que [UF])
+            col["ufm2"] = j
+        elif "valor arriendo" in n and "uf" in n:
+            col["uf"] = j
+        elif "fecha inicio" in n:
+            col["inicio"] = j
+        elif "fecha termino" in n:
+            col["termino"] = j
+        elif n in ("obs", "obs."):
+            col["obs"] = j
+
+    def g(r, k):
+        j = col.get(k)
+        return r[j] if j is not None and j < len(r) else None
+
+    def _d(v):                                   # fecha -> 'YYYY-MM-DD' o None
+        f = _parse_fecha(v)
+        return f.strftime("%Y-%m-%d") if f else None
+
+    leases = []
+    for r in rows[hdr_i + 1:]:
+        usuario = g(r, "usuario")
+        if not (usuario and str(usuario).strip()):
+            continue
+        if _snorm(g(r, "obs")) != "arrendado":   # solo arriendos vigentes
+            continue
+        leases.append({
+            _norm("Unidad"): (str(g(r, "unidad")).strip() if g(r, "unidad") is not None else None),
+            _norm("Superficie [m²]"): _n(g(r, "sup")) or None,
+            _norm("Estado"): "Arrendado",
+            _norm("Usuario"): str(usuario).strip(),
+            _norm("Valor arriendo [UF]"): _n(g(r, "uf")) or None,
+            _norm("Valor arriendo [UF/m²]"): _n(g(r, "ufm2")) or None,
+            _norm("Fecha inicio"): _d(g(r, "inicio")),
+            _norm("Fecha término"): _d(g(r, "termino")),
+        })
+    if not leases:
+        return None
+
+    cur = _read(engine, ARRIENDO_TABLE)
+    out = pd.DataFrame([{c: lease.get(_norm(c), None) for c in cur.columns} for lease in leases])
+    _write(engine, ARRIENDO_TABLE, out)
+    return {ARRIENDO_TABLE: {"filas_actualizadas": len(leases), "filas_insertadas": 0,
+                             "fuente": "hoja 'Rent roll'", "arriendos_vigentes": len(leases)}}
+
+
 def apply_atempora_kpis(engine: Engine, path: str) -> dict:
     """Extrae los KPIs (ocupación, m², uf/m², unidades por Oficina/Local) de la hoja
     'Estado actual' del Excel de Atémpora y hace upsert en kpis_atempora por período.
@@ -232,9 +314,14 @@ def apply_atempora_kpis(engine: Engine, path: str) -> dict:
     keep = cur[~((cur["Proyecto"].astype(str) == "Atempora") & (pd.to_numeric(cur["Fecha ID"], errors="coerce") == fid))]
     merged = pd.concat([keep, pd.DataFrame([new])[list(cur.columns)]], ignore_index=True)
     _write(engine, KPIS_TABLE, merged)
-    return {KPIS_TABLE: {"filas_actualizadas": 1, "filas_insertadas": 0 if len(keep) < len(cur) else 1,
-                         "periodo": fid, "of_total": of_tu, "lc_total": lc_tu,
-                         "ocupacion_total": round(row["Ocupacion total"], 4)}}
+    out = {KPIS_TABLE: {"filas_actualizadas": 1, "filas_insertadas": 0 if len(keep) < len(cur) else 1,
+                        "periodo": fid, "of_total": of_tu, "lc_total": lc_tu,
+                        "ocupacion_total": round(row["Ocupacion total"], 4)}}
+    # el mismo Excel trae la hoja 'Rent roll' → refresca el Cuadro de Arriendos
+    rr = _apply_rentroll(engine, path)
+    if rr:
+        out.update(rr)
+    return out
 
 
 MOROSIDAD_TABLE = "morosidad"

@@ -273,9 +273,12 @@ export function AtemporaDashboard() {
         {COMBO("Ingresos mensual (UF)", (e) => e.ingR, (e) => e.ingP)}
         {COMBO("Ingresos YTD (UF)", (e) => e.ingRY, (e) => e.ingPY)}
       </section>
+      {/* Gastos: en el DATO vienen negativos; en los gráficos se muestran como
+          magnitud POSITIVA (barras hacia arriba). La tabla y el NOI mantienen el
+          signo original (NOI = Ingresos + Gastos). */}
       <section className="row row--two">
-        {COMBO("Gastos Operacionales mensual (UF)", (e) => e.gopR, (e) => e.gopP)}
-        {COMBO("Gastos Operacionales YTD (UF)", (e) => e.gopRY, (e) => e.gopPY)}
+        {COMBO("Gastos Operacionales mensual (UF)", (e) => -e.gopR, (e) => -e.gopP)}
+        {COMBO("Gastos Operacionales YTD (UF)", (e) => -e.gopRY, (e) => -e.gopPY)}
       </section>
       <section className="row row--two">
         {COMBO("NOI mensual (UF)", (e) => e.ingR + e.gopR, (e) => e.ingP + e.gopP)}
