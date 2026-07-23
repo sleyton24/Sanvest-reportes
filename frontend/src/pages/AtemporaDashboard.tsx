@@ -240,7 +240,7 @@ export function AtemporaDashboard() {
   return (
     <div className="dash">
       <header className="dash__header">
-        <h1>Atémpora · <b className="dash__proj">Civitas</b></h1>
+        <h1><img className="dash__logo dash__logo--tile" src="/logos/atempora.png" alt="Atémpora" />Atémpora · <b className="dash__proj">Civitas</b></h1>
         <div className="dash__slicers">
           <Slicer label="Año" value={year} options={years.map((y) => ({ value: y, label: String(y) }))} onChange={setYear} />
           <Slicer label="Mes" value={month} options={Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: MESES[i + 1] }))} onChange={setMonth} />
