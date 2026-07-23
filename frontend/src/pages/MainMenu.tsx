@@ -46,9 +46,8 @@ const TILES: Tile[] = [
     desc: "Bemiston · Mila · St Grand", icon: ICON.USA, logo: "/logos/double-eagle.png" },
   { id: "ICEMM", label: "Construcción", sub: "ICEMM", color: "#D83252",
     desc: "Indicadores Financieros · Flujo de Caja", icon: ICON.ICEMM, logo: "/logos/emm.png", blend: true },
-  // Atémpora no tiene logo limpio aún (ver logos/README.txt) → mantiene su ícono
   { id: "Atempora", label: "Atémpora", sub: "Multi-uso — Civitas", color: "#8b6fd6",
-    desc: "Oficinas · Locales · Arriendos · Morosidad", icon: ICON.Atempora },
+    desc: "Oficinas · Locales · Arriendos · Morosidad", icon: ICON.Atempora, logo: "/logos/atempora.png" },
   { id: "Grupo", label: "Estados Financieros", sub: "Grupo Sanvest", color: "#5566cc",
     desc: "Balance · EERR", icon: ICON.EF, logo: "/sanvest-azul.png" },
 ];
