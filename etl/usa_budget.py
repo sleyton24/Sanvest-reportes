@@ -30,22 +30,28 @@ def _period_end(rows) -> tuple[int, int] | None:
 
 def _resolve_layout(rows) -> tuple[int, int | None, int | None, int | None]:
     """Localiza la fila de encabezado y devuelve los índices de columna por rol
-    (real_mensual, ppto_mensual, ytd_real, ytd_ppto). Soporta dos informes:
+    (real_mensual, ppto_mensual, ytd_real, ytd_ppto); None donde el informe no lo trae.
+    Se distingue por el rótulo de la 3ª columna de datos (índice 3):
 
     - **Budget Comparison** (…Actual | …Budget | Var | %Var | …Actual | …Budget):
-      mensual en col 2/3, YTD en col 6/7.
-    - **Income Statement / Financials** (Period to Date | % | Year to Date | %):
-      solo trae REALES —sin presupuesto—; mensual en col 2, YTD en col 4, y
+      la col 3 es "…Budget" -> mensual en col 2/3, YTD en col 6/7.
+    - **Income Statement / Financials** (Period to Date | % | Year to Date | %
+      [| PTD Budget | YTD Budget | Annual Budget]): la col 3 es "%". Real=col 2,
+      YTD real = col "Year to Date". El presupuesto SOLO existe en la variante "con
+      presupuesto" (se adjuntan "PTD Budget"/"YTD Budget" a la derecha); si no están,
       ppto/ytd_ppto = None para NO pisar el presupuesto ya cargado.
     """
     for r in rows[:8]:
         hdr = [str(v).strip().lower() if isinstance(v, str) else "" for v in r]
         joined = " ".join(hdr)
-        if "actual" in joined or "period to date" in joined:
-            if any("budget" in c for c in hdr):
-                return 2, 3, 6, 7            # Budget Comparison
-            return 2, None, 4, None          # Income Statement (sin presupuesto)
-    return 2, 3, 6, 7                         # por defecto: Budget Comparison
+        if "actual" not in joined and "period to date" not in joined:
+            continue
+        find = lambda kw: next((i for i, c in enumerate(hdr) if kw in c), None)
+        if len(hdr) > 3 and "budget" in hdr[3]:      # Budget Comparison
+            return 2, 3, 6, 7
+        ytd = find("year to date")                   # Income Statement (con/sin ppto)
+        return 2, find("ptd budget"), (ytd if ytd is not None else 4), find("ytd budget")
+    return 2, 3, 6, 7                                 # por defecto: Budget Comparison
 
 
 def budget_comparison_to_pnl(path) -> pd.DataFrame:
