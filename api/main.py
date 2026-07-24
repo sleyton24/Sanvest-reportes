@@ -517,6 +517,38 @@ def _occ_frac(v):
     return v / 100.0 if v > 1.5 else v
 
 
+def _recompute_usa_ytd(con, anio: int, kpis_ac: str) -> None:
+    """Recalcula el $/SQF YTD (Actual, Retail Actual, Budget, Retail Budget) como
+    promedio corrido de los meses del año para un activo → usa_kpis_gestion. Incluye el
+    BUDGET (antes solo se recalculaba el actual, y el $/SQF Budget YTD quedaba vacío)."""
+    rows = con.execute(text(
+        f'SELECT {qi("Month")}, {qi("Dólar SQF AC MONTH")}, {qi("Dólar SQF Retail AC MONTH")}, '
+        f'{qi("Dólar SQF BD MONTH")}, {qi("Dólar SQF Retail BD MONTH")} '
+        f'FROM {qi("usa_kpis_gestion")} WHERE {qi("YEAR")}=:y AND TRIM({qi("Activo")})=:ac '
+        f'ORDER BY {qi("Month")}'), {"y": anio, "ac": kpis_ac}).fetchall()
+
+    def _f(x):
+        try:
+            return float(x) if x is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    sa = sr = sb = srb = 0.0; ca = cr = cb = crb = 0
+    for mth, ac, rt, bd, rbd in rows:
+        ya = yr = yb = yrb = None
+        av, rv, bv, rbv = _f(ac), _f(rt), _f(bd), _f(rbd)
+        if av is not None: sa += av; ca += 1; ya = sa / ca
+        if rv is not None: sr += rv; cr += 1; yr = sr / cr
+        if bv is not None: sb += bv; cb += 1; yb = sb / cb
+        if rbv is not None: srb += rbv; crb += 1; yrb = srb / crb
+        con.execute(text(
+            f'UPDATE {qi("usa_kpis_gestion")} SET '
+            f'{qi("Dólar SQF AC YTD")}=:ya, {qi("Dólar SQF Retail AC YTD")}=:yr, '
+            f'{qi("Dólar SQF BD YTD")}=:yb, {qi("Dólar SQF Retail BD YTD")}=:yrb '
+            f'WHERE {qi("YEAR")}=:y AND {qi("Month")}=:mn AND TRIM({qi("Activo")})=:ac'),
+            {"ya": ya, "yr": yr, "yb": yb, "yrb": yrb, "y": anio, "mn": mth, "ac": kpis_ac})
+
+
 @app.post("/units/USA/kpis", tags=["carga"], dependencies=[Depends(auth.require_admin)])
 def upsert_usa_kpis(body: UsaKpiBody):
     """Ingreso manual de KPIs mensuales USA que NO vienen de Yardi: Ocupación
@@ -567,27 +599,9 @@ def upsert_usa_kpis(body: UsaKpiBody):
                                  f'VALUES ({", ".join(vals)})'), ins)
 
             # --- Recalcular YTD (promedio corrido de los meses del año) ---
-            rows = con.execute(text(
-                f'SELECT {qi("Month")}, {qi("Dólar SQF AC MONTH")}, {qi("Dólar SQF Retail AC MONTH")} '
-                f'FROM {qi("usa_kpis_gestion")} WHERE {qi("YEAR")}=:y AND TRIM({qi("Activo")})=:ac '
-                f'ORDER BY {qi("Month")}'), {"y": body.anio, "ac": kpis_ac}).fetchall()
-            def _f(x):
-                try:
-                    return float(x) if x is not None else None
-                except (TypeError, ValueError):
-                    return None
-            sa = sr = 0.0; ca = cr = 0
-            for mth, ac, rt in rows:
-                ytd_a = ytd_r = None
-                av, rv = _f(ac), _f(rt)
-                if av is not None:
-                    sa += av; ca += 1; ytd_a = sa / ca
-                if rv is not None:
-                    sr += rv; cr += 1; ytd_r = sr / cr
-                con.execute(text(f'UPDATE {qi("usa_kpis_gestion")} '
-                                 f'SET {qi("Dólar SQF AC YTD")}=:ya, {qi("Dólar SQF Retail AC YTD")}=:yr '
-                                 f'WHERE {qi("YEAR")}=:y AND {qi("Month")}=:mn AND TRIM({qi("Activo")})=:ac'),
-                            {"ya": ytd_a, "yr": ytd_r, "y": body.anio, "mn": mth, "ac": kpis_ac})
+            # Actual Y BUDGET (antes solo se recalculaba el actual → el $/SQF Budget YTD
+            # quedaba en blanco en los meses cargados por archivo).
+            _recompute_usa_ytd(con, body.anio, kpis_ac)
 
     if not written:
         raise HTTPException(400, "Ingresa al menos un valor (ocupación o $/SQF).")
