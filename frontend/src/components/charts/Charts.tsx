@@ -289,9 +289,10 @@ export function Funnel({ title, data, valueFmt = (v) => fmtNum(v, 0) }: {
 
 // barras horizontales: ranking por valor (positivos verde, negativos rojo).
 // Maneja negativos limpio (a diferencia del embudo) y deja leer etiquetas largas.
-export function HBarChart({ title, data, valueFmt = (v) => fmtNum(v, 0), total }: {
+export function HBarChart({ title, data, valueFmt = (v) => fmtNum(v, 0), total, colorOf }: {
   title: string; data: { label: string; value: number }[]; valueFmt?: Fmt;
   total?: { label: string; value: number };   // barra de total (fija arriba, color azul)
+  colorOf?: (name: string) => string | undefined;   // color por nombre (marca de la unidad)
 }) {
   const units = [...data].filter((x) => x.value != null).sort((a, b) => b.value - a.value)
     .map((x) => ({ name: x.label, value: x.value, total: false }));
@@ -315,7 +316,7 @@ export function HBarChart({ title, data, valueFmt = (v) => fmtNum(v, 0), total }
         <YAxis type="category" dataKey="name" tick={AXIS_TICK} stroke={AXIS_LINE} width={172} interval={0} />
         <Tooltip formatter={(v: number, _n, p: any) => [valueFmt(v), p?.payload?.name]} {...TOOLTIP} />
         <Bar dataKey="value" isAnimationActive={false} radius={[0, 4, 4, 0]} barSize={18}>
-          {d.map((e, i) => <Cell key={i} fill={e.total ? "#3D7DF6" : e.value >= 0 ? "#A8C813" : "#D83252"} />)}
+          {d.map((e, i) => <Cell key={i} fill={e.total ? "#3D7DF6" : colorOf?.(e.name) ?? (e.value >= 0 ? "#A8C813" : "#D83252")} />)}
           <LabelList content={label} />
         </Bar>
       </BarChart>
@@ -324,8 +325,9 @@ export function HBarChart({ title, data, valueFmt = (v) => fmtNum(v, 0), total }
 }
 
 // torta de participación (% sobre el total) — % visible sobre cada gajo
-export function PieChart({ title, data, valueFmt = (v) => fmtNum(v, 0) }: {
+export function PieChart({ title, data, valueFmt = (v) => fmtNum(v, 0), colorOf }: {
   title: string; data: { label: string; value: number }[]; valueFmt?: Fmt;
+  colorOf?: (name: string) => string | undefined;   // color por nombre (marca de la unidad)
 }) {
   const tot = data.reduce((a, x) => a + (x.value || 0), 0) || 1;
   const d = data.filter((x) => x.value > 0).map((x) => ({ name: x.label, value: x.value, pct: x.value / tot }));
@@ -361,7 +363,7 @@ export function PieChart({ title, data, valueFmt = (v) => fmtNum(v, 0) }: {
         <Legend {...LEGEND} />
         <Pie data={d} dataKey="value" nameKey="name" innerRadius="42%" outerRadius="70%" paddingAngle={1}
           isAnimationActive={false} stroke="#0b1729" label={pctLabel} labelLine={false}>
-          {d.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+          {d.map((e, i) => <Cell key={i} fill={colorOf?.(e.name) ?? COLORS[i % COLORS.length]} />)}
         </Pie>
       </RPieChart>
     </Frame>

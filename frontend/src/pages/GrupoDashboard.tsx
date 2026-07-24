@@ -7,6 +7,21 @@ import { PnLMatrix, PnLCol } from "../components/PnLMatrix";
 import { HBarChart, PieChart, WaterfallChart } from "../components/charts/Charts";
 import { Button } from "../components/Button";
 
+// Colores de marca por unidad de negocio del patrimonio (los del menú / "Aperturas
+// por unidad"): verde=Desarrollo, teal=Renta Residencial, naranja=USA, amarillo=OLÁ,
+// morado=Atémpora/Servicios, azul=holding, rojo/gris para el resto.
+const UNIT_COLOR: Record<string, string> = {
+  "inmobiliaria y construccion": "#A8C813",
+  "ola hoteles": "#FACF22",
+  "multifamily": "#3796AA",
+  "usa": "#EF731B",
+  "bnv": "#5566cc",
+  "servicios sanvest": "#8b6fd6",
+  "otros pasivos": "#8aa0b8",
+};
+const _nrm = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+const unitColor = (name: string) => UNIT_COLOR[_nrm(name)];
+
 const triKey = (t: string) => {
   const m = String(t).match(/Q(\d)-(\d{4})/);
   return m ? parseInt(m[2], 10) * 10 + parseInt(m[1], 10) : 0;
@@ -170,8 +185,8 @@ export function GrupoDashboard() {
       {/* Balance + Patrimonio (familia QAC = trimestre vigente) */}
       <section className="row row--two">
         <HBarChart title="Patrimonio por Unidad de Negocio (Mercado UF)" data={patri("Mercado UF QAC")} valueFmt={fmtUF}
-          total={{ label: "Total Patrimonio", value: patri("Mercado UF QAC").reduce((a, x) => a + x.value, 0) }} />
-        <PieChart title="Participación en Patrimonio (unidades positivas)" data={patri("Mercado UF QAC")} valueFmt={fmtUF} />
+          total={{ label: "Total Patrimonio", value: patri("Mercado UF QAC").reduce((a, x) => a + x.value, 0) }} colorOf={unitColor} />
+        <PieChart title="Participación en Patrimonio (unidades positivas)" data={patri("Mercado UF QAC")} valueFmt={fmtUF} colorOf={unitColor} />
       </section>
       <section className="row" style={{ gridTemplateColumns: "1fr" }}>
         <BalanceSheet title="Balance Grupo" rows={balRows} valueFields={BAL_FIELDS} subField="N1 " orderField="Indice" showZeros
