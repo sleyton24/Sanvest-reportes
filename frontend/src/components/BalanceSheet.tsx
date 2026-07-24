@@ -240,10 +240,7 @@ export function BalanceSheet({
               );
             })}
             <tr className="bsheet__check"><td>TOTAL ACTIVOS</td>{numCells(activos)}{noteCell()}</tr>
-            <tr className="bsheet__check"><td>TOTAL PATRIMONIO</td>{numCells(patrimonio)}{noteCell()}</tr>
-            <tr className="bsheet__check">
-              <td>TOTAL PASIVOS + PATRIMONIO</td>{numCells(pasPat)}{noteCell()}
-            </tr>
+            <tr className="bsheet__check bsheet__result"><td>TOTAL PATRIMONIO</td>{numCells(patrimonio)}{noteCell()}</tr>
             {!cuadra && (
               <tr className="bsheet__dif">
                 <td>Diferencia (descuadre)</td>
