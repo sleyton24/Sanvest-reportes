@@ -109,12 +109,24 @@ def _read_notes(wb, spec: dict) -> dict[int, str]:
         return {}
     ws = wb[ncfg["sheet"]]
     numc, txtc = _col(ncfg["number_col"]), _col(ncfg["text_col"])
+    rows = list(ws.iter_rows(values_only=False))
+    # La hoja 'Notas' trae VARIAS secciones numeradas 1..N (Ratios financieros, Highlights,
+    # y las notas del balance). Si el spec da `start_after_contains`, se empieza a leer
+    # DESPUÉS de esa cabecera (p. ej. "Notas - Balance") para no tomar los ratios (que
+    # también empiezan en 1). Si no se encuentra, se lee todo.
+    anchor = (ncfg.get("start_after_contains") or "").strip().lower() or None
+    start = 0
+    if anchor:
+        for i, row in enumerate(rows):
+            if any(anchor in str(c.value).lower() for c in row if c.value is not None):
+                start = i + 1
+                break
     out: dict[int, str] = {}
-    for row in ws.iter_rows(values_only=False):
+    for row in rows[start:]:
         num = _as_int(row[numc - 1].value)
         txt = _norm(row[txtc - 1].value)
-        if num is not None and txt and num not in out:
-            out[num] = txt
+        if num is not None and txt:
+            out[num] = txt          # última gana dentro de la sección
     return out
 
 
