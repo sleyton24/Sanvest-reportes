@@ -575,6 +575,48 @@
       "dates": [
         "fecha "
       ]
+    },
+    {
+      "model_name": "KPIs Atempora Edificio",
+      "slug": "kpis_atempora_edificio",
+      "rows": 6,
+      "columns": [
+        {
+          "name": "Fecha ID",
+          "dtype": "int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Estado",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Unidades",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Superficie",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Pct",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ],
+      "dimensions": [
+        "Fecha ID",
+        "Estado"
+      ],
+      "measures": [
+        "Unidades",
+        "Superficie",
+        "Pct"
+      ],
+      "dates": []
     }
   ]
 }

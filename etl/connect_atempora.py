@@ -34,6 +34,9 @@ KPIS_SHEET = "Estado actual"
 KPIS_TABLE = "kpis_atempora"
 RENTROLL_SHEET = "Rent roll"
 ARRIENDO_TABLE = "detalle_arriendo_civitas"
+EDIFICIO_TABLE = "kpis_atempora_edificio"
+# estados del bloque "Total edificio" (col F/B de 'Estado actual'), en orden de comercialización
+EDIFICIO_STATES = ("Disponible", "Res. Arriendo", "Arrendado", "Res. Compra", "Promesado", "Escriturado")
 # rubros de VENTA que se eliminan (Monto → 0) para dejar la operación de arriendo
 VENTA_RUBROS = ("Promesa Compra Venta", "Costo Venta Activo")
 # ancla única del bloque de detalle en la hoja (evita los resúmenes de arriba, que
@@ -218,6 +221,44 @@ def _apply_rentroll(engine: Engine, path: str) -> dict | None:
                              "fuente": "hoja 'Rent roll'", "arriendos_vigentes": len(leases)}}
 
 
+def _read_edificio(ws) -> list[dict]:
+    """Lee el bloque 'Total edificio' de la hoja 'Estado actual': por estado (Disponible,
+    Res. Arriendo, Arrendado, Res. Compra, Promesado, Escriturado) toma Unidades (col C),
+    Superficie m² (col G) y % (col H). Es el resumen de TODO el edificio (OF+LC+bodegas+
+    estacionamientos). Devuelve [] si no encuentra el bloque."""
+    hdr = None
+    for r in range(1, ws.max_row + 1):
+        if _snorm(ws.cell(r, 6).value) == "total edificio" or _snorm(ws.cell(r, 2).value) == "total edificio":
+            hdr = r
+            break
+    if hdr is None:
+        return []
+    want = {_snorm(s): s for s in EDIFICIO_STATES}
+    out: list[dict] = []
+    for r in range(hdr + 1, hdr + 12):
+        lab = _snorm(ws.cell(r, 6).value)
+        if lab in want:
+            out.append({"Estado": want[lab], "Unidades": _n(ws.cell(r, 3).value),
+                        "Superficie": _n(ws.cell(r, 7).value), "Pct": _n(ws.cell(r, 8).value)})
+    return out
+
+
+def _upsert_edificio(engine: Engine, fid: int, rows: list[dict]) -> int:
+    """Upsert del bloque edificio en `kpis_atempora_edificio` por (Fecha ID). Crea la
+    tabla la primera vez (requiere CREATE); luego DELETE+INSERT del período."""
+    if not rows:
+        return 0
+    df_new = pd.DataFrame([{"Fecha ID": fid, **row} for row in rows])
+    if inspect(engine).has_table(EDIFICIO_TABLE):
+        cur = _read(engine, EDIFICIO_TABLE)
+        keep = cur[pd.to_numeric(cur["Fecha ID"], errors="coerce") != fid]
+        merged = pd.concat([keep, df_new[list(cur.columns)]], ignore_index=True)
+        _write(engine, EDIFICIO_TABLE, merged)
+    else:
+        df_new.to_sql(EDIFICIO_TABLE, engine, if_exists="replace", index=False)
+    return len(rows)
+
+
 def apply_atempora_kpis(engine: Engine, path: str) -> dict:
     """Extrae los KPIs (ocupación, m², uf/m², unidades por Oficina/Local) de la hoja
     'Estado actual' del Excel de Atémpora y hace upsert en kpis_atempora por período.
@@ -253,6 +294,7 @@ def apply_atempora_kpis(engine: Engine, path: str) -> dict:
             raise ValueError("No encontré los bloques 'Oficina'/'Local comercial' en 'Estado actual'")
         of_tu, of_tm2, of = _kpis_block(ws, hof)
         lc_tu, lc_tm2, lc = _kpis_block(ws, hlc)
+        edificio = _read_edificio(ws)   # bloque 'Total edificio' (resumen de todo el edificio)
     finally:
         wb.close()
 
@@ -324,6 +366,11 @@ def apply_atempora_kpis(engine: Engine, path: str) -> dict:
     rr = _apply_rentroll(engine, path)
     if rr:
         out.update(rr)
+    # bloque 'Total edificio' → tabla del cuadro general + gauge de ocupación
+    n_ed = _upsert_edificio(engine, fid, edificio)
+    if n_ed:
+        out[EDIFICIO_TABLE] = {"filas_actualizadas": n_ed, "filas_insertadas": 0,
+                               "periodo": fid, "estados": [e["Estado"] for e in edificio]}
     return out
 
 

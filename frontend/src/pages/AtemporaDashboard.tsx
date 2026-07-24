@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { fetchRows, num, Row } from "../api";
 import { CardSpec } from "../config";
 import { last12 } from "../data";
-import { fmtNum, fmtUF, fmtCLP } from "../format";
+import { fmtNum, fmtUF, fmtCLP, fmtPct } from "../format";
 import { Slicer } from "../components/Slicer";
 import { Gauge } from "../components/Gauge";
 import { KpiCard } from "../components/KpiCard";
@@ -34,6 +34,7 @@ export function AtemporaDashboard() {
   const [arr, setArr] = useState<Row[]>([]);
   const [mor, setMor] = useState<Row[]>([]);
   const [ven, setVen] = useState<Row[]>([]);
+  const [edi, setEdi] = useState<Row[]>([]);   // kpis_atempora_edificio (estado comercialización)
   const [year, setYear] = useState<number | "">("");
   const [month, setMonth] = useState<number | "">("");
   const [loading, setLoading] = useState(true);
@@ -44,8 +45,9 @@ export function AtemporaDashboard() {
     let off = false; setLoading(true);
     Promise.all([fetchRows("Atempora", "eerr_civitas"), fetchRows("Atempora", "kpis_atempora"),
       fetchRows("Atempora", "deuda_civitas"), fetchRows("Atempora", "detalle_arriendo_civitas"),
-      fetchRows("Atempora", "morosidad"), fetchRows("Atempora", "ventas_civitas")])
-      .then(([e, k, d, a, m, v]) => { if (!off) { setEerr(e); setKpis(k); setDeuda(d); setArr(a); setMor(m); setVen(v); } })
+      fetchRows("Atempora", "morosidad"), fetchRows("Atempora", "ventas_civitas"),
+      fetchRows("Atempora", "kpis_atempora_edificio").catch(() => [])])
+      .then(([e, k, d, a, m, v, ed]) => { if (!off) { setEerr(e); setKpis(k); setDeuda(d); setArr(a); setMor(m); setVen(v); setEdi(ed); } })
       .catch((er) => !off && setError(String(er))).finally(() => !off && setLoading(false));
     return () => { off = true; };
   }, [refresh]);
@@ -154,6 +156,21 @@ export function AtemporaDashboard() {
   const ocupM2 = m2Tot ? m2Occ! / m2Tot : null;
   const ocupM2Sub = m2Tot != null
     ? `${fmtNum(m2Occ, 0)} / ${fmtNum(m2Tot, 0)} m²${kpiMesLabel ? ` · KPIs al ${kpiMesLabel}` : ""}` : null;
+
+  // Estado de comercialización del EDIFICIO completo (bloque 'Total edificio'): cuadro por
+  // estado (m² + %) y ocupación GENERAL del gauge = (Superficie − Disponible) / Superficie.
+  // Snapshot por período: el del mes elegido si existe, si no el último disponible.
+  const EDI_ORDER = ["Disponible", "Res. Arriendo", "Arrendado", "Res. Compra", "Promesado", "Escriturado"];
+  const ediFids = useMemo(() => [...new Set(edi.map((r) => num(r["Fecha ID"]))
+    .filter((x): x is number => x != null))].sort((a, b) => a - b), [edi]);
+  const ediFid = fid != null && ediFids.includes(fid) ? fid : (ediFids.length ? ediFids[ediFids.length - 1] : null);
+  const ediRows = useMemo(() => edi.filter((r) => num(r["Fecha ID"]) === ediFid)
+    .sort((a, b) => EDI_ORDER.indexOf(String(a["Estado"]).trim()) - EDI_ORDER.indexOf(String(b["Estado"]).trim())), [edi, ediFid]);
+  const ediTotal = ediRows.reduce((a, r) => a + (num(r["Superficie"]) ?? 0), 0);
+  const ediDisp = num(ediRows.find((r) => String(r["Estado"]).trim() === "Disponible")?.["Superficie"]) ?? 0;
+  const ediOcup = ediTotal ? (ediTotal - ediDisp) / ediTotal : null;
+  const ediMesLabel = ediFid ? `${MESES[ediFid % 100]}-${Math.floor(ediFid / 100)}` : null;
+  const ediSub = ediTotal ? `${fmtNum(ediTotal - ediDisp, 0)} / ${fmtNum(ediTotal, 0)} m²${ediMesLabel ? ` · al ${ediMesLabel}` : ""}` : null;
 
   // Deuda: saldo (Capital) del cronograma AL MES MOSTRADO. Se topa en fid/endFid
   // porque la tabla trae meses futuros —incluida la fila de extinción del crédito
@@ -266,11 +283,32 @@ export function AtemporaDashboard() {
         <HoldingPnLMulti title="Informe de Gestión (UF)" rows={civPnLMulti()} groups={["Mes", "YTD"]} />
       </section>
 
-      {/* Ocupación + Deuda */}
+      {/* Ocupación GENERAL del edificio (gauge + cuadro por estado) + Unidades/Deuda */}
       <section className="row row--hotel-kpis">
-        <Gauge title="Ocupación total" value={ocupM2} sub={ocupM2Sub} />
-        <KpiCard spec={card("Ocupación", [["Venta Oficinas", "pct"], ["Renta Oficinas", "pct"], ["Renta Locales", "pct"], ["Venta Locales", "pct"]])}
-          values={[kv("Ocupacion Ventas OF"), kv("Ocupacion Renta OF"), kv("Ocupacion Renta LC"), kv("Ocupacion Ventas LC")]} />
+        <Gauge title="Ocupación total" value={ediOcup ?? ocupM2} sub={ediSub ?? ocupM2Sub} />
+        {/* Estado de comercialización del edificio (bloque 'Total edificio') */}
+        <div className="card pivot">
+          <div className="card__title">Estado de comercialización — Edificio</div>
+          <div className="pivot__scroll">
+            <table className="pivot__table">
+              <thead><tr><th>Estado</th><th className="num">Superficie [m²]</th><th className="num">%</th></tr></thead>
+              <tbody>
+                {ediRows.map((r) => (
+                  <tr key={String(r["Estado"])}>
+                    <td>{String(r["Estado"])}</td>
+                    <td className="num">{fmtNum(num(r["Superficie"]), 2)}</td>
+                    <td className="num">{fmtPct(num(r["Pct"]), 0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr><td className="strong">Superficie [m²]</td>
+                  <td className="num strong">{fmtNum(ediTotal, 2)}</td>
+                  <td className="num strong">100%</td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
         <KpiCard spec={card("Unidades & Deuda", [["Total Oficinas", "int"], ["Total Locales", "int"], ["Gasto Común", "num"], ["Deuda (UF)", "uf"]])}
           values={[kv("Of total"), kv("LC Total"), kv("Gasto Comun"), deudaUF]} />
       </section>
