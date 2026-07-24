@@ -189,7 +189,12 @@ export function RRDashboard() {
     ],
   })).sort((a, b) => (a.indice ?? 9) - (b.indice ?? 9));
 
-  // KPIs Grupo (tipología): unidades administradas por tipología/métrica [Max]
+  // KPIs Grupo (tipología): unidades administradas por tipología/métrica [Max], en el
+  // orden del informe (totales, desglose por modelo, edificios, m²).
+  const TIPO_ORDER = ["UNIDADES ADMINISTRADAS BAJO CONTRATO", "UNIDADES ADMINISTRADAS REAL",
+    "Studio", "Estudio", "1D + 1B", "1D + 2B", "2D + 1B", "2D + 2B", "2D + 2B Mariposa", "Mariposa",
+    "3D + 3B", "3D3B", "EDIFICIOS ADMINISTRADOS", "M² ÚTILES ADMINISTRADOS", "M2 ARRENDABLES ADMINISTRADOS",
+    "M² TOTALES ADMINISTRADOS"];
   const tipoRows = useMemo(() => {
     const m = new Map<string, number>();
     for (const r of tipo) {
@@ -197,7 +202,9 @@ export function RRDashboard() {
       const u = num(r["UNIDADES ADMINISTRADAS"]);
       if (k && u != null) m.set(k, Math.max(m.get(k) ?? -Infinity, u));
     }
-    return [...m].map(([metrica, unidades]) => ({ metrica, unidades }));
+    const ord = (s: string) => { const i = TIPO_ORDER.indexOf(s); return i < 0 ? 99 : i; };
+    return [...m].map(([metrica, unidades]) => ({ metrica, unidades }))
+      .sort((a, b) => ord(a.metrica) - ord(b.metrica));
   }, [tipo]);
 
   // Fecha del último período cargado de KPIs por edificio (para el título "actualizado")
