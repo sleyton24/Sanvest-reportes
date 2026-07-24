@@ -708,8 +708,11 @@ body {
   font-weight: 700; color: var(--ink); border-top: 1px solid var(--border-strong);
 }
 .bsheet__table .bsheet__check:first-of-type td { border-top: 2px solid var(--border-strong); }
-/* TOTAL PATRIMONIO destacado en verde, como la UTILIDAD del EERR */
-.bsheet__table .bsheet__result td { background: rgba(168, 200, 19, 0.22); border-top: 2px solid var(--green); color: var(--strong); }
+/* Sección PATRIMONIO destacada en verde, como la UTILIDAD del EERR */
+.bsheet__table .bsheet__section--green td,
+.bsheet__table .bsheet__section--green:hover td {
+  background: rgba(168, 200, 19, 0.28); border-top: 2px solid var(--green);
+}
 .bsheet__table .bsheet__dif td { font-weight: 700; color: var(--neg); background: var(--surface-2); }
 .bsheet__table .bsheet__dif--ok td { color: var(--pos); }
 

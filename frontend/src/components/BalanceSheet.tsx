@@ -198,7 +198,7 @@ export function BalanceSheet({
               const sOpen = open.has(secKey(sec.name));
               return (
                 <Fragment key={sec.name}>
-                  <tr className="bsheet__section" onClick={() => toggle(secKey(sec.name))}>
+                  <tr className={"bsheet__section" + (sec.name === "Patrimonio" ? " bsheet__section--green" : "")} onClick={() => toggle(secKey(sec.name))}>
                     <td><span className="bsheet__chev">{sOpen ? "▾" : "▸"}</span>{SECTION_LABEL[sec.name] ?? sec.name}</td>
                     {numCells(sec.total)}
                     {noteCell()}
@@ -239,8 +239,7 @@ export function BalanceSheet({
                 </Fragment>
               );
             })}
-            <tr className="bsheet__check"><td>TOTAL ACTIVOS</td>{numCells(activos)}{noteCell()}</tr>
-            <tr className="bsheet__check bsheet__result"><td>TOTAL PATRIMONIO</td>{numCells(patrimonio)}{noteCell()}</tr>
+            <tr className="bsheet__check"><td>TOTAL PASIVOS + PATRIMONIO</td>{numCells(pasPat)}{noteCell()}</tr>
             {!cuadra && (
               <tr className="bsheet__dif">
                 <td>Diferencia (descuadre)</td>
