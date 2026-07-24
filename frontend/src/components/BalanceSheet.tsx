@@ -23,6 +23,7 @@ type Props = {
   subField?: string;                 // 4º nivel (más profundo, p.ej. N1): detalle de cuentas
   orderField?: string;               // si se pasa, respeta ESE orden (p.ej. "Indice" del Excel) en vez de ordenar por monto
   showZeros?: boolean;               // muestra también cuentas/grupos en cero (replica exacta del Excel)
+  hideZeroLeaves?: boolean;          // en el ÚLTIMO nivel (hojas N1) oculta las cuentas en cero (todas las columnas), pero conserva el grupo padre aunque quede en 0
   noteField?: string;                // columna con el texto de la nota (tooltip al hover)
   noteNumField?: string;             // columna con el N° de nota (marca del tooltip, como el BI)
   noteLevelField?: string;           // columna con el NIVEL de la nota (2=cuenta N1, 1=grupo N2): ubica la nota donde va en el Excel
@@ -38,7 +39,7 @@ const SECTION_LABEL: Record<string, string> = {
 
 export function BalanceSheet({
   title, rows, valueField = "Mercado UF QAC", valueFields, headerGroups, sectionField = "N4",
-  groupField = "N3", detailField = "N2", subField, orderField, showZeros, noteField = "Nota", noteNumField, noteLevelField, noteCol, onExpand, fmt = fmtUF,
+  groupField = "N3", detailField = "N2", subField, orderField, showZeros, hideZeroLeaves, noteField = "Nota", noteNumField, noteLevelField, noteCol, onExpand, fmt = fmtUF,
 }: Props) {
   const HAS_SUB = !!subField;
   // columnas de valor: varias (valueFields) o la única retrocompatible (valueField)
@@ -115,6 +116,10 @@ export function BalanceSheet({
             const leaf = subs.length === 1 ? subs[0] : null;
             dNote = leaf?.note ?? ""; dNum = leaf?.noteNum ?? "";
           }
+          // último nivel: oculta las cuentas hoja en cero (todas las columnas), pero
+          // conserva el grupo (se muestra en 0). El total y la nota del grupo YA se
+          // calcularon con TODAS las hojas, así que no se pierden.
+          if (hideZeroLeaves) subs = subs.filter((s) => s.values.some((x) => Math.abs(x) > 0.5));
           return { name: dname, total, subs, ord, note: dNote, noteNum: dNum };
         }).filter((d) => nz(d.total));
         const dets = sortNodes(details);
@@ -126,7 +131,7 @@ export function BalanceSheet({
       const total = zero(); for (const g of grps) addTo(total, g.total);
       return { name: sec, total, groups: grps };
     });
-  }, [rows, fields, sectionField, groupField, detailField, subField, orderField, showZeros, noteField, noteNumField, HAS_SUB]);
+  }, [rows, fields, sectionField, groupField, detailField, subField, orderField, showZeros, hideZeroLeaves, noteField, noteNumField, HAS_SUB]);
 
   // totales y cuadre por columna
   const zeros = fields.map(() => 0);
@@ -224,18 +229,19 @@ export function BalanceSheet({
                           if (!HAS_SUB) return leafRow(gk + "|" + d.name, d.name, d.total, d.note, d.noteNum, 54);
                           // con subField: N2 es subgrupo colapsable con el detalle N1 debajo
                           const dk = detKey(sec.name, g.name, d.name);
+                          const hasSubs = d.subs.length > 0;   // sin hojas visibles (todas en cero, hideZeroLeaves): grupo sin desplegar
                           const dOpen = open.has(dk);
                           return (
                             <Fragment key={dk}>
-                              <tr className="bsheet__subgroup" onClick={() => toggle(dk)}>
+                              <tr className="bsheet__subgroup" onClick={hasSubs ? () => toggle(dk) : undefined}>
                                 <td style={{ paddingLeft: 48 }}>
-                                  <span className="bsheet__chev">{dOpen ? "▾" : "▸"}</span>{d.name}
+                                  <span className="bsheet__chev" style={hasSubs ? undefined : { visibility: "hidden" }}>{dOpen ? "▾" : "▸"}</span>{d.name}
                                   {d.note && <NoteTip text={d.note} mark={d.noteNum || "i"} />}
                                 </td>
                                 {numCells(d.total)}
                                 {noteCol && <td className="bsheet__notecell">{d.noteNum && <span className="bsheet__noteno">{d.noteNum}</span>}{d.note}</td>}
                               </tr>
-                              {dOpen && d.subs.map((s) => leafRow(dk + "|" + s.name, s.name, s.values, s.note, s.noteNum, 68))}
+                              {hasSubs && dOpen && d.subs.map((s) => leafRow(dk + "|" + s.name, s.name, s.values, s.note, s.noteNum, 68))}
                             </Fragment>
                           );
                         })}

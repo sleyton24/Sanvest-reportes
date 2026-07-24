@@ -189,7 +189,7 @@ export function GrupoDashboard() {
         <PieChart title="Participación en Patrimonio (unidades positivas)" data={patri("Mercado UF QAC")} valueFmt={fmtUF} colorOf={unitColor} />
       </section>
       <section className="row" style={{ gridTemplateColumns: "1fr" }}>
-        <BalanceSheet title="Balance Grupo" rows={balRows} valueFields={BAL_FIELDS} subField="N1 " orderField="Indice" showZeros
+        <BalanceSheet title="Balance Grupo" rows={balRows} valueFields={BAL_FIELDS} subField="N1 " orderField="Indice" showZeros hideZeroLeaves
           headerGroups={[{ label: tri || "Trimestre", cols: 4 }, { label: lqLabel, cols: 4 }]}
           noteField="Nota" noteNumField="Notas" noteLevelField="Nota Nivel" onExpand={() => setExpand("balance")} />
       </section>
@@ -209,7 +209,7 @@ export function GrupoDashboard() {
         <div className="overlay">
           <div className="overlay__main">
             {expand === "balance" ? (
-              <BalanceSheet title={`Balance Grupo — ${tri}`} rows={balRows} valueFields={BAL_FIELDS} subField="N1 " orderField="Indice" showZeros
+              <BalanceSheet title={`Balance Grupo — ${tri}`} rows={balRows} valueFields={BAL_FIELDS} subField="N1 " orderField="Indice" showZeros hideZeroLeaves
                 headerGroups={[{ label: tri || "Trimestre", cols: 4 }, { label: lqLabel, cols: 4 }]}
                 noteField="Nota" noteNumField="Notas" noteLevelField="Nota Nivel" noteCol />
             ) : (
