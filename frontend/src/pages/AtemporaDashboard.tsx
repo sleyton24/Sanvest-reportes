@@ -125,19 +125,17 @@ export function AtemporaDashboard() {
   };
 
   // KPIs = snapshot de comercialización (ocupación/m²/unidades); NO se carga todos los
-  // meses. Se toma el snapshot del mes elegido si existe; si ese mes no tiene, el ÚLTIMO
-  // snapshot disponible (estado de comercialización vigente). Así nunca queda en blanco
-  // por desalineación de mes entre el FC (informe de gestión) y el Excel de KPIs, y se
-  // ve siempre el snapshot más reciente cargado.
+  // meses. Se toma el snapshot del mes elegido, o el ÚLTIMO disponible HASTA ese mes
+  // (carry-forward: se arrastra el último conocido, nunca uno FUTURO). Así los meses
+  // pasados muestran lo que había entonces (no se "pegan" al último snapshot) y el mes
+  // vigente muestra el actual.
   const kpiPoint = useMemo(() => {
     const sorted = kpis.filter((r) => num(r["Fecha ID"]) != null)
       .sort((a, b) => num(a["Fecha ID"])! - num(b["Fecha ID"])!);
     if (!sorted.length) return undefined;
-    if (fid != null) {
-      const exact = sorted.find((r) => num(r["Fecha ID"]) === fid);
-      if (exact) return exact;
-    }
-    return sorted[sorted.length - 1];
+    if (fid == null) return sorted[sorted.length - 1];
+    const upto = sorted.filter((r) => num(r["Fecha ID"])! <= fid);
+    return upto.length ? upto[upto.length - 1] : sorted[0];
   }, [kpis, fid]);
   const kv = (c: string) => (kpiPoint ? num(kpiPoint[c]) : null);
   // mes del snapshot mostrado (para rotular cuando no coincide con el mes elegido)
@@ -157,20 +155,29 @@ export function AtemporaDashboard() {
   const ocupM2Sub = m2Tot != null
     ? `${fmtNum(m2Occ, 0)} / ${fmtNum(m2Tot, 0)} m²${kpiMesLabel ? ` · KPIs al ${kpiMesLabel}` : ""}` : null;
 
-  // Estado de comercialización del EDIFICIO completo (bloque 'Total edificio'): cuadro por
-  // estado (m² + %) y ocupación GENERAL del gauge = (Superficie − Disponible) / Superficie.
-  // Snapshot por período: el del mes elegido si existe, si no el último disponible.
+  // Estado de comercialización del EDIFICIO completo (bloque 'Total edificio').
   const EDI_ORDER = ["Disponible", "Res. Arriendo", "Arrendado", "Res. Compra", "Promesado", "Escriturado"];
+  const _ediOcupOf = (rows: Row[]) => {   // (Superficie − Disponible) / Superficie del snapshot
+    const tot = rows.reduce((a, r) => a + (num(r["Superficie"]) ?? 0), 0);
+    const disp = num(rows.find((r) => String(r["Estado"]).trim() === "Disponible")?.["Superficie"]) ?? 0;
+    return tot ? { ocup: (tot - disp) / tot, occ: tot - disp, tot } : null;
+  };
   const ediFids = useMemo(() => [...new Set(edi.map((r) => num(r["Fecha ID"]))
     .filter((x): x is number => x != null))].sort((a, b) => a - b), [edi]);
-  const ediFid = fid != null && ediFids.includes(fid) ? fid : (ediFids.length ? ediFids[ediFids.length - 1] : null);
-  const ediRows = useMemo(() => edi.filter((r) => num(r["Fecha ID"]) === ediFid)
-    .sort((a, b) => EDI_ORDER.indexOf(String(a["Estado"]).trim()) - EDI_ORDER.indexOf(String(b["Estado"]).trim())), [edi, ediFid]);
+  // CUADRO = snapshot VIGENTE (el último cargado; es el 'estado actual', siempre visible).
+  const ediLatestFid = ediFids.length ? ediFids[ediFids.length - 1] : null;
+  const ediRows = useMemo(() => edi.filter((r) => num(r["Fecha ID"]) === ediLatestFid)
+    .sort((a, b) => EDI_ORDER.indexOf(String(a["Estado"]).trim()) - EDI_ORDER.indexOf(String(b["Estado"]).trim())), [edi, ediLatestFid]);
   const ediTotal = ediRows.reduce((a, r) => a + (num(r["Superficie"]) ?? 0), 0);
-  const ediDisp = num(ediRows.find((r) => String(r["Estado"]).trim() === "Disponible")?.["Superficie"]) ?? 0;
-  const ediOcup = ediTotal ? (ediTotal - ediDisp) / ediTotal : null;
-  const ediMesLabel = ediFid ? `${MESES[ediFid % 100]}-${Math.floor(ediFid / 100)}` : null;
-  const ediSub = ediTotal ? `${fmtNum(ediTotal - ediDisp, 0)} / ${fmtNum(ediTotal, 0)} m²${ediMesLabel ? ` · al ${ediMesLabel}` : ""}` : null;
+  const ediMesLabel = ediLatestFid ? `${MESES[ediLatestFid % 100]}-${Math.floor(ediLatestFid / 100)}` : null;
+  // GAUGE = ocupación general del snapshot ≤ mes elegido (carry-forward, NO uno futuro);
+  // los meses previos al 1er snapshot caen a ocupM2, así el pasado no se "pega".
+  const ediUpto = fid != null ? ediFids.filter((f) => f <= fid) : ediFids;
+  const ediGaugeFid = ediUpto.length ? ediUpto[ediUpto.length - 1] : null;
+  const ediGauge = _ediOcupOf(edi.filter((r) => num(r["Fecha ID"]) === ediGaugeFid));
+  const ediOcup = ediGauge?.ocup ?? null;
+  const gLbl = ediGaugeFid ? `${MESES[ediGaugeFid % 100]}-${Math.floor(ediGaugeFid / 100)}` : null;
+  const ediSub = ediGauge ? `${fmtNum(ediGauge.occ, 0)} / ${fmtNum(ediGauge.tot, 0)} m²${gLbl ? ` · al ${gLbl}` : ""}` : null;
 
   // Deuda: saldo (Capital) del cronograma AL MES MOSTRADO. Se topa en fid/endFid
   // porque la tabla trae meses futuros —incluida la fila de extinción del crédito
@@ -288,7 +295,7 @@ export function AtemporaDashboard() {
         <Gauge title="Ocupación total" value={ediOcup ?? ocupM2} sub={ediSub ?? ocupM2Sub} />
         {/* Estado de comercialización del edificio (bloque 'Total edificio') */}
         <div className="card pivot">
-          <div className="card__title">Estado de comercialización — Edificio</div>
+          <div className="card__title">Estado de comercialización — Edificio{ediMesLabel ? ` (al ${ediMesLabel})` : ""}</div>
           <div className="pivot__scroll">
             <table className="pivot__table">
               <thead><tr><th>Estado</th><th className="num">Superficie [m²]</th><th className="num">%</th></tr></thead>
