@@ -77,18 +77,28 @@ def _detect_trimestre(ws, cfg: dict) -> str | None:
             if t:
                 return t
     elif mode == "close_row":
-        lc, dc = _col(cfg["label_col"]), _col(cfg["date_col"])
+        lc = _col(cfg["label_col"])
+        dc = _col(cfg["date_col"]) if cfg.get("date_col") else None
+        maxc = min(ws.max_column, 40)
         needle = cfg["label_contains"].lower()
         for r in range(1, 16):
             if needle in _norm(ws.cell(r, lc).value).lower():
-                t = _trimestre_from_date(ws.cell(r, dc).value)
-                if t:
-                    return t
-        best = None                       # fallback: fecha de mayor año en date_col
+                # fecha en date_col de esa fila; si ahí no hay (el layout cambió de
+                # columna), la PRIMERA fecha de la misma fila (p. ej. 'Cierre : | 30-06-2026').
+                if dc is not None:
+                    t = _trimestre_from_date(ws.cell(r, dc).value)
+                    if t:
+                        return t
+                for c in range(1, maxc + 1):
+                    t = _trimestre_from_date(ws.cell(r, c).value)
+                    if t:
+                        return t
+        best = None                       # fallback: fecha de mayor año en la zona superior
         for r in range(1, 16):
-            v = ws.cell(r, dc).value
-            if isinstance(v, _dt.datetime) and (best is None or v.year > best.year):
-                best = v
+            for c in ([dc] if dc is not None else range(1, maxc + 1)):
+                v = ws.cell(r, c).value
+                if isinstance(v, _dt.datetime) and (best is None or v.year > best.year):
+                    best = v
         return _trimestre_from_date(best) if best else None
     return None
 
