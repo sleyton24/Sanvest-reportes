@@ -415,7 +415,10 @@ export function WaterfallChart({ title, data, valueFmt = (v) => fmtNum(v, 0) }: 
     <Frame title={title}>
       <ComposedChart data={d} margin={{ top: 22, right: 12, bottom: 4, left: 4 }}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={GRID} />
-        <XAxis dataKey="cat" tick={AXIS_TICK} stroke={AXIS_LINE} interval={0} angle={-18} textAnchor="end" height={64} />
+        {/* nombres largos (p.ej. "Gastos Operacionales Servicios Sanvest"): ángulo más
+            pronunciado + más alto + fuente menor para que se lean COMPLETOS sin cortarse */}
+        <XAxis dataKey="cat" tick={{ ...AXIS_TICK, fontSize: 10 }} stroke={AXIS_LINE} interval={0}
+          angle={-32} textAnchor="end" height={132} />
         <YAxis tickFormatter={axisCompact} tick={AXIS_TICK} stroke={AXIS_LINE} width={56} />
         <Tooltip content={<WfTip />} cursor={{ fill: "rgba(15,30,54,0.06)" }} />
         <Legend verticalAlign="top" align="left" iconSize={9} wrapperStyle={{ fontSize: 11, paddingBottom: 6 }} payload={WF_LEGEND} />

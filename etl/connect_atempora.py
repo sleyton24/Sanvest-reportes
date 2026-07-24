@@ -540,12 +540,14 @@ def apply_atempora(engine: Engine, path: str) -> dict:
     c_ppto = cur.columns.get_loc("ppto")
     c_ytd = cur.columns.get_loc("YTD Real")
     c_ytdp = cur.columns.get_loc("YTD PPTO")
+    c_pbase = cur.columns.get_loc("ppto_base") if "ppto_base" in cur.columns else None
 
-    # Recorre la tabla: meses CERRADOS (fechaID ≤ período del archivo) → Real (Monto);
-    # meses FUTUROS (> período) → proyección del FC en ppto (el presupuesto de los
-    # meses cerrados se deja como está). Solo toca filas que existen (UPDATE in-place).
-    real_keys: set[tuple[int, str]] = set()   # (fid, n1) con Real actualizado
-    ppto_keys: set[tuple[int, str]] = set()    # (fid, n1) con ppto proyectado
+    # Real + PPTO (decisión usuario 24-jul: "de julio en adelante proyección, para atrás
+    # el presupuesto"). Meses CERRADOS (fechaID ≤ período del archivo): Real = FC y
+    # ppto = PRESUPUESTO fijo (ppto_base, del baseline CIVITAS). Meses FUTUROS (> período):
+    # ppto = proyección del FC. Así el mes recién cerrado muestra su Real vs el presupuesto
+    # (antes quedaba Real ≈ Ppto porque el ppto era la proyección).
+    real_keys: set[tuple[int, str]] = set()
     rowidx: dict[tuple[int, str], int] = {}
     for i in range(len(cur)):
         try:
@@ -555,14 +557,16 @@ def apply_atempora(engine: Engine, path: str) -> dict:
         n1 = cur.iat[i, c_n1]
         key = (fid, n1)
         rowidx[key] = i
-        if key not in fc:
-            continue
         if fid <= asof:
-            cur.iat[i, c_monto] = fc[key]
-            real_keys.add(key)
-        else:
-            cur.iat[i, c_ppto] = fc[key]   # proyección del ppto para meses siguientes
-            ppto_keys.add(key)
+            if key in fc:
+                cur.iat[i, c_monto] = fc[key]
+                real_keys.add(key)
+            # ppto de meses cerrados = presupuesto fijo (ppto_base) SI está poblado; si no,
+            # se deja como está (el presupuesto ya cargado). Meses futuros: proyección del FC.
+            if c_pbase is not None and pd.notna(cur.iat[i, c_pbase]):
+                cur.iat[i, c_ppto] = cur.iat[i, c_pbase]
+        elif key in fc:
+            cur.iat[i, c_ppto] = fc[key]
 
     # YTD Real: acumulado anual (reinicia en enero), por rubro; solo meses cerrados.
     for (yr, n1) in {(f // 100, k) for (f, k) in real_keys}:
@@ -573,19 +577,17 @@ def apply_atempora(engine: Engine, path: str) -> dict:
                 run += fc[key]
                 cur.iat[rowidx[key], c_ytd] = round(run)
 
-    # YTD PPTO: recalcular SOLO los meses futuros (cuyo ppto cambió), acumulando el
-    # ppto vigente (pasado congelado + futuro proyectado). El YTD PPTO de los meses
-    # cerrados no se toca.
+    # YTD PPTO: acumulado anual del ppto vigente (presupuesto pasado + proyección futura).
     def _pp(i: int) -> float:
         v = cur.iat[i, c_ppto]
         return float(v) if isinstance(v, (int, float)) and pd.notna(v) else 0.0
-    for (yr, n1) in {(f // 100, k) for (f, k) in ppto_keys}:
-        run = 0.0
-        for mo in range(1, 13):
-            key = (yr * 100 + mo, n1)
-            if key in rowidx:
-                run += _pp(rowidx[key])
-                if key in ppto_keys:
+    for yr in {f // 100 for f in {k[0] for k in rowidx}}:
+        for n1 in {k[1] for k in rowidx}:
+            run = 0.0
+            for mo in range(1, 13):
+                key = (yr * 100 + mo, n1)
+                if key in rowidx:
+                    run += _pp(rowidx[key])
                     cur.iat[rowidx[key], c_ytdp] = round(run)
 
     # ELIMINAR ventas por completo: Real Y Ppto (y sus YTD) en 0 en TODOS los meses,
@@ -601,9 +603,7 @@ def apply_atempora(engine: Engine, path: str) -> dict:
     _write(engine, TABLE, cur)
 
     months = sorted({f for (f, _n1) in real_keys})
-    fut = sorted({f for (f, _n1) in ppto_keys})
     meses_txt = f"{months[0]}–{months[-1]}" if months else "—"
-    fut_txt = f"{fut[0]}–{fut[-1]}" if fut else "—"
     # Formato de retorno homologado a los demás connect_* ({tabla: {...}}) para que
     # el panel de carga arme su resumen "tabla N↻/M+".
     return {
@@ -613,9 +613,8 @@ def apply_atempora(engine: Engine, path: str) -> dict:
             "archivo": os.path.basename(path),
             "periodo_archivo": asof,
             "meses_real": meses_txt,
-            "meses_ppto_proyectado": fut_txt,
             "ventas_eliminadas": list(VENTA_RUBROS),
-            "nota": "Real de meses cerrados; ppto de meses cerrados congelado; ppto de "
-                    "meses futuros = proyección del FC.",
+            "nota": "Real de meses cerrados desde el FC; el PPTO (presupuesto fijo anual) "
+                    "no se toca — viene del baseline CIVITAS.",
         }
     }
