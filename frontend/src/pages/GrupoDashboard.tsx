@@ -191,7 +191,7 @@ export function GrupoDashboard() {
       <section className="row" style={{ gridTemplateColumns: "1fr" }}>
         <BalanceSheet title="Balance Grupo" rows={balRows} valueFields={BAL_FIELDS} subField="N1 " orderField="Indice" showZeros
           headerGroups={[{ label: tri || "Trimestre", cols: 4 }, { label: lqLabel, cols: 4 }]}
-          noteField="Nota" noteNumField="Notas" onExpand={() => setExpand("balance")} />
+          noteField="Nota" noteNumField="Notas" noteLevelField="Nota Nivel" onExpand={() => setExpand("balance")} />
       </section>
 
       {/* EERR (matriz como el PBI: N1>N2>N3, cols Real/YTG/Forecast/Ppto/Año ant.) + Utilidad */}
@@ -211,7 +211,7 @@ export function GrupoDashboard() {
             {expand === "balance" ? (
               <BalanceSheet title={`Balance Grupo — ${tri}`} rows={balRows} valueFields={BAL_FIELDS} subField="N1 " orderField="Indice" showZeros
                 headerGroups={[{ label: tri || "Trimestre", cols: 4 }, { label: lqLabel, cols: 4 }]}
-                noteField="Nota" noteNumField="Notas" noteCol />
+                noteField="Nota" noteNumField="Notas" noteLevelField="Nota Nivel" noteCol />
             ) : (
               <PnLMatrix title={`EERR Grupo (UF) — ${tri}`} rows={eerrRows} levels={EERR_LEVELS}
                 cols={eerrCols} fmt={fmtUF} notes={eerrNotes} noteCol

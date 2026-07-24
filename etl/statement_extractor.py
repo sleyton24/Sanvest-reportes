@@ -198,7 +198,10 @@ def extract_balance(path: str | Path, spec: dict) -> "Any":
         n1 = name
         n2 = group if lvl >= 2 and group else name
         n3 = entity if entity else name
-        note_num = next((note_stack[l] for l in range(lvl, -1, -1) if note_stack.get(l)), None)
+        # nota y el NIVEL donde está en el Excel (2=cuenta N1, 1=grupo N2, 0=unidad N3):
+        # sirve para mostrarla en la MISMA fila que el archivo (no propagada a la cuenta).
+        note_lvl = next((l for l in range(lvl, -1, -1) if note_stack.get(l)), None)
+        note_num = note_stack.get(note_lvl) if note_lvl is not None else None
 
         rec = {
             spec["level_cols"]["N1"]: n1,
@@ -212,6 +215,8 @@ def extract_balance(path: str | Path, spec: dict) -> "Any":
         rec[spec["trimestre_out"]] = trimestre
         rec[spec["note_number_out"]] = note_num
         rec[spec["note_text_out"]] = notes.get(note_num) if note_num else None
+        if spec.get("note_level_out"):
+            rec[spec["note_level_out"]] = note_lvl
         out_rows.append(rec)
 
     wb.close()

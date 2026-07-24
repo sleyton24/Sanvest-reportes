@@ -25,6 +25,7 @@ type Props = {
   showZeros?: boolean;               // muestra también cuentas/grupos en cero (replica exacta del Excel)
   noteField?: string;                // columna con el texto de la nota (tooltip al hover)
   noteNumField?: string;             // columna con el N° de nota (marca del tooltip, como el BI)
+  noteLevelField?: string;           // columna con el NIVEL de la nota (2=cuenta N1, 1=grupo N2): ubica la nota donde va en el Excel
   noteCol?: boolean;                 // muestra una columna "Nota" con el texto (pantalla completa)
   onExpand?: () => void;             // botón "pantalla completa" (overlay con notas)
   fmt?: (v: number) => string;
@@ -37,7 +38,7 @@ const SECTION_LABEL: Record<string, string> = {
 
 export function BalanceSheet({
   title, rows, valueField = "Mercado UF QAC", valueFields, headerGroups, sectionField = "N4",
-  groupField = "N3", detailField = "N2", subField, orderField, showZeros, noteField = "Nota", noteNumField, noteCol, onExpand, fmt = fmtUF,
+  groupField = "N3", detailField = "N2", subField, orderField, showZeros, noteField = "Nota", noteNumField, noteLevelField, noteCol, onExpand, fmt = fmtUF,
 }: Props) {
   const HAS_SUB = !!subField;
   // columnas de valor: varias (valueFields) o la única retrocompatible (valueField)
@@ -50,7 +51,7 @@ export function BalanceSheet({
   const sections = useMemo(() => {
     const zero = () => fields.map(() => 0);
     const addTo = (acc: number[], v: number[]) => v.forEach((x, i) => { acc[i] += x; });
-    type Bucket = { vals: number[]; notes: string[]; nums: number[]; ord: number };
+    type Bucket = { vals: number[]; notes: string[]; nums: number[]; ord: number; nlv: number | null };
     // sec -> grp (N3) -> det (N2) -> sub (N1, o el propio det si no hay subField)
     const sm = new Map<string, Map<string, Map<string, Map<string, Bucket>>>>();
     for (const r of rows) {
@@ -63,18 +64,20 @@ export function BalanceSheet({
       const gm = sm.get(sec) ?? sm.set(sec, new Map()).get(sec)!;
       const dm = gm.get(grp) ?? gm.set(grp, new Map()).get(grp)!;
       const subm = dm.get(det) ?? dm.set(det, new Map()).get(det)!;
-      const cur = subm.get(sub) ?? { vals: zero(), notes: [], nums: [], ord: Infinity };
+      const cur = subm.get(sub) ?? { vals: zero(), notes: [], nums: [], ord: Infinity, nlv: null };
       fields.forEach((f, i) => { cur.vals[i] += num(r[f.key]) ?? 0; });
       cur.ord = Math.min(cur.ord, ordv);
       const nota = String(r[noteField] ?? "").trim();
       if (nota && !cur.notes.includes(nota)) cur.notes.push(nota);
       const nn = noteNumField ? num(r[noteNumField]) : null;
       if (nn != null && nn > 0 && !cur.nums.includes(nn)) cur.nums.push(nn);
+      const nlv = noteLevelField ? num(r[noteLevelField]) : null;
+      if (nlv != null && cur.nlv == null) cur.nlv = nlv;
       subm.set(sub, cur);
     }
     const rank = (s: string) => { const i = SECTION_ORDER.indexOf(s); return i === -1 ? 99 : i; };
     const mkLeaf = (name: string, b: Bucket) => ({
-      name, values: b.vals, note: b.notes.join("\n"), noteNum: b.nums.sort((a, c) => a - c).join(", "), ord: b.ord,
+      name, values: b.vals, note: b.notes.join("\n"), noteNum: b.nums.sort((a, c) => a - c).join(", "), ord: b.ord, noteLvl: b.nlv,
     });
     // filtro de "no-cero": oculta filas/grupos en cero, salvo showZeros (replica del Excel)
     const nz = (v: number[]) => showZeros || v.some((x) => Math.abs(x) > 0.5);
@@ -92,18 +95,21 @@ export function BalanceSheet({
           let subs = sortNodes([...subm].map(([sname, b]) => mkLeaf(sname, b)).filter((x) => nz(x.values)));
           const total = zero(); for (const s of subs) addTo(total, s.values);
           const ord = subs.length ? Math.min(...subs.map((s) => s.ord)) : Infinity;
-          // Nota del grupo (N2), como en el Excel: la nota va en la fila del grupo, no en
-          // cada cuenta. Si TODAS las cuentas comparten una única nota, es del grupo → se
-          // muestra en el grupo y se quita de las cuentas. Si difieren, cada cuenta conserva
-          // la suya (notas a nivel de cuenta, como también las trae el Excel).
+          // Ubicar la nota DONDE VA en el Excel: con noteLevelField, nivel 2 = nota de la
+          // cuenta (queda en la cuenta), nivel ≤1 = nota del grupo N2 (va en la fila del
+          // grupo). Sin ese dato, heurística: la nota compartida por ≥2 cuentas es del grupo.
           let dNote = "", dNum = "";
-          if (HAS_SUB) {
-            const nums = subs.map((s) => s.noteNum).filter(Boolean);
-            const uniq = [...new Set(nums)];
-            if (uniq.length === 1 && nums.length === subs.length) {
-              const src = subs.find((s) => s.noteNum);
-              dNote = src?.note ?? ""; dNum = uniq[0];
-              subs = subs.map((s) => ({ ...s, note: "", noteNum: "" }));
+          if (HAS_SUB && noteLevelField && subs.some((s) => s.noteLvl != null)) {
+            const g = subs.find((s) => s.noteLvl != null && s.noteLvl <= 1 && s.noteNum);
+            if (g) { dNote = g.note; dNum = g.noteNum; }
+            subs = subs.map((s) => (s.noteLvl === 2 ? s : { ...s, note: "", noteNum: "" }));
+          } else if (HAS_SUB) {
+            const cnt = new Map<string, number>();
+            for (const s of subs) if (s.noteNum) cnt.set(s.noteNum, (cnt.get(s.noteNum) ?? 0) + 1);
+            const top = [...cnt.entries()].sort((a, b) => b[1] - a[1])[0];
+            if (top && top[1] >= 2) {
+              dNum = top[0]; dNote = subs.find((s) => s.noteNum === dNum)?.note ?? "";
+              subs = subs.map((s) => (s.noteNum === dNum ? { ...s, note: "", noteNum: "" } : s));
             }
           } else {
             const leaf = subs.length === 1 ? subs[0] : null;

@@ -36,6 +36,7 @@
   "level_cols": { "N1": "N1 ", "N2": "N2", "N3": "N3", "N4": "N4", "N5": "N5" },
   "note_number_out": "Notas",
   "note_text_out": "Nota",
+  "note_level_out": "Nota Nivel",
   "trimestre_out": "Trimestre",
   "index_out": ["Indice", "Indice 2 "]
 }
