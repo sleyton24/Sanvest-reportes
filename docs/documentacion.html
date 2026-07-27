@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Sanvest BI — Documentación del Proyecto</title>
+<style>
+  :root{
+    --navy:#14224e; --navy2:#22346e; --lime:#A8C813; --ink:#1c2333; --mut:#5b6474;
+    --line:#e2e6ef; --soft:#f5f7fb; --soft2:#eef1f8;
+  }
+  @page{ size:A4; margin:18mm 16mm 16mm 16mm; }
+  *{ box-sizing:border-box; }
+  html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body{ font-family:"Segoe UI",system-ui,Arial,sans-serif; color:var(--ink); font-size:10.6pt; line-height:1.5; margin:0; }
+  h1,h2,h3,h4{ color:var(--navy); line-height:1.2; margin:0 0 .35em; }
+  h2{ font-size:18pt; border-bottom:3px solid var(--lime); padding-bottom:5px; margin-top:0; }
+  h3{ font-size:13pt; margin-top:1.1em; color:var(--navy2); }
+  h4{ font-size:11pt; margin-top:.9em; color:var(--navy2); }
+  p{ margin:.35em 0 .6em; }
+  ul,ol{ margin:.3em 0 .7em; padding-left:1.25em; }
+  li{ margin:.16em 0; }
+  code{ font-family:"Cascadia Code",Consolas,monospace; background:var(--soft2); padding:1px 5px; border-radius:4px; font-size:9.2pt; color:#243; }
+  a{ color:var(--navy2); text-decoration:none; }
+  strong{ color:#0f1830; }
+  .mut{ color:var(--mut); }
+  .small{ font-size:9pt; }
+
+  /* saltos de página */
+  .page{ break-before:page; }
+  .avoid{ break-inside:avoid; }
+
+  /* PORTADA */
+  .cover{ height:262mm; background:linear-gradient(150deg,var(--navy) 0%,#0d1738 55%,#0a1330 100%); color:#fff; margin:-18mm -16mm 0; padding:34mm 24mm; display:flex; flex-direction:column; }
+  .cover__kick{ letter-spacing:.28em; font-size:10pt; color:var(--lime); text-transform:uppercase; font-weight:600; }
+  .cover__title{ font-size:40pt; font-weight:700; color:#fff; margin:8mm 0 3mm; line-height:1.05; }
+  .cover__sub{ font-size:15pt; color:#c7d2ee; font-weight:400; }
+  .cover__rule{ width:70mm; height:4px; background:var(--lime); margin:12mm 0; border-radius:2px; }
+  .cover__meta{ margin-top:auto; font-size:10.5pt; color:#aeb9da; }
+  .cover__meta b{ color:#fff; font-weight:600; }
+  .cover__chips{ margin:6mm 0 0; display:flex; flex-wrap:wrap; gap:6px; }
+  .chip{ background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.22); color:#dfe6fb; padding:3px 10px; border-radius:20px; font-size:8.6pt; }
+
+  /* índice */
+  .toc{ columns:2; column-gap:14mm; }
+  .toc h3{ margin-top:0; }
+  .toc ol{ list-style:none; padding:0; margin:0; }
+  .toc li{ padding:2.5px 0; border-bottom:1px dotted var(--line); font-size:10pt; }
+  .toc .n{ color:var(--lime); font-weight:700; display:inline-block; width:26px; }
+
+  /* bloques */
+  .lead{ font-size:11.4pt; color:#33405e; background:var(--soft); border-left:4px solid var(--lime); padding:10px 14px; border-radius:0 8px 8px 0; margin:.4em 0 1em; }
+  .note{ background:#fbfcf2; border:1px solid #e4ecc0; border-left:4px solid var(--lime); padding:8px 12px; border-radius:0 7px 7px 0; margin:.6em 0; font-size:9.7pt; }
+  .warn{ background:#fdf5f4; border:1px solid #f2d3d0; border-left:4px solid #D83252; padding:8px 12px; border-radius:0 7px 7px 0; margin:.6em 0; font-size:9.7pt; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .card{ border:1px solid var(--line); border-radius:9px; padding:11px 13px; break-inside:avoid; background:#fff; }
+  .card h4{ margin-top:0; }
+  .tag{ display:inline-block; font-size:8pt; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:5px; color:#fff; }
+
+  table{ border-collapse:collapse; width:100%; font-size:9.3pt; margin:.5em 0 1em; break-inside:avoid; }
+  th,td{ border:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top; }
+  th{ background:var(--navy); color:#fff; font-weight:600; }
+  tr:nth-child(even) td{ background:var(--soft); }
+  .kbd{ font-family:Consolas,monospace; background:#fff; border:1px solid #ccd; border-bottom-width:2px; border-radius:4px; padding:0 5px; font-size:8.8pt; }
+
+  /* pill de unidad */
+  .unit{ border:1px solid var(--line); border-left-width:6px; border-radius:9px; padding:10px 14px; margin:.5em 0; break-inside:avoid; }
+  .unit h4{ margin:0 0 2px; display:flex; align-items:center; gap:8px; }
+  .unit .u-sub{ font-size:8.6pt; color:var(--mut); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+
+  .foot{ text-align:center; color:var(--mut); font-size:8.5pt; margin-top:14mm; padding-top:5px; border-top:1px solid var(--line); }
+  .part{ background:var(--navy); color:#fff; border-radius:12px; padding:16px 20px; margin:0 0 14px; }
+  .part .cover__kick{ color:var(--lime); }
+  .part h2{ color:#fff; border:0; margin:2px 0 0; font-size:22pt; }
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<section class="cover">
+  <div class="cover__kick">Grupo Sanvest · Transformación Digital</div>
+  <div class="cover__title">Sanvest BI<br>Documentación del Proyecto</div>
+  <div class="cover__sub">Reportes · Inteligencia de Negocios</div>
+  <div class="cover__rule"></div>
+  <div class="cover__sub" style="font-size:12pt;color:#9fb0da;max-width:150mm">
+    Plataforma web que reemplaza el modelo de Power BI del directorio por dashboards
+    en vivo, reconciliados 1:1, con carga de informes y control de accesos.
+  </div>
+  <div class="cover__chips">
+    <span class="chip">FastAPI</span><span class="chip">React · Vite · Recharts</span>
+    <span class="chip">PostgreSQL</span><span class="chip">7 unidades de negocio</span>
+    <span class="chip">Login por rol</span>
+  </div>
+  <div class="cover__meta">
+    <b>Documento técnico + Manual de usuario</b><br>
+    Versión 27-jul-2026 · Preparado para Grupo Sanvest
+  </div>
+</section>
+
+<!-- ===================== ÍNDICE ===================== -->
+<section class="page">
+  <h2>Índice</h2>
+  <p class="mut small">Dos partes: la <b>Parte I</b> es técnica (para quien opera o hereda el sistema);
+  la <b>Parte II</b> es el manual para quien usa la aplicación.</p>
+  <div class="toc">
+    <div>
+      <h3>Parte I — Documentación técnica</h3>
+      <ol>
+        <li><span class="n">1</span>Visión general y propósito</li>
+        <li><span class="n">2</span>Arquitectura y stack</li>
+        <li><span class="n">3</span>Estructura del repositorio</li>
+        <li><span class="n">4</span>Las 7 unidades de negocio</li>
+        <li><span class="n">5</span>Puesta en marcha (local)</li>
+        <li><span class="n">6</span>Producción y despliegue (VPS)</li>
+        <li><span class="n">7</span>Pipeline de datos / ETL</li>
+        <li><span class="n">8</span>Autenticación, roles y bitácora</li>
+        <li><span class="n">9</span>Cómo agregar o actualizar una unidad</li>
+        <li><span class="n">10</span>Convenciones y reglas críticas</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Parte II — Manual de usuario</h3>
+      <ol>
+        <li><span class="n">A</span>Ingreso a la aplicación</li>
+        <li><span class="n">B</span>Menú principal</li>
+        <li><span class="n">C</span>Cómo leer los dashboards</li>
+        <li><span class="n">D</span>Recorrido por unidad</li>
+        <li><span class="n">E</span>Glosario de indicadores</li>
+        <li><span class="n">F</span>Funciones: clave, comentarios, PDF, PPT</li>
+        <li><span class="n">G</span>Para administradores</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="lead" style="margin-top:12mm">
+    <b>En una frase:</b> Sanvest BI toma los Excel/informes que hoy alimentan al directorio,
+    los procesa con un ETL en Python, los guarda en PostgreSQL y los muestra como dashboards
+    web interactivos — reemplazando al archivo de Power BI, con acceso por usuario y rol.
+  </div>
+</section>
+
+<!-- ===================== PARTE I ===================== -->
+<section class="page">
+  <div class="part">
+    <div class="cover__kick">Parte I</div>
+    <h2>Documentación técnica</h2>
+  </div>
+
+  <h3>1 · Visión general y propósito</h3>
+  <p>Sanvest BI es una <strong>aplicación web de reportería financiera</strong> para el Grupo Sanvest
+  (grupo inmobiliario chileno). Nació para migrar el modelo de <strong>Power BI</strong> del directorio
+  (<code>Sanvest BI 24.0122026.pbix</code>) a una web propia, <strong>reconciliada 1:1</strong> contra
+  ese archivo, y luego creció con funciones que el .pbix no tenía: carga de informes por la misma web,
+  login por usuario, perfilado por unidad, bitácora de accesos, comentarios del directorio y auditoría
+  de datos.</p>
+  <p>La usan los <strong>directores y el equipo de finanzas</strong>. Cada usuario ve solo las unidades
+  de negocio que le corresponden. El idioma de trabajo del proyecto es <strong>español</strong>.</p>
+
+  <h3>2 · Arquitectura y stack</h3>
+  <div class="grid2">
+    <div class="card"><h4>Backend — API</h4>
+      <p><strong>FastAPI + SQLAlchemy</strong> (Python). Expone endpoints REST que leen la base y
+      entregan JSON al front. Cero dependencias exóticas: el propio proyecto trae su loader de
+      <code>.env</code>. Punto de entrada: <code>api/main.py</code>.</p></div>
+    <div class="card"><h4>Frontend — Web</h4>
+      <p><strong>React + Vite + TypeScript</strong>, gráficos con <strong>Recharts</strong>. Se compila
+      a estáticos (<code>frontend/dist</code>, versionado en git). Configuración declarativa por unidad.</p></div>
+    <div class="card"><h4>Base de datos</h4>
+      <p><strong>PostgreSQL</strong> en producción (base <code>sanvest</code> en el VPS) y
+      <strong>SQLite</strong> para desarrollo local (<code>db/sanvest_bi_dev.sqlite</code>). El mismo
+      código sirve a ambas (SQL portable).</p></div>
+    <div class="card"><h4>ETL</h4>
+      <p>Módulos <code>etl/connect_*.py</code> con funciones <code>apply_*</code> / <code>build_*</code>
+      que leen los Excel/informes y escriben las tablas. Un <strong>catálogo por unidad</strong> en
+      <code>api/catalog/*.json</code> describe qué tablas y campos usa cada dashboard.</p></div>
+  </div>
+  <div class="note"><strong>Flujo de datos, de punta a punta:</strong> Excel/informe →
+  <code>apply_*</code> (ETL) → tabla en PostgreSQL → endpoint FastAPI → dashboard React. Lo que ve el
+  usuario en la web es <strong>siempre</strong> lo que está en la base de producción.</div>
+
+  <h3>3 · Estructura del repositorio</h3>
+  <table>
+    <tr><th style="width:34%">Carpeta / archivo</th><th>Qué contiene</th></tr>
+    <tr><td><code>api/</code></td><td>Backend FastAPI. <code>main.py</code> (endpoints), <code>auth.py</code>
+      (login/roles/bitácora/comentarios), <code>db.py</code> (engine), <code>filetables.py</code>
+      (tablas servidas desde JSON empaquetado), <code>catalog/*.json</code> (config por unidad),
+      <code>data/</code> (datos estáticos), <code>specs/</code>.</td></tr>
+    <tr><td><code>etl/</code></td><td>Conectores y transformaciones: <code>connect_*.py</code>,
+      <code>statement_extractor.py</code> (extracción declarativa de Balance/EERR),
+      <code>specs/*.json</code>, <code>db.py</code> (<code>get_engine()</code>), <code>audit.py</code>.</td></tr>
+    <tr><td><code>frontend/</code></td><td><code>src/pages/*Dashboard.tsx</code> (una página por unidad),
+      <code>src/components/</code> (BalanceSheet, PnLMatrix, charts, KpiCard, Gauge…),
+      <code>src/auth.tsx</code>, <code>dist/</code> (build compilado, versionado).</td></tr>
+    <tr><td><code>scripts/</code></td><td>Scripts operativos reutilizables: <code>manage_users.py</code>
+      (usuarios), y utilidades de carga/migración a prod (patrón <code>.venv/Scripts/python</code>).</td></tr>
+    <tr><td><code>docs/</code></td><td>Documentación técnica: mapeos ETL, reconciliaciones por unidad,
+      <code>deploy.md</code>, <code>manual_carga.md</code>, decisiones de diseño.</td></tr>
+    <tr><td><code>db/</code></td><td>SQLite de desarrollo, DDL y respaldos (<code>db/backups/</code>).</td></tr>
+    <tr><td><code>.env</code></td><td>Configuración sensible (credenciales PostgreSQL <code>PG*</code>,
+      secreto de tokens). <strong>No se versiona.</strong></td></tr>
+  </table>
+</section>
+
+<section class="page">
+  <h3>4 · Las 7 unidades de negocio</h3>
+  <p>Cada unidad es una página de dashboard con su propio color de marca, catálogo y ETL. El acceso se
+  perfila por unidad (un <em>viewer</em> ve solo las suyas; el <em>admin</em> ve todas).</p>
+
+  <div class="unit" style="border-left-color:#A8C813"><h4>DV — Desarrollo para la Venta</h4>
+    <div class="u-sub">Inmobiliario · Millalongo, Sta. Victoria 99, Sta. Victoria 155</div>
+    <p class="small">Avance de ventas y unidades vendidas (fuente: Estadística de Ventas), evolución de
+    costos, deuda por proyecto y <strong>capital de socios</strong> (Egresos − Deuda − Preventas), con
+    amortizado manual. ETL: <code>connect_dv.py</code> (<code>apply_dv</code>).</p></div>
+
+  <div class="unit" style="border-left-color:#3796AA"><h4>RR — Renta Residencial (LAR Group)</h4>
+    <div class="u-sub">Multifamily · Holding LAR, SOHO, PARK</div>
+    <p class="small">Informe de gestión (P&amp;L), ocupación mes y YTD, KPIs por edificio. El cuadro de
+    KPIs por edificio se recalcula <strong>en vivo</strong> desde la base operativa <code>SQLLAR</code>
+    (<code>connect_sqllar.py</code>). ETL principal: <code>connect_lar.py</code>.</p></div>
+
+  <div class="unit" style="border-left-color:#FACF22"><h4>Hotel — OLÁ Hotel</h4>
+    <div class="u-sub">Hotelería · OLÁ Providencia</div>
+    <p class="small">Indicadores financieros del hotel, ocupación mes y YTD, deuda. ETL:
+    <code>connect_hotel.py</code> (<code>apply_ccpp</code> con guard anti-regresión para no pisar meses
+    ya cerrados).</p></div>
+
+  <div class="unit" style="border-left-color:#EF731B"><h4>USA — Estados Unidos</h4>
+    <div class="u-sub">Bemiston · Mila · St Grand</div>
+    <p class="small">P&amp;L y KPIs de las propiedades en EE.UU. Los combos salen de los
+    <em>Operating Statements</em> (<code>usa_pnl</code>); el YTD se acumula del Real. ETL:
+    <code>connect_usa.py</code> (<code>apply_usa_budget</code>, <code>apply_usa_kpis</code>) con
+    detección automática del formato del reporte.</p></div>
+
+  <div class="unit" style="border-left-color:#D83252"><h4>ICEMM — Construcción</h4>
+    <div class="u-sub">Indicadores Financieros · Flujo de Caja</div>
+    <p class="small">Informe de gestión de la constructora (FY / YTG / YTD), flujo de caja colapsable.
+    ETL: <code>connect_icemm.py</code>. Las proyecciones (FY/YTG) dependen del archivo REV que se sube.
+    (El control de <em>Obras</em> vive en otra base del mismo Postgres, pendiente de conectar.)</p></div>
+
+  <div class="unit" style="border-left-color:#8b6fd6"><h4>Atémpora — Civitas</h4>
+    <div class="u-sub">Multi-uso · Oficinas, Locales, Arriendos, Morosidad</div>
+    <p class="small">Informe de gestión (EERR) desde el Flujo de Caja, KPIs de comercialización,
+    ocupación del edificio, cuadro de arriendos, ventas y morosidad por tramos. ETL:
+    <code>connect_atempora.py</code> (<code>apply_atempora</code>, <code>_kpis</code>,
+    <code>_morosidad</code>).</p></div>
+
+  <div class="unit" style="border-left-color:#5566cc"><h4>Grupo — Estados Financieros</h4>
+    <div class="u-sub">Grupo Sanvest · Balance · EERR (consolidado del directorio)</div>
+    <p class="small">Balance jerárquico (réplica exacta del Excel, con notas al hover) y Estado de
+    Resultados. Se carga por trimestre. ETL declarativo: <code>connect_grupo.py</code> +
+    <code>statement_extractor.py</code> guiado por <code>etl/specs/Grupo.{balance,eerr}.json</code>,
+    con validación de cuadre.</p></div>
+
+  <h3>5 · Puesta en marcha (local)</h3>
+  <table>
+    <tr><th style="width:26%">Componente</th><th>Comando / ruta</th></tr>
+    <tr><td>API (backend)</td><td><code>.venv/Scripts/python -m uvicorn api.main:app --port 8077 --host 127.0.0.1</code></td></tr>
+    <tr><td>Frontend (dev)</td><td><code>cd frontend &amp;&amp; npm run dev</code> → Vite en <code>:5176</code></td></tr>
+    <tr><td>Frontend (build)</td><td><code>cd frontend &amp;&amp; npm run build</code> → genera <code>frontend/dist</code></td></tr>
+    <tr><td>Base dev</td><td>SQLite <code>db/sanvest_bi_dev.sqlite</code> (para probar ETL sin tocar prod)</td></tr>
+  </table>
+  <div class="warn"><strong>Ojo:</strong> la API en <code>:8077</code>, tal como está configurada con las
+  variables <code>PG*</code> del <code>.env</code>, lee <strong>PRODUCCIÓN</strong>. Lo que se ve en la
+  app corriendo local es la base de prod. El SQLite dev solo se usa apuntando el ETL a él explícitamente.
+  Los puertos <code>:8000</code> y <code>:5173</code> son de otro proyecto — este usa <code>:8077</code> y <code>:5176</code>.</div>
+</section>
+
+<section class="page">
+  <h3>6 · Producción y despliegue (VPS)</h3>
+  <p>Producción es un <strong>PostgreSQL</strong> (base <code>sanvest</code>) en un VPS. La conexión se
+  configura con variables <code>PG*</code> en el <code>.env</code> (host, base, usuario, clave). El
+  identificador de columnas usa comillas dobles (<code>qi()</code>), porque muchos nombres traen
+  espacios/mayúsculas del Excel de origen.</p>
+  <h4>Ciclo de despliegue típico</h4>
+  <ol>
+    <li><code>git pull</code> en el VPS para traer los cambios.</li>
+    <li><strong>Reiniciar la API</strong> (uvicorn desde el <code>.venv</code>) — necesario para que
+      tome cambios de backend <em>y</em> para que aparezcan tablas nuevas.</li>
+    <li>Servir el bundle <code>frontend/dist</code> (ya viene compilado y versionado).</li>
+    <li>En el navegador, <span class="kbd">Ctrl</span>+<span class="kbd">F5</span> para saltar caché.</li>
+  </ol>
+  <div class="note"><strong>Cambios que NO requieren desplegar:</strong> los cambios de <em>datos</em>
+  (correcciones directas en la base de prod) se ven con solo recargar la página. Solo los cambios de
+  <em>código</em> (backend/front) requieren pull + reinicio + build.</div>
+  <div class="note"><strong>Privilegios en prod:</strong> el usuario de base de datos de producción
+  <strong>sí</strong> tiene privilegio <code>CREATE</code> — se pueden crear tablas y columnas y escribir
+  directo a prod. (Esto corrige una nota antigua que decía lo contrario.) Aun así, toda escritura a prod
+  se hace con criterio: script reutilizable, <em>dry-run</em> primero, y respaldo cuando corresponde.</div>
+  <p class="small mut">La guía de endurecimiento (nginx + TLS, secreto de tokens, API como servicio
+  systemd para que no se caiga al cerrar sesión) está en <code>docs/deploy.md</code>.</p>
+
+  <h3>7 · Pipeline de datos / ETL</h3>
+  <p>La carga de cada unidad vive en su <code>connect_*.py</code> con una función <code>apply_*</code>.
+  Todas siguen el mismo patrón <strong>seguro</strong>: leen el Excel/informe, normalizan, y escriben la
+  tabla con <strong>DELETE + INSERT</strong> del segmento afectado (nunca <em>DROP</em>), de modo que la
+  carga es idempotente y no rompe el resto de los datos.</p>
+  <table>
+    <tr><th>Función <code>apply_*</code></th><th>Unidad / propósito</th></tr>
+    <tr><td><code>apply_dv</code></td><td>DV — ventas, costos, deuda, capital socios</td></tr>
+    <tr><td><code>apply_informes</code>, <code>apply_yardi</code></td><td>RR (LAR) — P&amp;L y KPIs</td></tr>
+    <tr><td><code>apply_ccpp</code></td><td>Hotel (OLÁ) — con guard anti-regresión</td></tr>
+    <tr><td><code>apply_usa_budget</code>, <code>apply_usa_kpis</code></td><td>USA — P&amp;L y KPIs</td></tr>
+    <tr><td><code>apply_icemm</code></td><td>ICEMM — informe de gestión + flujo</td></tr>
+    <tr><td><code>apply_atempora</code>, <code>apply_atempora_kpis</code>, <code>apply_atempora_morosidad</code></td><td>Atémpora (Civitas)</td></tr>
+    <tr><td><code>apply_grupo</code> / <code>build_grupo</code></td><td>Grupo — Balance + EERR por trimestre</td></tr>
+    <tr><td><code>apply_deuda</code></td><td>Cronograma de deuda (activos)</td></tr>
+  </table>
+  <h4>Piezas transversales</h4>
+  <ul>
+    <li><strong>Catálogos</strong> (<code>api/catalog/*.json</code>): declaran qué tablas y campos consume
+      cada dashboard. Cambiar un dashboard es, muchas veces, editar su catálogo — sin tocar código.</li>
+    <li><strong>Extractor declarativo</strong> (<code>statement_extractor.py</code> + specs): para el Grupo,
+      lee Balance y EERR desde el Excel guiado por <code>etl/specs/Grupo.*.json</code> (niveles, notas,
+      columnas de valor), y valida el cuadre antes de escribir.</li>
+    <li><strong>Tablas desde archivo</strong> (<code>api/filetables.py</code>): datos estáticos (p.ej. el
+      cronograma de deuda) se sirven desde un JSON empaquetado si la tabla no existe en la base.</li>
+    <li><strong>Auditoría</strong> (<code>etl/audit.py</code>): chequeos deterministas (datos viejos,
+      huecos, valores pegados, tablas vacías) expuestos en el panel de administración.</li>
+  </ul>
+  <div class="note"><strong>Carga por la web:</strong> el admin sube los informes desde la propia app
+  (panel de carga). El endpoint <code>/units/{unit}/upload-informes</code> despacha el archivo al
+  <code>apply_*</code> correcto según el nombre del archivo.</div>
+</section>
+
+<section class="page">
+  <h3>8 · Autenticación, roles y bitácora</h3>
+  <p>Todo el sistema de acceso vive en <code>api/auth.py</code>, sin dependencias nuevas (hashing y tokens
+  con la librería estándar de Python).</p>
+  <table>
+    <tr><th style="width:24%">Concepto</th><th>Detalle</th></tr>
+    <tr><td>Usuario</td><td>El <strong>username es el email</strong> de la persona. Tabla <code>app_users</code>.</td></tr>
+    <tr><td>Contraseña</td><td>Hash <code>pbkdf2_hmac</code> (SHA-256, 200k iteraciones) con salt por usuario;
+      comparación en tiempo constante. Nunca se guarda en claro.</td></tr>
+    <tr><td>Token</td><td>Mini-JWT firmado con HMAC-SHA256 (secreto <code>SANVEST_AUTH_SECRET</code>),
+      vigencia 12 h. El front lo manda como <em>Bearer</em> en cada llamada.</td></tr>
+    <tr><td>Roles</td><td><strong>admin</strong> — ve todas las unidades y puede cargar datos ·
+      <strong>viewer</strong> — ve solo su lista de unidades, solo lectura.</td></tr>
+    <tr><td>Bitácora</td><td><code>access_log</code> registra quién entra y a qué unidades (panel
+      «Accesos»). Es <em>best-effort</em>: un fallo al registrar nunca bloquea el login.</td></tr>
+    <tr><td>Comentarios</td><td>Foro por unidad (tabla <code>comments</code>) para el directorio.</td></tr>
+  </table>
+  <div class="note"><strong>Login case-insensitive (jul-2026):</strong> el email se normaliza a
+  <strong>minúsculas y sin espacios</strong> en todas las funciones que lo usan como clave, así
+  <code>Foo@Bar.CL</code> y <code>foo@bar.cl</code> entran igual. El campo del login además evita que el
+  teclado del móvil capitalice la primera letra.</div>
+  <h4>Gestión de usuarios</h4>
+  <p>Desde la web (panel Admin ▸ Usuarios) o por consola con <code>scripts/manage_users.py</code>:</p>
+  <ul class="small">
+    <li><code>python scripts/manage_users.py create --admin sleyton@sanvest.cl --full-name "S. Leyton"</code></li>
+    <li><code>python scripts/manage_users.py create jperez@sanvest.cl --units RR,USA</code> (viewer)</li>
+    <li><code>list</code> · <code>passwd &lt;user&gt;</code> · <code>set-units</code> · <code>set-role</code> · <code>deactivate</code> / <code>activate</code></li>
+  </ul>
+
+  <h3>9 · Cómo agregar o actualizar una unidad</h3>
+  <ol>
+    <li><strong>ETL:</strong> escribir/ajustar el <code>apply_*</code> en <code>etl/connect_*.py</code> que
+      lee el Excel y escribe la(s) tabla(s) con DELETE+INSERT.</li>
+    <li><strong>Catálogo:</strong> declarar tablas y campos en <code>api/catalog/&lt;Unidad&gt;.json</code>.</li>
+    <li><strong>Dashboard:</strong> crear/editar <code>frontend/src/pages/&lt;Unidad&gt;Dashboard.tsx</code>
+      reutilizando componentes (KpiCard, Gauge, PnLMatrix, BalanceSheet, charts).</li>
+    <li><strong>Menú:</strong> agregar la tarjeta en <code>MainMenu.tsx</code> (id, label, color, descripción).</li>
+    <li><strong>Despacho de carga:</strong> enrutar el archivo en <code>/upload-informes</code> por nombre.</li>
+    <li>Compilar (<code>npm run build</code>), verificar y desplegar.</li>
+  </ol>
+
+  <h3>10 · Convenciones y reglas críticas</h3>
+  <ul>
+    <li>Trabajar en <strong>español</strong>; nombres de columnas suelen venir del Excel (con espacios) →
+      siempre citar con comillas dobles en SQL.</li>
+    <li>Antes de cerrar un cambio de front: <code>npm run build</code> (compila y valida TypeScript).</li>
+    <li>Escrituras a prod: script reutilizable en <code>scripts/</code>, <strong>dry-run primero</strong>,
+      y correr con <code>.venv/Scripts/python.exe</code>.</li>
+    <li>Cargar cada informe <strong>bajo el mes/período que representa</strong>, no el mes de carga
+      (evita que el dashboard muestre datos «en el futuro» o pegados).</li>
+    <li>Para editar <code>.xlsx</code> preservando gráficos/pivots, usar <strong>Excel COM (pywin32)</strong>,
+      no openpyxl.</li>
+  </ul>
+</section>
+
+<!-- ===================== PARTE II ===================== -->
+<section class="page">
+  <div class="part">
+    <div class="cover__kick">Parte II</div>
+    <h2>Manual de usuario</h2>
+  </div>
+
+  <div class="lead">Esta parte está pensada para quien <strong>usa</strong> la aplicación (directores y
+  equipo). No requiere conocimientos técnicos.</div>
+
+  <h3>A · Ingreso a la aplicación</h3>
+  <ul>
+    <li>Tu <strong>usuario es tu correo</strong> (por ejemplo <code>nombre@sanvest.cl</code>).</li>
+    <li>Puedes escribirlo en <strong>mayúsculas o minúsculas</strong>, da lo mismo — el sistema lo entiende igual.</li>
+    <li>Si la contraseña no es correcta, aparece «Usuario o contraseña incorrectos». Si en cambio dice
+      que «el servidor no respondió», no es tu clave: reintenta.</li>
+    <li>La sesión dura unas horas; luego pedirá volver a entrar.</li>
+  </ul>
+
+  <h3>B · Menú principal</h3>
+  <p>Tras entrar verás un saludo y luego el menú con las <strong>tarjetas de unidades</strong> que tienes
+  habilitadas (cada una con su color). «Estados Financieros» (el consolidado del Grupo) aparece destacado
+  arriba. Haz clic en <em>Abrir</em> para entrar a una unidad. Solo ves las unidades que te asignaron.</p>
+
+  <h3>C · Cómo leer los dashboards</h3>
+  <table>
+    <tr><th style="width:26%">Elemento</th><th>Qué es</th></tr>
+    <tr><td>Filtros de Año / Mes</td><td>Arriba del dashboard. Eligen el período; todo el tablero se
+      actualiza. Por defecto abre en el <strong>último mes con datos reales</strong>.</td></tr>
+    <tr><td>Tarjetas (KPI)</td><td>Números clave del período (ingresos, NOI, ocupación, deuda…).</td></tr>
+    <tr><td>Gauge (medidor)</td><td>El semicírculo de <strong>ocupación</strong>: % ocupado y m².</td></tr>
+    <tr><td>Combos (barra + línea)</td><td>Barra = Real, línea = Presupuesto. Muestran los
+      <strong>últimos 12 meses</strong> que terminan en el período elegido.</td></tr>
+    <tr><td>Cuadros / tablas</td><td>P&amp;L, arriendos, ventas, morosidad. Muchas filas son
+      <strong>colapsables</strong> (haz clic en la fila con ▸ para desplegar el detalle).</td></tr>
+    <tr><td>Mes vs YTD</td><td>Casi todos los cuadros muestran el <strong>Mes</strong> y el acumulado del
+      año (<strong>YTD</strong>) lado a lado.</td></tr>
+  </table>
+
+  <h3>D · Recorrido por unidad</h3>
+  <div class="grid2">
+    <div class="card"><h4 style="color:#7c9a0e">DV — Desarrollo para la Venta</h4>
+      <p class="small">Avance de ventas (% y unidades), evolución de costos, y la deuda por proyecto con
+      el capital aportado por los socios.</p></div>
+    <div class="card"><h4 style="color:#2c7c8c">RR — Renta Residencial</h4>
+      <p class="small">Resultado de los edificios LAR (SOHO/PARK), ocupación del mes y del año, y KPIs por
+      edificio (calculados en vivo).</p></div>
+    <div class="card"><h4 style="color:#b89600">Hotel — OLÁ</h4>
+      <p class="small">Indicadores del hotel, ocupación mes y YTD, y la deuda asociada.</p></div>
+    <div class="card"><h4 style="color:#d1610f">USA</h4>
+      <p class="small">Resultado operativo y KPIs de Bemiston, Mila y St Grand (EE.UU.), con Real vs
+      Presupuesto.</p></div>
+    <div class="card"><h4 style="color:#c02746">ICEMM — Construcción</h4>
+      <p class="small">Informe de gestión con proyección de cierre de año (FY), lo que va del año (YTD) y lo
+      que resta (YTG), y el flujo de caja.</p></div>
+    <div class="card"><h4 style="color:#7458c4">Atémpora — Civitas</h4>
+      <p class="small">Resultado del edificio, ocupación total, cuadro de arriendos por cliente, ventas y
+      morosidad por tramos de mora.</p></div>
+  </div>
+  <div class="card" style="margin-top:10px"><h4 style="color:#4453b8">Grupo — Estados Financieros</h4>
+    <p class="small">El <strong>Balance</strong> (réplica exacta del Excel, con las notas al pasar el mouse)
+    y el <strong>Estado de Resultados</strong> consolidado del Grupo. Se puede abrir a pantalla completa y
+    exportar. Las cuentas de detalle en cero se ocultan dejando el grupo padre visible.</p></div>
+
+  <h3 class="page">E · Glosario de indicadores</h3>
+  <table>
+    <tr><th style="width:22%">Término</th><th>Significado</th></tr>
+    <tr><td><strong>UF</strong></td><td>Unidad de Fomento (moneda indexada chilena). Muchos montos van en UF.</td></tr>
+    <tr><td><strong>Real</strong></td><td>Lo efectivamente ocurrido (ejecutado).</td></tr>
+    <tr><td><strong>Ppto</strong> (Presupuesto)</td><td>Lo planificado para ese período.</td></tr>
+    <tr><td><strong>YTD</strong></td><td><em>Year To Date</em>: acumulado desde enero hasta el mes elegido.</td></tr>
+    <tr><td><strong>YTG</strong></td><td><em>Year To Go</em>: lo que resta del año (proyección).</td></tr>
+    <tr><td><strong>FY</strong></td><td><em>Full Year</em>: proyección del cierre del año completo (YTD + YTG).</td></tr>
+    <tr><td><strong>NOI</strong></td><td><em>Net Operating Income</em>: resultado operativo (Ingresos − Gastos
+      operacionales), antes de intereses y otros.</td></tr>
+    <tr><td><strong>Ocupación</strong></td><td>% de superficie (o unidades) ocupada respecto del total
+      disponible.</td></tr>
+    <tr><td><strong>Morosidad</strong></td><td>Deuda de clientes segmentada por tramos de días de atraso
+      (0–30, 30–60, 60–90, 90+).</td></tr>
+    <tr><td><strong>Balance</strong></td><td>Estado de situación: Activos = Pasivos + Patrimonio a una fecha.</td></tr>
+    <tr><td><strong>EERR</strong></td><td>Estado de Resultados: ingresos y gastos de un período.</td></tr>
+  </table>
+
+  <h3>F · Funciones útiles</h3>
+  <ul>
+    <li><strong>Cambiar contraseña:</strong> desde tu menú de usuario. Pide la clave actual y la nueva
+      (mínimo 8 caracteres).</li>
+    <li><strong>Comentarios:</strong> cada unidad tiene un foro donde el directorio puede dejar
+      observaciones, visibles para quienes ven esa unidad.</li>
+    <li><strong>Exportar a PDF:</strong> los dashboards se pueden imprimir/exportar con sus etiquetas.</li>
+    <li><strong>PPT del Directorio:</strong> visor de presentaciones/PDF en línea, por unidad.</li>
+    <li><strong>Pantalla completa:</strong> el Balance y el EERR tienen un botón para verlos a todo el ancho.</li>
+  </ul>
+
+  <h3>G · Para administradores</h3>
+  <p>El rol <strong>admin</strong> ve todas las unidades y además tiene el panel de administración:</p>
+  <ul>
+    <li><strong>Cargar informes:</strong> subir los Excel/informes por la web; el sistema los procesa y
+      actualiza los dashboards. Cada archivo va a su unidad según el nombre.</li>
+    <li><strong>Usuarios:</strong> crear/editar usuarios, asignar rol y unidades visibles, resetear clave,
+      activar/desactivar.</li>
+    <li><strong>Accesos:</strong> bitácora de quién entró y a qué unidades, con métricas por usuario, unidad
+      y día.</li>
+    <li><strong>Auditoría:</strong> chequeos automáticos de calidad de datos (datos viejos, huecos, valores
+      pegados, tablas vacías) para detectar problemas antes que el directorio.</li>
+  </ul>
+  <div class="note"><strong>Regla de oro al cargar:</strong> sube cada informe correspondiente al
+  <strong>período que representa</strong> (el mes/trimestre del dato), no importa la fecha en que lo subes.
+  Así los dashboards quedan cuadrados y sin datos «pegados».</div>
+
+  <div class="foot">Sanvest BI — Documentación del Proyecto · Grupo Sanvest · 27-jul-2026 ·
+  Documento técnico + Manual de usuario</div>
+</section>
+
+</body>
+</html>
