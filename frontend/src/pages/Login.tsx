@@ -31,8 +31,10 @@ export function Login() {
         <div className="login__title">Reportes · Inteligencia de Negocios</div>
         <label className="login__field">
           <span>Usuario</span>
+          {/* email: sin auto-mayúscula/autocorrección; el login es case-insensitive */}
           <input value={username} onChange={(e) => setUsername(e.target.value)}
-            autoFocus autoComplete="username" />
+            autoFocus autoComplete="username" type="email" inputMode="email"
+            autoCapitalize="none" autoCorrect="off" spellCheck={false} />
         </label>
         <label className="login__field">
           <span>Contraseña</span>

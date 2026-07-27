@@ -135,6 +135,14 @@ def read_token(token: str) -> dict | None:
 
 
 # ----------------------------- almacén de usuarios ---------------------------
+def norm_username(username: str) -> str:
+    """Normaliza el email/usuario para que el login sea case-insensitive: recorta
+    espacios y baja a minúsculas (los correos no distinguen mayúsculas). Se aplica
+    en TODA función que use el username como clave, de modo que 'Foo@Bar.CL' y
+    'foo@bar.cl' apunten siempre a la misma fila."""
+    return (username or "").strip().lower()
+
+
 def _row_to_user(row: Any) -> dict:
     u = dict(row)
     try:
@@ -146,6 +154,7 @@ def _row_to_user(row: Any) -> dict:
 
 
 def get_user(username: str) -> dict | None:
+    username = norm_username(username)
     with engine.connect() as con:
         row = con.execute(
             text("SELECT * FROM app_users WHERE username = :u"), {"u": username}
@@ -187,6 +196,7 @@ def authenticate(username: str, password: str) -> dict | None:
 def create_user(username: str, password: str, *, role: str = "viewer",
                 full_name: str | None = None, units: list[str] | None = None) -> None:
     """Crea o reemplaza (upsert manual portable) un usuario."""
+    username = norm_username(username)
     row = {
         "u": username,
         "ph": hash_password(password),
@@ -210,6 +220,7 @@ def create_user(username: str, password: str, *, role: str = "viewer",
 
 
 def set_password(username: str, password: str) -> bool:
+    username = norm_username(username)
     with engine.begin() as con:
         res = con.execute(text(
             "UPDATE app_users SET password_hash=:ph WHERE username=:u"),
@@ -218,6 +229,7 @@ def set_password(username: str, password: str) -> bool:
 
 
 def set_full_name(username: str, full_name: str | None) -> bool:
+    username = norm_username(username)
     with engine.begin() as con:
         res = con.execute(text("UPDATE app_users SET full_name=:fn WHERE username=:u"),
                           {"fn": full_name, "u": username})
@@ -225,6 +237,7 @@ def set_full_name(username: str, full_name: str | None) -> bool:
 
 
 def set_role(username: str, role: str) -> bool:
+    username = norm_username(username)
     with engine.begin() as con:
         res = con.execute(text("UPDATE app_users SET role=:r WHERE username=:u"),
                           {"r": role, "u": username})
@@ -232,6 +245,7 @@ def set_role(username: str, role: str) -> bool:
 
 
 def set_units(username: str, units: list[str]) -> bool:
+    username = norm_username(username)
     with engine.begin() as con:
         res = con.execute(text("UPDATE app_users SET units=:un WHERE username=:u"),
                           {"un": json.dumps(units), "u": username})
@@ -239,6 +253,7 @@ def set_units(username: str, units: list[str]) -> bool:
 
 
 def set_active(username: str, active: bool) -> bool:
+    username = norm_username(username)
     with engine.begin() as con:
         res = con.execute(text("UPDATE app_users SET active=:a WHERE username=:u"),
                           {"a": 1 if active else 0, "u": username})
