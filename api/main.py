@@ -482,12 +482,29 @@ def ppt_get(_user: dict = Depends(auth.current_user)):
 
 @app.post("/docs/ppt-directorio", tags=["documentos"], dependencies=[Depends(auth.require_admin)])
 async def ppt_upload(file: UploadFile = File(...)):
-    """Sube/reemplaza la PPT Directorio (PDF). Solo admin."""
+    """Sube/reemplaza la PPT Directorio (PDF). Solo admin.
+
+    Escribe a un temporal en la MISMA carpeta y luego renombra (evita dejar un PDF
+    a medias si el guardado falla). Los errores de filesystem se registran en el log
+    y se devuelven con el motivo exacto (antes daban un 500 opaco): típicamente
+    permisos de la carpeta `data/` del servidor, o el TMPDIR del sistema lleno/sin
+    permisos (Starlette derrama a un temporal los archivos > 1 MB al parsear)."""
     if not (file.filename or "").lower().endswith(".pdf"):
         raise HTTPException(400, "el archivo debe ser .pdf")
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    with PPT_PDF.open("wb") as f:
-        shutil.copyfileobj(file.file, f)
+    tmp = PPT_PDF.with_suffix(".pdf.part")
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        with tmp.open("wb") as f:
+            shutil.copyfileobj(file.file, f)   # lee el spooled temp de Starlette
+        os.replace(tmp, PPT_PDF)               # atómico dentro del mismo filesystem
+    except OSError as e:                        # permisos, disco/tmp lleno, etc.
+        try: tmp.unlink(missing_ok=True)
+        except OSError: pass
+        import traceback; traceback.print_exc()
+        raise HTTPException(500, f"No se pudo guardar el PDF en el servidor "
+                            f"({DATA_DIR}): {type(e).__name__}: {e}")
+    finally:
+        await file.close()
     return {"ok": True, "size": PPT_PDF.stat().st_size}
 
 
