@@ -8,16 +8,22 @@
 // ancho real evita ese problema para cualquier resolución.
 const MAX_ZOOM = 1.0;   // no agrandar: 100% = tamaño real
 const MIN_ZOOM = 0.5;   // piso de legibilidad
+// Bajo este ancho NO se usa el zoom "fit-to-width": el layout es RESPONSIVE y se
+// reacomoda (apila columnas) vía las media queries de styles.css. Encoger un
+// diseño de escritorio a 375px lo dejaba minúsculo; por eso teléfono e iPad
+// vertical usan reflow real y solo iPad horizontal / desktop conservan el zoom.
+const REFLOW_BELOW = 1024;
 
 let raf = 0;
 
 export function applyFit(): void {
   const b = document.body;
   if (!b) return;
+  const avail = document.documentElement.clientWidth || window.innerWidth;
+  if (avail < REFLOW_BELOW) { b.style.zoom = "1"; return; }  // móvil/tablet: reflow por CSS
   b.style.zoom = "1";                       // medir a escala real
   // ancho natural del contenido (incluye lo que se desbordaría del viewport)
   const need = Math.max(b.scrollWidth, document.documentElement.scrollWidth || 0, 1);
-  const avail = document.documentElement.clientWidth || window.innerWidth;
   const z = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, avail / need));
   b.style.zoom = String(Math.round(z * 1000) / 1000);
 }

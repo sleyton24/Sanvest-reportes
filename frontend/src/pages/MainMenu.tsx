@@ -2,6 +2,7 @@
 // logo Sanvest (crossfade), + tarjetas por unidad de negocio con su color de marca.
 import { ReactNode, useEffect, useState } from "react";
 import { useAuth } from "../auth";
+import { AddToHome } from "../components/AddToHome";
 
 // Cuánto dura el saludo antes de ceder el lugar al logo Sanvest.
 const HELLO_MS = 7_000; // 7 segundos
@@ -90,6 +91,10 @@ export function MainMenu({ onPick }: { onPick: (id: string) => void }) {
         <div className="menu__rule menu__anim menu__anim--3" />
         <div className="menu__title menu__anim menu__anim--3">Reportes · Inteligencia de Negocios</div>
         <div className="menu__subtitle menu__anim menu__anim--4">Selecciona una unidad de negocio</div>
+        {/* iPhone/iPad: instalar como app en la pantalla de inicio (se auto-oculta en desktop) */}
+        <div className="menu__anim menu__anim--5" style={{ textAlign: "center" }}>
+          <AddToHome />
+        </div>
       </header>
 
       {featured && (

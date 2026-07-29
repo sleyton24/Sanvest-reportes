@@ -315,9 +315,61 @@ body {
 .stack > .card { flex: 1 1 auto; min-height: 0; }
 .stack .pivot__scroll { flex: 1 1 auto; min-height: 0; }
 
-/* Sin breakpoints que apilen: el layout es único (diseñado a ~1320px) y se escala
-   para caber en cualquier pantalla vía zoom "fit-to-width" (ver main.tsx). Así se ve
-   IGUAL en pantallas chicas o cuadradas, solo más chico — no se reorganiza. */
+/* Diseño de escritorio a ~1320px. De 1024px para ARRIBA (desktop, iPad horizontal)
+   se conserva el zoom "fit-to-width" (ver fit.ts): la vista de PC NO cambia. Bajo
+   1024px (iPad vertical, teléfono) el zoom se apaga y el layout se REACOMODA con las
+   media queries de abajo — apila columnas en vez de encogerse. */
+
+/* ===== TABLET / iPad vertical (≤1023px) — apilar grillas y topnav scrollable ===== */
+@media (max-width: 1023px) {
+  .dash { padding: 16px 16px 44px; }
+  .dash__header h1 { font-size: 20px; }
+  .dash__logo, .dash__logo--tile { height: 56px; }
+  .dash__logo--flat, .dash__logo--emm { height: 42px; }
+
+  /* grillas de columnas fijas → 2 columnas (charts/cards/two) o apiladas (las
+     "desparejas": panel + gauges, que a fracciones fijas quedarían minúsculas) */
+  .row--charts { grid-template-columns: 1fr 1fr; }
+  .row--cards  { grid-template-columns: 1fr 1fr; }
+  .row--top,
+  .row--hotel-kpis,
+  .row--rr-kpis,
+  .row--usa-kpis { grid-template-columns: 1fr; }
+  .kpi-entry__grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-form__grid { grid-template-columns: 1fr; }
+
+  /* topnav: una sola línea deslizable en horizontal (patrón de barra móvil) */
+  .topnav { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    padding: 0 12px; height: 58px; gap: 2px; scrollbar-width: none; }
+  .topnav::-webkit-scrollbar { display: none; }
+  .brand { margin-right: 8px; }
+  .brand__logo { height: 34px; }
+  .topnav__tab { height: 58px; font-size: 13px; padding: 0 9px; border-bottom-width: 3px; }
+  .topnav__pdf { margin-left: 8px; padding: 6px 10px; font-size: 12.5px; }
+  .usermenu { margin-left: 8px; gap: 6px; }
+  .usermenu__fullname { max-width: 92px; }
+}
+
+/* ===== TELÉFONO (≤640px) — todo a una columna ===== */
+@media (max-width: 640px) {
+  .dash { padding: 12px 11px 32px; }
+  .dash__header { gap: 10px; margin-bottom: 14px; padding-bottom: 12px; }
+  .dash__header h1 { font-size: 18px; }
+  .dash__logo, .dash__logo--tile { height: 46px; }
+  .dash__slicers { width: 100%; }
+  .slicer { flex: 1; }
+  .slicer__select { min-width: 0; width: 100%; }
+
+  .row { gap: 12px; margin-bottom: 12px; }
+  .row--charts, .row--cards, .row--two { grid-template-columns: 1fr; }
+  .kpi-entry__grid { grid-template-columns: 1fr; }
+  .kpi-entry__foot { gap: 12px; }
+
+  .card { padding: 12px 12px; }
+  .card__title { font-size: 14px; }
+  /* tablas anchas: el scroll horizontal manda (ya existe .pivot__scroll) */
+  .pivot__scroll { max-height: 60vh; }
+}
 
 /* ----------------------------- menú principal ----------------------------- */
 .menu { position: relative; max-width: 1160px; margin: 0 auto; padding: 64px 28px 72px; overflow: hidden; }
@@ -887,6 +939,37 @@ body {
   border: 1px solid var(--border-strong); border-radius: 8px; padding: 9px 11px; font: inherit; font-size: 14px; color: var(--ink); }
 .cmodal__compose textarea:focus { outline: none; border-color: var(--accent); }
 @media print { .cmodal__backdrop, .topnav__comments { display: none !important; } }
+
+/* ----------------------------- "Agregar a pantalla de inicio" (iOS) ------- */
+/* botón discreto en el menú principal (solo se muestra en iPhone/iPad, ver AddToHome.tsx) */
+.a2hs-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #eaf0ff; border-radius: 999px; padding: 9px 16px;
+  font-size: 14px; font-weight: 600; cursor: pointer; margin: 18px auto 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.a2hs-btn:hover { border-color: var(--green); }
+.a2hs-btn svg { width: 17px; height: 17px; }
+.a2hs__backdrop { position: fixed; inset: 0; background: rgba(11, 23, 41, 0.55);
+  display: flex; align-items: center; justify-content: center; z-index: 300; padding: 16px; }
+.a2hs { width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: 16px;
+  padding: 22px 22px 20px; box-shadow: 0 22px 60px rgba(15, 30, 54, 0.4); }
+.a2hs__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.a2hs__title { font-size: 17px; font-weight: 800; color: var(--strong); }
+.a2hs__close { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--muted); }
+.a2hs__intro { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.5; }
+.a2hs__steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.a2hs__steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink); line-height: 1.45; }
+.a2hs__num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; background: var(--navy);
+  color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.a2hs__share { display: inline-flex; vertical-align: -4px; margin: 0 2px; color: var(--navy); }
+.a2hs__share svg { width: 18px; height: 18px; }
+.a2hs__warn { margin-top: 14px; background: #fdf5f4; border: 1px solid #f2d3d0;
+  border-radius: 10px; padding: 9px 12px; font-size: 12.5px; color: #8a2b28; line-height: 1.45; }
+.a2hs__foot { margin-top: 16px; display: flex; justify-content: flex-end; }
 
 /* ----------------------------- reporte PDF (impresión) -------------------- */
 @media print {
