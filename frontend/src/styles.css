@@ -954,17 +954,21 @@ body {
 @media print { .cmodal__backdrop, .topnav__comments { display: none !important; } }
 
 /* ----------------------------- "Agregar a pantalla de inicio" (iOS) ------- */
-/* botón discreto en el menú principal (solo se muestra en iPhone/iPad, ver AddToHome.tsx) */
+/* botón en el menú principal (solo pantallas táctiles, ver AddToHome.tsx):
+   CUADRO AZUL navy sólido — el estilo translúcido anterior era para fondo oscuro
+   y sobre el crema del menú quedaba casi invisible. */
 .a2hs-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  color: #eaf0ff; border-radius: 999px; padding: 9px 16px;
-  font-size: 14px; font-weight: 600; cursor: pointer; margin: 18px auto 0;
+  display: inline-flex; align-items: center; gap: 9px;
+  background: var(--navy);
+  border: 1px solid var(--navy);
+  color: #fff; border-radius: 12px; padding: 12px 20px;
+  font-size: 14.5px; font-weight: 700; cursor: pointer; margin: 20px auto 0;
+  box-shadow: 0 6px 18px rgba(15, 30, 54, 0.28);
   -webkit-tap-highlight-color: transparent;
 }
-.a2hs-btn:hover { border-color: var(--green); }
-.a2hs-btn svg { width: 17px; height: 17px; }
+.a2hs-btn:hover { background: #1a2c4e; border-color: var(--green); }
+.a2hs-btn:active { transform: scale(0.98); }
+.a2hs-btn svg { width: 17px; height: 17px; color: var(--green); }
 .a2hs__backdrop { position: fixed; inset: 0; background: rgba(11, 23, 41, 0.55);
   display: flex; align-items: center; justify-content: center; z-index: 300; padding: 16px; }
 .a2hs { width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto;

@@ -5,6 +5,7 @@
 // (user-agent sin "iPad", navigator.platform poco fiable), así que detectar "es
 // iOS" por UA fallaba y el botón no aparecía — el puntero grueso no miente.
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./Button";
 
 function isTouch(): boolean {
@@ -51,7 +52,11 @@ export function AddToHome() {
       <button className="a2hs-btn" onClick={() => setOpen(true)}>
         <PlusIcon /> Agregar a la pantalla de inicio
       </button>
-      {open && (
+      {/* PORTAL al <body>: el menú anima con transform y en Safari/iPad eso "atrapa"
+          al position:fixed (containing block) → el modal quedaba recortado DETRÁS de
+          las tarjetas y las instrucciones no se veían. En el body no hay ancestros
+          con transform y el modal cubre la pantalla completa siempre. */}
+      {open && createPortal(
         <div className="a2hs__backdrop" onClick={() => setOpen(false)}>
           <div className="a2hs" onClick={(e) => e.stopPropagation()}>
             <div className="a2hs__head">
@@ -92,7 +97,8 @@ export function AddToHome() {
               <Button variant="primary" onClick={() => setOpen(false)}>Entendido</Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
