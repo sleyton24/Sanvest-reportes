@@ -315,13 +315,15 @@ body {
 .stack > .card { flex: 1 1 auto; min-height: 0; }
 .stack .pivot__scroll { flex: 1 1 auto; min-height: 0; }
 
-/* Diseño de escritorio a ~1320px. De 1024px para ARRIBA (desktop, iPad horizontal)
-   se conserva el zoom "fit-to-width" (ver fit.ts): la vista de PC NO cambia. Bajo
-   1024px (iPad vertical, teléfono) el zoom se apaga y el layout se REACOMODA con las
-   media queries de abajo — apila columnas en vez de encogerse. */
+/* Diseño de escritorio a ~1320px. En PC (puntero fino) se conserva el zoom
+   "fit-to-width" (ver fit.ts): la vista de PC NO cambia. En pantallas TÁCTILES
+   (pointer: coarse — iPad/iPhone/Android) el zoom se apaga SIEMPRE y el layout se
+   REACOMODA con las media queries de abajo, en ambas orientaciones: así el giro
+   vertical↔horizontal solo re-evalúa CSS (fluido, sin "desconfigurarse"). */
 
-/* ===== TABLET / iPad vertical (≤1023px) — apilar grillas y topnav scrollable ===== */
-@media (max-width: 1023px) {
+/* ===== TABLET (iPad vertical ≤1023px, y TÁCTIL hasta 1366px = iPad horizontal,
+   donde el diseño de escritorio de ~1320px quedaría al límite) ===== */
+@media (max-width: 1023px), ((pointer: coarse) and (max-width: 1366px)) {
   .dash { padding: 16px 16px 44px; }
   .dash__header h1 { font-size: 20px; }
   .dash__logo, .dash__logo--tile { height: 56px; }
@@ -348,6 +350,17 @@ body {
   .topnav__pdf { margin-left: 8px; padding: 6px 10px; font-size: 12.5px; }
   .usermenu { margin-left: 8px; gap: 6px; }
   .usermenu__fullname { max-width: 92px; }
+}
+
+/* ===== iPad HORIZONTAL (táctil 1024–1366px): hay ancho — usar columnas. Al girar,
+   vertical apila (bloque de arriba) y horizontal reparte; el cambio es solo CSS. ===== */
+@media (pointer: coarse) and (min-width: 1024px) and (max-width: 1366px) {
+  .row--charts { grid-template-columns: repeat(3, 1fr); }
+  .row--top { grid-template-columns: 1fr 1fr 2.4fr; }
+  .row--hotel-kpis { grid-template-columns: 2.1fr 0.8fr 0.8fr; }
+  .row--rr-kpis { grid-template-columns: 1.7fr 0.8fr 0.8fr; }
+  .row--usa-kpis { grid-template-columns: 1fr 1fr 0.9fr; }
+  .kpi-entry__grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ===== TELÉFONO (≤640px) — todo a una columna ===== */

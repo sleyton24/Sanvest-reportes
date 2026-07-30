@@ -1,30 +1,29 @@
-// Botón "Agregar a la pantalla de inicio" para iPhone/iPad. iOS no permite un
-// prompt de instalación programático (como Android), así que mostramos las
-// instrucciones de Safari (Compartir → Agregar a inicio). Solo se muestra en iOS
-// y cuando la app NO está ya instalada (modo standalone).
+// Botón "Agregar a la pantalla de inicio" para iPad/iPhone (y Android). iOS no
+// permite un prompt de instalación programático, así que mostramos los pasos de
+// Safari (Compartir → Agregar a inicio). Se muestra en CUALQUIER pantalla táctil
+// que no esté ya instalada: iPadOS moderno se hace pasar por Mac de escritorio
+// (user-agent sin "iPad", navigator.platform poco fiable), así que detectar "es
+// iOS" por UA fallaba y el botón no aparecía — el puntero grueso no miente.
 import { useState } from "react";
 import { Button } from "./Button";
 
-function isIOS(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent || "";
-  const iOS = /iPad|iPhone|iPod/.test(ua);
-  // iPadOS 13+ se hace pasar por Mac: se detecta por pantalla táctil.
-  const iPadOS = navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1;
-  return iOS || iPadOS;
+function isTouch(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia?.("(any-pointer: coarse)").matches ||
+    (navigator.maxTouchPoints || 0) > 0;
 }
 function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
   return !!(window.matchMedia?.("(display-mode: standalone)").matches ||
     (navigator as any).standalone === true);
 }
-function inSafari(): boolean {
-  const ua = navigator.userAgent || "";
-  return /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|Chrome|Android/.test(ua);
+function isAndroid(): boolean {
+  return /Android/i.test(navigator.userAgent || "");
 }
-function isIPad(): boolean {
-  return /iPad/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && (navigator.maxTouchPoints || 0) > 1);
+// Nota: NO se intenta detectar "es iPad" por user-agent — iPadOS moderno se hace
+// pasar por Mac de escritorio. Todo táctil no-Android recibe los pasos de Safari.
+function isIPhone(): boolean {
+  return /iPhone|iPod/.test(navigator.userAgent || "");
 }
 
 const ShareIcon = () => (
@@ -43,9 +42,10 @@ const PlusIcon = () => (
 
 export function AddToHome() {
   const [open, setOpen] = useState(false);
-  // Solo tiene sentido en iPhone/iPad y si aún no está instalada como app.
-  if (!isIOS() || isStandalone()) return null;
-  const device = isIPad() ? "iPad" : "iPhone";
+  // Cualquier táctil (iPad/iPhone/Android) que no esté ya instalada como app.
+  if (!isTouch() || isStandalone()) return null;
+  const android = isAndroid();
+  const device = android ? "tablet/teléfono" : (isIPhone() ? "iPhone" : "iPad");
   return (
     <>
       <button className="a2hs-btn" onClick={() => setOpen(true)}>
@@ -62,23 +62,31 @@ export function AddToHome() {
               Deja Sanvest BI como una app: un ícono en tu pantalla de inicio que abre a
               pantalla completa, como cualquier aplicación.
             </p>
-            <ol className="a2hs__steps">
-              <li><span className="a2hs__num">1</span>
-                <span>Abre esta página en <strong>Safari</strong> (el ícono azul de brújula).</span></li>
-              <li><span className="a2hs__num">2</span>
-                <span>Toca el botón <strong>Compartir</strong>
-                  <span className="a2hs__share"><ShareIcon /></span>
-                  {device === "iPad" ? " (arriba, junto a la barra de direcciones)." : " (en la barra de abajo)."}</span></li>
-              <li><span className="a2hs__num">3</span>
-                <span>Desliza hacia abajo y elige <strong>«Agregar a pantalla de inicio»</strong>.</span></li>
-              <li><span className="a2hs__num">4</span>
-                <span>Toca <strong>Agregar</strong> (arriba a la derecha). ¡Listo!</span></li>
-            </ol>
-            {!inSafari() && (
-              <div className="a2hs__warn">
-                Estás en otro navegador. En iPhone/iPad, «Agregar a inicio» solo funciona desde
-                <strong> Safari</strong>: copia este enlace y ábrelo en Safari.
-              </div>
+            {android ? (
+              <ol className="a2hs__steps">
+                <li><span className="a2hs__num">1</span>
+                  <span>Abre esta página en <strong>Chrome</strong>.</span></li>
+                <li><span className="a2hs__num">2</span>
+                  <span>Toca el menú <strong>⋮</strong> (arriba a la derecha).</span></li>
+                <li><span className="a2hs__num">3</span>
+                  <span>Elige <strong>«Agregar a pantalla principal»</strong> (o «Instalar app»).</span></li>
+                <li><span className="a2hs__num">4</span>
+                  <span>Confirma con <strong>Agregar</strong>. ¡Listo!</span></li>
+              </ol>
+            ) : (
+              <ol className="a2hs__steps">
+                <li><span className="a2hs__num">1</span>
+                  <span>Abre esta página en <strong>Safari</strong> (el ícono azul de brújula).</span></li>
+                <li><span className="a2hs__num">2</span>
+                  <span>Toca el botón <strong>Compartir</strong>
+                    <span className="a2hs__share"><ShareIcon /></span>
+                    {isIPhone() ? " (en la barra de abajo)." : " (arriba, junto a la barra de direcciones)."}</span></li>
+                <li><span className="a2hs__num">3</span>
+                  <span>Desliza hacia abajo y elige <strong>«Agregar a pantalla de inicio»</strong>.
+                    Si no aparece, toca «Editar acciones» al final de la lista.</span></li>
+                <li><span className="a2hs__num">4</span>
+                  <span>Toca <strong>Agregar</strong> (arriba a la derecha). ¡Listo!</span></li>
+              </ol>
             )}
             <div className="a2hs__foot">
               <Button variant="primary" onClick={() => setOpen(false)}>Entendido</Button>

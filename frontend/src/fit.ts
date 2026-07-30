@@ -10,17 +10,27 @@ const MAX_ZOOM = 1.0;   // no agrandar: 100% = tamaño real
 const MIN_ZOOM = 0.5;   // piso de legibilidad
 // Bajo este ancho NO se usa el zoom "fit-to-width": el layout es RESPONSIVE y se
 // reacomoda (apila columnas) vía las media queries de styles.css. Encoger un
-// diseño de escritorio a 375px lo dejaba minúsculo; por eso teléfono e iPad
-// vertical usan reflow real y solo iPad horizontal / desktop conservan el zoom.
+// diseño de escritorio a 375px lo dejaba minúsculo.
 const REFLOW_BELOW = 1024;
+
+// Dispositivo táctil (iPad/iPhone/Android): NUNCA usar el zoom, en ninguna
+// orientación. El iPad horizontal mide ~1024-1194px y caía en el régimen de zoom:
+// al GIRAR entraba/salía del zoom y el layout se "desconfiguraba" (el zoom de body
+// + rotación de Safari recalcula mal). En táctil manda el CSS responsive + el
+// pinch-zoom nativo; el fit-to-width queda solo para PC. Criterio = puntero
+// PRINCIPAL grueso (pointer: coarse), el MISMO de las media queries de styles.css
+// (un notebook con pantalla táctil usa mouse → pointer fino → conserva el zoom).
+const IS_TOUCH = typeof window !== "undefined" &&
+  !!window.matchMedia?.("(pointer: coarse)").matches;
 
 let raf = 0;
 
 export function applyFit(): void {
   const b = document.body;
   if (!b) return;
+  if (IS_TOUCH) { b.style.zoom = "1"; return; }  // táctil: reflow por CSS, sin zoom
   const avail = document.documentElement.clientWidth || window.innerWidth;
-  if (avail < REFLOW_BELOW) { b.style.zoom = "1"; return; }  // móvil/tablet: reflow por CSS
+  if (avail < REFLOW_BELOW) { b.style.zoom = "1"; return; }  // ventana angosta: reflow por CSS
   b.style.zoom = "1";                       // medir a escala real
   // ancho natural del contenido (incluye lo que se desbordaría del viewport)
   const need = Math.max(b.scrollWidth, document.documentElement.scrollWidth || 0, 1);
