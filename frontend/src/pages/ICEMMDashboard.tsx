@@ -18,22 +18,26 @@ const PNL = [
   { title: "FY (proyección)", real: "FY Proy", ppto: "FY PPTO" },
 ];
 
+// Niveles que componen cada línea de resultado. Deben calzar 1:1 con las líneas del
+// Informe de Gestión de arriba: EBITDA = Ingresos − Gastos Op. − Oficina Central;
+// Resultado = EBITDA + Otros no operacionales (= la fila "Resultado" al pie).
+const ING = ["Ingresos"];
+const EBITDA_N1 = ["Ingresos", "Gastos Operacionales", "Gastos Oficina Central"];
+const RES_N1 = [...EBITDA_N1, "Otros no operacionales"];
+
 // 8 combos: barra=Real (o YTD Real), líneas=Proy+PPTO (o YTD); filtran por Nivel 1.
-// Resultado Operacional = Ingresos+Gastos Op.; EBITDA = +Gastos Oficina Central (verificado).
 // flip: los gastos se guardan en NEGATIVO; en los gráficos SOLO de gastos se muestran
 // como magnitud positiva (hacia arriba). EBITDA/Resultado NO se voltean: son netos
 // (ingresos − gastos) y deben conservar su signo real.
-const ING = ["Ingresos"], GOP = ["Ingresos", "Gastos Operacionales"];
-const GOC = ["Ingresos", "Gastos Operacionales", "Gastos Oficina Central"];
 const COMBOS = [
   { t: "Ingreso Mensual", niv: ING, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
   { t: "Ingresos YTD", niv: ING, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
   { t: "Gastos Operación Mensual", niv: ["Gastos Operacionales"], bar: "Real", lines: ["Proy", "PPTO"], flip: true },
   { t: "Gastos Operación YTD", niv: ["Gastos Operacionales"], bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: true },
-  { t: "EBITDA Mensual", niv: GOC, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
-  { t: "EBITDA YTD", niv: GOC, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
-  { t: "Resultado Operacional Mensual", niv: GOP, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
-  { t: "Resultado Operacional YTD", niv: GOP, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
+  { t: "EBITDA Mensual", niv: EBITDA_N1, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
+  { t: "EBITDA YTD", niv: EBITDA_N1, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
+  { t: "Resultado Mensual", niv: RES_N1, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
+  { t: "Resultado YTD", niv: RES_N1, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
 ];
 
 export function ICEMMDashboard() {
@@ -80,12 +84,27 @@ export function ICEMMDashboard() {
 
   const pointRows = useMemo(() => men.filter((r) => num(r["FechID"]) === pointFid), [men, pointFid]);
   // orden EERR de las secciones: ingresos arriba, gastos después, otros al final
-  const N1_EERR = ["Ingresos", "Gastos Operacionales", "Gastos Oficina Central", "Otros no operacionales"];
+  const N1_EERR = [...EBITDA_N1, "Otros no operacionales"];
   const eerrOrd = (g: string) => { const i = N1_EERR.indexOf(g); return i < 0 ? N1_EERR.length : i; };
-  const pnlMulti: PnLMultiRow[] = pointRows.map((r) => ({
+  const detail: PnLMultiRow[] = pointRows.map((r) => ({
     nivel1: n1(r), nivel2: String(r["Nivel 2"] ?? ""),
     vals: PNL.map((p) => ({ real: num(r[p.real]), ppto: num(r[p.ppto]) })),
   })).sort((a, b) => eerrOrd(a.nivel1) - eerrOrd(b.nivel1));
+
+  // EBITDA = Ingresos − Gastos Operacionales − Gastos Oficina Central. Los gastos ya
+  // vienen en NEGATIVO, así que se suman. Va intercalado justo antes de "Otros no
+  // operacionales" (que solo entra en la fila "Resultado" al pie).
+  const sumaN1 = (grupos: string[], col: string) =>
+    pointRows.filter((r) => grupos.includes(n1(r))).reduce((a, r) => a + (num(r[col]) ?? 0), 0);
+  const ebitda: PnLMultiRow = {
+    nivel1: "", nivel2: "EBITDA", result: true,
+    vals: PNL.map((p) => ({ real: sumaN1(EBITDA_N1, p.real), ppto: sumaN1(EBITDA_N1, p.ppto) })),
+  };
+  // corte = filas de las 3 secciones del EBITDA, que por el sort quedan al principio
+  const cut = detail.filter((r) => EBITDA_N1.includes(r.nivel1)).length;
+  const pnlMulti: PnLMultiRow[] = detail.length
+    ? [...detail.slice(0, cut), ebitda, ...detail.slice(cut)]
+    : [];
 
   // series de combos: ventana móvil de 12 meses que termina en el mes elegido
   // (o el último reportado, = pointFid); cruza al año anterior vía FechID
@@ -165,9 +184,10 @@ export function ICEMMDashboard() {
 
       <footer className="dash__footer">
         Página <strong>ICEMM</strong> (Construcción) del Power BI: Informe de Gestión
-        YTD / YTG / FY por Nivel 1 ▸ Nivel 2 (colapsables, a la fecha = {pointLbl}); combos de
-        Ingreso, Gastos Operación, EBITDA (+Gastos Oficina Central) y Resultado Operacional
-        (Ingresos+Gastos Op.); y el flujo de caja. Reconciliado 1:1 contra el .pbix.
+        YTD / YTG / FY por Nivel 1 ▸ Nivel 2 (colapsables, a la fecha = {pointLbl}), con
+        EBITDA (Ingresos − Gastos Operacionales − Gastos Oficina Central) y Resultado
+        (EBITDA + Otros no operacionales); los combos de EBITDA y Resultado usan esas
+        mismas definiciones, así que cierran contra la tabla. Más el flujo de caja.
       </footer>
     </div>
   );
