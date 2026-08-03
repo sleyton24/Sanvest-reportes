@@ -16,6 +16,8 @@ Reglas verificadas por value-match contra icemm_mensual reconciliado (202603):
    Ingresos aparece 'Olá Costanera' y en Costos de Obra 'Ola Costanera'). El match
    de sección y la homologación son INSENSIBLES a tildes por eso mismo.
  - YTD = cumsum del año; FY = suma 12 meses (constante); YTG = FY − YTD.
+ - Las líneas sin proyección en el crudo (Ingresos/Costos Financieros: solo traen
+   Real) toman Proy = Real, que es como las cuenta la columna FY del propio Excel.
 """
 from __future__ import annotations
 
@@ -147,6 +149,16 @@ def crudo_to_icemm_mensual(path: str | Path) -> pd.DataFrame:
     if not recs:
         raise RuntimeError("No se extrajeron filas del Informe ICEMM (revisar hojas/estructura)")
     df = pd.DataFrame(recs).sort_values(["Nivel 1", "Nivel 2", "Año", "Mes"]).reset_index(drop=True)
+
+    # Las líneas financieras (Ingresos/Costos Financieros) vienen SIN Proy ni PPTO en
+    # el crudo: solo traen Real. Como el FY se deriva de la suma de los 12 'Proy',
+    # quedaban en FY 0 y el Resultado FY perdía lo ya realizado — may-2026 mostraba
+    # 8.503,8 (el EBITDA pelado) en vez de los 8.603,2 que trae la columna FY del
+    # propio Excel. El archivo SÍ las cuenta en su FY, así que la regla es: si una
+    # línea no trae proyección, su proyección es lo que efectivamente ocurrió.
+    # Verificado contra las columnas YTD/YTG/FY del crudo: desvío 0,00 en los 12
+    # cruces de EBITDA y RESULTADO (antes -99,3 en Resultado FY).
+    df["Proy"] = df["Proy"].fillna(df["Real"])
 
     g = df.groupby(["Nivel 1", "Nivel 2", "Año"], sort=False)
     df["YTD Real"] = g["Real"].cumsum()
