@@ -926,8 +926,21 @@ body {
 
 /* ----------------------------- PPT Directorio (PDF) ----------------------- */
 .ppt__upload { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.ppt__frame { width: 100%; height: calc(100vh - 170px); min-height: 500px; border: 1px solid var(--border);
-  border-radius: 10px; background: var(--surface); }
+/* Visor propio (canvas de PDF.js). No se usa <iframe>: WebKit deja en blanco los
+   PDF embebidos desde una blob: URL — ver el comentario de PptDirectorio.tsx. */
+.ppt__viewer { display: flex; flex-direction: column; gap: 10px; }
+.ppt__nav { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.ppt__count { font-size: 13px; font-weight: 600; color: var(--muted); min-width: 130px; text-align: center; }
+/* La lámina se ajusta por JS al ancho Y al alto visibles (ver PptDirectorio.tsx),
+   así que el stage solo la centra; el relleno inferior de .dash se recorta para
+   que "cabe justo" no deje igual un resto de scroll en iPad. */
+.ppt.dash { padding-bottom: 14px; }
+.ppt__stage { width: 100%; display: flex; justify-content: center; align-items: center;
+  min-height: 200px; padding: 0;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden;
+  /* el swipe de lámina es horizontal; queda libre el pinch-zoom para ver detalle */
+  touch-action: pan-y pinch-zoom; }
+.ppt__canvas { display: block; max-width: 100%; }
 
 /* ----------------------------- comentarios (foro) ------------------------- */
 .cmodal__backdrop { position: fixed; inset: 0; background: rgba(11, 23, 41, 0.45);
