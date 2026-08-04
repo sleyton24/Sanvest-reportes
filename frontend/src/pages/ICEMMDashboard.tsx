@@ -25,19 +25,21 @@ const ING = ["Ingresos"];
 const EBITDA_N1 = ["Ingresos", "Gastos Operacionales", "Gastos Oficina Central"];
 const RES_N1 = [...EBITDA_N1, "Otros no operacionales"];
 
-// 8 combos: barra=Real (o YTD Real), líneas=Proy+PPTO (o YTD); filtran por Nivel 1.
+// 8 combos: barra=Real (o YTD Real), línea=PPTO (o YTD PPTO); filtran por Nivel 1.
+// La proyección (Proy) se saca de los gráficos a pedido: el contraste que interesa
+// es Real contra Presupuesto. Las columnas Proy siguen en la BD y en la tabla (FY).
 // flip: los gastos se guardan en NEGATIVO; en los gráficos SOLO de gastos se muestran
 // como magnitud positiva (hacia arriba). EBITDA/Resultado NO se voltean: son netos
 // (ingresos − gastos) y deben conservar su signo real.
 const COMBOS = [
-  { t: "Ingreso Mensual", niv: ING, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
-  { t: "Ingresos YTD", niv: ING, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
-  { t: "Gastos Operación Mensual", niv: ["Gastos Operacionales"], bar: "Real", lines: ["Proy", "PPTO"], flip: true },
-  { t: "Gastos Operación YTD", niv: ["Gastos Operacionales"], bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: true },
-  { t: "EBITDA Mensual", niv: EBITDA_N1, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
-  { t: "EBITDA YTD", niv: EBITDA_N1, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
-  { t: "Resultado Mensual", niv: RES_N1, bar: "Real", lines: ["Proy", "PPTO"], flip: false },
-  { t: "Resultado YTD", niv: RES_N1, bar: "YTD Real", lines: ["YTD Proy", "YTD PPTO"], flip: false },
+  { t: "Ingreso Mensual", niv: ING, bar: "Real", lines: ["PPTO"], flip: false },
+  { t: "Ingresos YTD", niv: ING, bar: "YTD Real", lines: ["YTD PPTO"], flip: false },
+  { t: "Gastos Operación Mensual", niv: ["Gastos Operacionales"], bar: "Real", lines: ["PPTO"], flip: true },
+  { t: "Gastos Operación YTD", niv: ["Gastos Operacionales"], bar: "YTD Real", lines: ["YTD PPTO"], flip: true },
+  { t: "EBITDA Mensual", niv: EBITDA_N1, bar: "Real", lines: ["PPTO"], flip: false },
+  { t: "EBITDA YTD", niv: EBITDA_N1, bar: "YTD Real", lines: ["YTD PPTO"], flip: false },
+  { t: "Resultado Mensual", niv: RES_N1, bar: "Real", lines: ["PPTO"], flip: false },
+  { t: "Resultado YTD", niv: RES_N1, bar: "YTD Real", lines: ["YTD PPTO"], flip: false },
 ];
 
 export function ICEMMDashboard() {
@@ -129,7 +131,8 @@ export function ICEMMDashboard() {
       if (!niveles.includes(n1(r))) continue;
       const iso = String(r["Fecha"]).slice(0, 10);
       const k = periodKey(iso);
-      const e = m.get(k) ?? { key: k, iso, bar: 0, l0: 0, l1: 0 };
+      const e = m.get(k) ?? { key: k, iso, bar: 0,
+        ...Object.fromEntries(lineCols.map((_, i) => [`l${i}`, 0])) };
       e.bar += s * (num(r[barCol]) ?? 0);
       lineCols.forEach((c, i) => { e["l" + i] += s * (num(r[c]) ?? 0); });
       m.set(k, e);
@@ -166,7 +169,8 @@ export function ICEMMDashboard() {
         <FlujoPivot title="Flujo de Caja" rows={flujo} defaultCollapsed />
       </section>
 
-      {/* Combos: Ingreso / Gastos Operación / EBITDA / Resultado Operacional (mensual + YTD) */}
+      {/* Combos: Ingreso / Gastos Operación / EBITDA / Resultado (mensual + YTD),
+          barra Real contra línea Ppto — sin la proyección */}
       {[[0, 1], [2, 3], [4, 5], [6, 7]].map((pair) => (
         <section className="row row--two" key={pair[0]}>
           {pair.map((i) => {
@@ -175,7 +179,7 @@ export function ICEMMDashboard() {
               <ColumnLinesChart key={c.t} title={c.t}
                 data={comboData(c.niv, c.bar, c.lines, c.flip)}
                 bar={{ key: "bar", label: c.bar.includes("YTD") ? "Real YTD" : "Real" }}
-                lines={[{ key: "l0", label: "Proy" }, { key: "l1", label: "Ppto" }]}
+                lines={c.lines.map((col, i) => ({ key: `l${i}`, label: col.includes("PPTO") ? "Ppto" : "Proy" }))}
                 tipFmt={fmtUF} />
             );
           })}
