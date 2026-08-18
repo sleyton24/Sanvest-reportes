@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import hmac
 import os
+import re
 import shutil
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
@@ -65,7 +67,17 @@ ETL_AGENT_ENABLED = os.environ.get("SANVEST_ETL_AGENT_ENABLED", "").lower() in (
 # Carpeta para archivos subidos que NO viven en el repo (p.ej. la PPT Directorio en
 # PDF). Sobrevive a `git reset --hard` (es untracked) y se puede mover con env.
 DATA_DIR = Path(os.environ.get("SANVEST_DATA_DIR") or (Path(__file__).resolve().parent.parent / "data"))
-PPT_PDF = DATA_DIR / "ppt_directorio.pdf"
+PPT_PDF = DATA_DIR / "ppt_directorio.pdf"          # legado: PDF único (pre-versiones)
+PPT_DIR = DATA_DIR / "ppt_versiones"               # una versión por archivo, nada se pisa
+PPT_MAX_BYTES = 300 * 1024 * 1024                  # tope de subida (PPT con fotos pesa)
+
+
+def _ppt_cleanup(tmp: Path | None, dest: Path | None) -> None:
+    """Borra el temporal y el placeholder del destino tras una subida fallida."""
+    for p in (tmp, dest):
+        if p is not None:
+            try: p.unlink(missing_ok=True)
+            except OSError: pass
 
 
 def require_write(authorization: str | None = Header(None),
@@ -435,6 +447,15 @@ class CommentBody(BaseModel):
     body: str
 
 
+@app.get("/comments", tags=["comentarios"])
+def get_all_comments(limit: int = Query(1000, ge=1, le=2000),
+                     user: dict = Depends(auth.current_user)):
+    """Comentarios de TODAS las unidades visibles para el usuario, del más nuevo al
+    más antiguo (el front los agrupa por fecha y unidad en la página PPT Directorio)."""
+    units = None if user["role"] == "admin" else list(user.get("units") or [])
+    return auth.list_comments_all(units, limit)
+
+
 @app.get("/units/{unit}/comments", tags=["comentarios"],
          dependencies=[Depends(auth.require_unit_access)])
 def get_comments(unit: str):
@@ -460,29 +481,117 @@ def post_comment(unit: str, body: CommentBody, user: dict = Depends(auth.current
 
 
 # ----------------------------- PPT Directorio (PDF) --------------------------
+# Versionado: cada subida crea un archivo NUEVO en data/ppt_versiones/ con id
+# "<YYYYmmdd_HHMMSS>__<nombre original>.pdf" (el stamp ordena y evita colisiones).
+# El PDF único legado (data/ppt_directorio.pdf) migra solo, como primera versión.
+def _ppt_safe_name(filename: str | None) -> str:
+    """Nombre de archivo seguro para guardar en disco: solo el basename, sin
+    separadores de ruta ni caracteres de control; conserva tildes/ñ. La extensión
+    queda SIEMPRE '.pdf' en minúscula: el listado filtra por ella y en Linux el
+    filesystem es case-sensitive (un '.PDF' quedaría invisible)."""
+    base = Path(filename or "").name
+    base = re.sub(r"[^\w \-.()áéíóúÁÉÍÓÚñÑ]", "_", base).strip(" .")
+    if base.lower().endswith(".pdf"):
+        base = base[:-4].rstrip(" .")
+    return f"{(base or 'documento')[-115:]}.pdf"
+
+
+def _ppt_migrate() -> None:
+    """Si existe el PDF único legado, pasa a ser una versión más (conserva su fecha).
+    Best-effort: con data/ sin permisos de escritura (incidente conocido en prod) los
+    GET deben seguir sirviendo el legado como versión virtual, no responder 500. El
+    except cubre también la carrera entre workers (el os.replace perdedor)."""
+    if not PPT_PDF.exists():
+        return
+    try:
+        PPT_DIR.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.fromtimestamp(PPT_PDF.stat().st_mtime).strftime("%Y%m%d_%H%M%S")
+        os.replace(PPT_PDF, PPT_DIR / f"{stamp}__ppt_directorio.pdf")
+    except OSError as e:
+        print(f"[ppt] migración del PDF legado pospuesta: {type(e).__name__}: {e}")
+
+
+def _ppt_versions() -> list[dict]:
+    """Versiones disponibles, de la más nueva a la más antigua."""
+    _ppt_migrate()
+    out = []
+    if PPT_DIR.exists():
+        for p in PPT_DIR.iterdir():
+            if not p.name.lower().endswith(".pdf"):
+                continue
+            try:
+                st = p.stat()
+            except OSError:        # borrada por otro request entre iterdir y stat
+                continue
+            out.append({"id": p.name,
+                        "name": p.name.split("__", 1)[1] if "__" in p.name else p.name,
+                        "ts": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(timespec="seconds"),
+                        "size": st.st_size,
+                        "_mtime": st.st_mtime})
+    if PPT_PDF.exists():           # legado sin migrar (data/ solo lectura): virtual
+        try:
+            st = PPT_PDF.stat()
+            out.append({"id": PPT_PDF.name, "name": PPT_PDF.name,
+                        "ts": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(timespec="seconds"),
+                        "size": st.st_size, "_mtime": st.st_mtime})
+        except OSError:
+            pass
+    # Por fecha real de escritura (el stamp del nombre empata cuando dos subidas
+    # caen en el mismo segundo y el sufijo "-1" rompería el orden lexicográfico).
+    out.sort(key=lambda v: (v.pop("_mtime"), v["id"]), reverse=True)
+    return out
+
+
+def _ppt_version_path(vid: str) -> Path:
+    """Path de una versión por id, rechazando cualquier cosa que no sea un nombre
+    simple dentro de la carpeta (sin traversal)."""
+    if Path(vid).name != vid or not vid.lower().endswith(".pdf"):
+        raise HTTPException(400, "id de versión inválido")
+    if vid == PPT_PDF.name and PPT_PDF.exists():
+        return PPT_PDF             # legado aún sin migrar (versión virtual)
+    p = PPT_DIR / vid
+    if not p.exists():
+        raise HTTPException(404, "Esa versión de la PPT no existe.")
+    return p
+
+
+@app.get("/docs/ppt-directorio/versions", tags=["documentos"])
+def ppt_versions(_user: dict = Depends(auth.current_user)):
+    """Lista las versiones subidas de la PPT Directorio (la más nueva primero)."""
+    return {"versions": _ppt_versions()}
+
+
 @app.get("/docs/ppt-directorio/meta", tags=["documentos"])
 def ppt_meta(_user: dict = Depends(auth.current_user)):
     """¿Hay PPT Directorio cargada? (para que el front sepa si mostrarla)."""
-    if PPT_PDF.exists():
-        st = PPT_PDF.stat()
-        from datetime import datetime as _dt, timezone as _tz
-        return {"exists": True, "size": st.st_size,
-                "uploaded_at": _dt.fromtimestamp(st.st_mtime, _tz.utc).isoformat(timespec="seconds")}
+    vs = _ppt_versions()
+    if vs:
+        return {"exists": True, "size": vs[0]["size"], "uploaded_at": vs[0]["ts"],
+                "versions": len(vs)}
     return {"exists": False}
 
 
 @app.get("/docs/ppt-directorio", tags=["documentos"])
-def ppt_get(_user: dict = Depends(auth.current_user)):
-    """Sirve el PDF de la PPT Directorio en línea (el front lo muestra sin descargar)."""
-    if not PPT_PDF.exists():
-        raise HTTPException(404, "Aún no se ha subido la PPT Directorio.")
-    return FileResponse(str(PPT_PDF), media_type="application/pdf",
-                        headers={"Content-Disposition": 'inline; filename="ppt_directorio.pdf"'})
+def ppt_get(v: str | None = Query(None), _user: dict = Depends(auth.current_user)):
+    """Sirve el PDF en línea (el front lo muestra sin descargar). Sin `v` sirve la
+    versión más reciente; con `v=<id>` una versión específica."""
+    if v:
+        p = _ppt_version_path(v)
+    else:
+        vs = _ppt_versions()
+        if not vs:
+            raise HTTPException(404, "Aún no se ha subido la PPT Directorio.")
+        p = _ppt_version_path(vs[0]["id"])   # resuelve también el legado virtual
+    # filename= (no un header a mano): starlette lo escapa RFC 5987 — los nombres
+    # con ñ/tildes rompen el header si se interpolan directo (no son latin-1 puros).
+    return FileResponse(str(p), media_type="application/pdf",
+                        filename=p.name, content_disposition_type="inline")
 
 
 @app.post("/docs/ppt-directorio", tags=["documentos"], dependencies=[Depends(auth.require_admin)])
 async def ppt_upload(file: UploadFile = File(...)):
-    """Sube/reemplaza la PPT Directorio (PDF). Solo admin.
+    """Sube una NUEVA versión de la PPT Directorio (PDF). Solo admin. Las versiones
+    anteriores se conservan y se pueden elegir en el visor.
 
     Escribe a un temporal en la MISMA carpeta y luego renombra (evita dejar un PDF
     a medias si el guardado falla). Los errores de filesystem se registran en el log
@@ -491,21 +600,63 @@ async def ppt_upload(file: UploadFile = File(...)):
     permisos (Starlette derrama a un temporal los archivos > 1 MB al parsear)."""
     if not (file.filename or "").lower().endswith(".pdf"):
         raise HTTPException(400, "el archivo debe ser .pdf")
-    tmp = PPT_PDF.with_suffix(".pdf.part")
+    head = file.file.read(1024)
+    file.file.seek(0)
+    if b"%PDF-" not in head:
+        raise HTTPException(400, "el archivo no parece un PDF válido")
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    tmp = dest = None
     try:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        with tmp.open("wb") as f:
-            shutil.copyfileobj(file.file, f)   # lee el spooled temp de Starlette
-        os.replace(tmp, PPT_PDF)               # atómico dentro del mismo filesystem
+        _ppt_migrate()
+        PPT_DIR.mkdir(parents=True, exist_ok=True)
+        # Reclama el destino con O_CREAT|O_EXCL: único incluso entre PROCESOS (prod
+        # corre uvicorn con 2 workers; un while exists() sería check-then-act).
+        base = _ppt_safe_name(file.filename)
+        cand, n = PPT_DIR / f"{stamp}__{base}", 1
+        while True:
+            try:
+                os.close(os.open(cand, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+                dest = cand
+                break
+            except FileExistsError:            # misma hora exacta → sufijo
+                cand = PPT_DIR / f"{stamp}-{n}__{base}"
+                n += 1
+        # Temporal ÚNICO por request (mkstemp) en la misma carpeta → replace atómico.
+        fd, tmp_name = tempfile.mkstemp(dir=PPT_DIR, suffix=".part")
+        tmp = Path(tmp_name)
+        with os.fdopen(fd, "wb") as f:
+            copied = 0
+            while chunk := file.file.read(1024 * 1024):
+                copied += len(chunk)
+                if copied > PPT_MAX_BYTES:
+                    raise HTTPException(413, "PDF demasiado grande "
+                                        f"(máx. {PPT_MAX_BYTES // (1024 * 1024)} MB).")
+                f.write(chunk)
+        os.replace(tmp, dest)                  # atómico dentro del mismo filesystem
+        tmp = None                             # ya publicado: nada que limpiar
+    except HTTPException:
+        _ppt_cleanup(tmp, dest)
+        raise
     except OSError as e:                        # permisos, disco/tmp lleno, etc.
-        try: tmp.unlink(missing_ok=True)
-        except OSError: pass
+        _ppt_cleanup(tmp, dest)
         import traceback; traceback.print_exc()
         raise HTTPException(500, f"No se pudo guardar el PDF en el servidor "
                             f"({DATA_DIR}): {type(e).__name__}: {e}")
     finally:
         await file.close()
-    return {"ok": True, "size": PPT_PDF.stat().st_size}
+    return {"ok": True, "id": dest.name, "size": dest.stat().st_size}
+
+
+@app.delete("/docs/ppt-directorio/versions/{vid}", tags=["documentos"],
+            dependencies=[Depends(auth.require_admin)])
+def ppt_delete_version(vid: str):
+    """Elimina una versión subida por error. Solo admin."""
+    p = _ppt_version_path(vid)
+    try:
+        p.unlink()
+    except OSError as e:
+        raise HTTPException(500, f"No se pudo eliminar la versión: {type(e).__name__}: {e}")
+    return {"ok": True}
 
 
 # ----------------------------- ingreso manual KPIs USA -----------------------

@@ -386,6 +386,23 @@ def list_comments(unit: str, limit: int = 500) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def list_comments_all(units: list[str] | None, limit: int = 1000) -> list[dict]:
+    """Comentarios de varias unidades (None = todas, para admin), del más nuevo al
+    más antiguo. Alimenta la vista agrupada por fecha/unidad del PPT Directorio."""
+    lim = max(1, min(limit, 2000))
+    if units is not None and not units:
+        return []                      # viewer sin unidades asignadas: nada que ver
+    where, binds = "", {"lim": lim}
+    if units is not None:
+        binds.update({f"u{i}": u for i, u in enumerate(units)})
+        where = "WHERE unit IN (" + ", ".join(f":u{i}" for i in range(len(units))) + ") "
+    with engine.connect() as con:
+        rows = con.execute(text(
+            "SELECT ts, unit, username, full_name, body FROM comments "
+            f"{where}ORDER BY ts DESC LIMIT :lim"), binds).mappings().all()
+    return [dict(r) for r in rows]
+
+
 # ----------------------------- perfilado -------------------------------------
 def user_can_see(user: dict, unit: str) -> bool:
     """¿El usuario puede ver esta unidad? Admin ve todo; viewer solo su lista."""

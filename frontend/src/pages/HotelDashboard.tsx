@@ -6,6 +6,7 @@ import { Slicer } from "../components/Slicer";
 import { Gauge } from "../components/Gauge";
 import { IndicatorTableMY, IndicatorRowMY } from "../components/IndicatorTable";
 import { BarsLineChart, MultiLineChart } from "../components/charts/Charts";
+import { HoldingPnLMulti, PnLMultiRow } from "../components/HoldingPnL";
 
 const REAL = "hotel_real", PPTO = "hotel_ppto", FULL = "hotel_full";
 const MESES = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -56,6 +57,7 @@ export function HotelDashboard() {
   const [month, setMonth] = useState<number | "">("");
   const [data, setData] = useState<Record<string, Row[]>>({});
   const [deuda, setDeuda] = useState<Row[]>([]);   // deuda_activos (opcional)
+  const [pnl, setPnl] = useState<Row[]>([]);       // hotel_pnl — apertura por cuenta (opcional)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refresh] = useState(0);
@@ -70,6 +72,8 @@ export function HotelDashboard() {
       .finally(() => !cancelled && setLoading(false));
     // deuda_activos opcional (tabla nueva; puede no existir aún en prod) → tolerante a error
     fetchRows("Hotel", "deuda_activos").then((d) => { if (!cancelled) setDeuda(d); }).catch(() => { if (!cancelled) setDeuda([]); });
+    // hotel_pnl (apertura por cuenta): también opcional hasta que se cargue en prod
+    fetchRows("Hotel", "hotel_pnl").then((d) => { if (!cancelled) setPnl(d); }).catch(() => { if (!cancelled) setPnl([]); });
     return () => { cancelled = true; };
   }, [refresh]);
 
@@ -190,6 +194,30 @@ export function HotelDashboard() {
     saldo: a.saldo + (num(r["por pagar"]) ?? 0), total: a.total + (num(r["Deuda total"]) ?? 0),
   }), { saldo: 0, total: 0 });
 
+  // Apertura por cuenta (hotel_pnl): mes elegido, o el último REPORTADO (con Real)
+  const pnlPoint = (() => {
+    let rs = pnl.filter((r) => num(r["Versión_Real"]) != null);
+    if (year !== "") rs = rs.filter((r) => num(r["Año"]) === year);
+    if (month !== "") rs = rs.filter((r) => num(r["Mes"]) === month);
+    const reported = new Set(rs.filter((r) => num(r["Versión_Real"]) !== 0).map((r) => num(r["FechaID"])!));
+    const fids = (year === "" && month === "" ? [...reported] : rs.map((r) => num(r["FechaID"])!)).filter((x) => !isNaN(x));
+    if (!fids.length) return [] as Row[];
+    const mx = Math.max(...fids);
+    return rs.filter((r) => num(r["FechaID"]) === mx);
+  })();
+  const pnlMulti: PnLMultiRow[] = pnlPoint.map((r) => {
+    const n1 = String(r["Nivel 1"] ?? r["Nivel 1 "] ?? "");
+    const n2 = String(r["Nivel 2"] ?? "");
+    return {
+      nivel1: n1, nivel2: n2, indice: num(r["Indice"]) ?? 99,
+      result: n1.trim() === n2.trim(),   // líneas de resultado: Nivel 2 == Nivel 1
+      vals: [
+        { real: num(r["Versión_Real"]), ppto: num(r["Versión_Ppto"]) },
+        { real: num(r["YTD REAL"]), ppto: num(r["YTD PPTO"]) },
+      ],
+    };
+  }).sort((a, b) => (a.indice ?? 99) - (b.indice ?? 99));
+
   const indItems = [...new Set((pointRows[FULL] ?? []).map((r) => String(r["Item"])))];
   const indRowMY = (item: string): IndicatorRowMY => {
     const rows = (pointRows[FULL] ?? []).filter((r) => String(r["Item"]) === item);
@@ -214,6 +242,16 @@ export function HotelDashboard() {
         <IndicatorTableMY title="Informe de Gestión (Mensual y YTD)"
           rows={indItems.map((it) => indRowMY(it))} />
       </section>
+
+      {/* Apertura completa por cuenta de la hoja 'Informe gestión' del CCPP
+          (mismo formato que la vista LAR Group; secciones colapsables). Los
+          gastos vienen negativos, tal como el informe. */}
+      {pnlMulti.length > 0 && (
+        <section className="row" style={{ gridTemplateColumns: "1fr" }}>
+          <HoldingPnLMulti title="Apertura por cuenta — Informe de Gestión (UF)"
+            rows={pnlMulti} groups={["Mes", "YTD"]} unit="UF" />
+        </section>
+      )}
       <section className="row row--hotel-kpis">
         {/* tablas apiladas a lo ancho (7 columnas no caben a media página) */}
         <div className="stack">

@@ -397,25 +397,39 @@ export async function askEtlAgent(unit: string, messages: ChatMsg[], handlers: A
     "El mantenedor de ETL no está habilitado (falta ANTHROPIC_API_KEY o SANVEST_ETL_AGENT_ENABLED=1).");
 }
 
-// --- PPT Directorio (PDF) ---
-export interface PptMeta { exists: boolean; size?: number; uploaded_at?: string; }
-export async function pptMeta(): Promise<PptMeta> {
-  return jsonOrThrow(await apiFetch(`/docs/ppt-directorio/meta`), "estado PPT Directorio");
+// --- PPT Directorio (PDF, con versiones) ---
+export interface PptVersion { id: string; name: string; ts: string; size: number; }
+export async function listPptVersions(): Promise<PptVersion[]> {
+  const data = await jsonOrThrow(await apiFetch(`/docs/ppt-directorio/versions`), "versiones PPT");
+  return (data.versions || []) as PptVersion[];
 }
 // Descarga el PDF como blob (con auth) para mostrarlo en línea sin descarga.
-export async function fetchPptBlob(): Promise<Blob> {
-  const res = await apiFetch(`/docs/ppt-directorio`);
-  if (!res.ok) throw new Error(res.status === 404 ? "Aún no se ha subido la PPT Directorio." : `PPT: ${res.status}`);
+// Sin `version` trae la más reciente. En error usa el detail del backend (distingue
+// "aún no hay PPT" de "esa versión ya no existe").
+export async function fetchPptBlob(version?: string): Promise<Blob> {
+  const qs = version ? `?v=${encodeURIComponent(version)}` : "";
+  const res = await apiFetch(`/docs/ppt-directorio${qs}`);
+  if (!res.ok) {
+    const d = (await res.json().catch(() => ({})))?.detail;
+    throw new Error(typeof d === "string" ? d : `PPT: ${res.status}`);
+  }
   return res.blob();
 }
-export async function uploadPpt(file: File): Promise<void> {
+// Sube una NUEVA versión (las anteriores se conservan); devuelve su id.
+export async function uploadPpt(file: File): Promise<{ id: string }> {
   const fd = new FormData();
   fd.append("file", file);
   const res = await apiFetch(`/docs/ppt-directorio`, { method: "POST", body: fd });
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const d = (await res.json().catch(() => ({})))?.detail;
+    const d = (data as any)?.detail;
     throw new Error(typeof d === "string" ? d : `subir PDF: ${res.status}`);
   }
+  return data as { id: string };
+}
+export async function deletePptVersion(id: string): Promise<void> {
+  await jsonOrThrow(await apiFetch(`/docs/ppt-directorio/versions/${encodeURIComponent(id)}`,
+    { method: "DELETE" }), "eliminar versión");
 }
 
 // --- comentarios (foro por unidad) ---
@@ -427,6 +441,11 @@ export async function postComment(unit: string, body: string): Promise<Comment> 
   return jsonOrThrow(await apiFetch(`/units/${unit}/comments`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }),
   }), "publicar comentario");
+}
+// Todos los comentarios de las unidades visibles del usuario (más nuevos primero);
+// la página PPT Directorio los agrupa por fecha y unidad.
+export async function listAllComments(limit = 1000): Promise<Comment[]> {
+  return jsonOrThrow(await apiFetch(`/comments?limit=${limit}`), "comentarios");
 }
 
 // num() seguro: convierte celda a número o null

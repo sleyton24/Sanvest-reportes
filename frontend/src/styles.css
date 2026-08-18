@@ -70,6 +70,11 @@
   white-space: normal; text-align: left; pointer-events: none;
 }
 
+/* Reserva el canal de la barra de scroll: si aparecer/desaparecer cambiara el ancho,
+   el visor PPT (que re-renderiza por ancho) podría oscilar cuando el alto de la
+   página queda justo al borde del viewport. */
+html { scrollbar-gutter: stable; }
+
 body {
   margin: 0;
   font-family: "Avenir Next", "Inter", "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -926,8 +931,47 @@ body {
 
 /* ----------------------------- PPT Directorio (PDF) ----------------------- */
 .ppt__upload { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.ppt__frame { width: 100%; height: calc(100vh - 170px); min-height: 500px; border: 1px solid var(--border);
-  border-radius: 10px; background: var(--surface); }
+/* barra sobre el visor: selector de versión (izq.) + eliminar (der., admin) */
+.ppt__bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+.ppt__verlabel { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.ppt__versions, .pcom__unitpick select {
+  padding: 8px 11px; border: 1px solid var(--border-strong); border-radius: 7px;
+  background: var(--surface); color: var(--ink); font-size: 14px;
+}
+.ppt__versions:focus, .pcom__unitpick select:focus { outline: none; border-color: var(--accent); }
+.ppt__versions { max-width: min(420px, 70vw); }
+.ppt__delete { margin-left: auto; background: none; border: 1px solid var(--border-strong); border-radius: 999px;
+  padding: 6px 12px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.ppt__delete:hover { color: var(--neg); border-color: var(--neg); }
+/* visor paginado (pdf.js): pager centrado + lámina en canvas */
+.ppt__pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
+.ppt__pageinfo { font-size: 13px; font-weight: 600; color: var(--muted); min-width: 120px; text-align: center;
+  font-variant-numeric: tabular-nums; }
+.ppt__stage { width: 100%; }
+.ppt__canvas { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); box-shadow: 0 8px 22px rgba(15, 30, 54, 0.10); }
+
+/* comentarios agrupados por fecha y unidad (bajo el visor) */
+.pcom { margin-top: 22px; }
+.pcom__title { font-size: 16px; font-weight: 800; color: var(--ink); margin: 0 0 12px; }
+.pcom__compose { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.pcom__unitpick { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.pcom__compose textarea { flex: 1 1 260px; resize: vertical; min-height: 44px; background: var(--surface-2);
+  border: 1px solid var(--border-strong); border-radius: 8px; padding: 9px 11px; font: inherit; font-size: 14px; color: var(--ink); }
+.pcom__compose textarea:focus { outline: none; border-color: var(--accent); }
+.pcom__empty { color: var(--muted); font-style: italic; font-size: 14px; }
+.pcom__day { margin-bottom: 6px; }
+.pcom__dayhead { font-size: 14px; font-weight: 800; color: var(--ink); text-transform: none;
+  border-bottom: 1px solid var(--border-strong); padding-bottom: 5px; margin: 14px 0 10px; }
+.pcom__unit { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
+.pcom__unithead { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.pcom__chip { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; }
+@media print {
+  .ppt__bar, .ppt__pager, .ppt__upload, .pcom { display: none !important; }
+  /* el JS fija el ancho del canvas en px de pantalla: en papel se reescala a la hoja */
+  .ppt__canvas { width: 100% !important; height: auto !important; box-shadow: none; }
+}
 
 /* ----------------------------- comentarios (foro) ------------------------- */
 .cmodal__backdrop { position: fixed; inset: 0; background: rgba(11, 23, 41, 0.45);

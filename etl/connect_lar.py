@@ -18,7 +18,8 @@ from sqlalchemy.engine import Engine
 from .informes_lar import (FLOW, LY_COLS, RPL_COLS, TARIFF_YTD_COLS,
                            assemble_real_ppto_ly, consolidado_largroup_facts,
                            consolidado_to_indicadores_lar, extract_facts,
-                           extract_kpi_ytd, facts_to_indicadores)
+                           extract_kpi_ytd, facts_to_indicadores,
+                           informe_to_apertura)
 
 
 def _read(engine: Engine, table: str) -> pd.DataFrame:
@@ -191,35 +192,52 @@ def upsert_real_ppto_ly(engine: Engine, facts: pd.DataFrame,
             "filas_insertadas": len(inserts)}
 
 
-# ----------------------------- Indicadores Financieros Lar (holding) ---------
+# ------------------- Indicadores Financieros Lar (holding + apertura) --------
 def upsert_indicadores_lar(engine: Engine, new_df: pd.DataFrame) -> dict:
+    """Upsert por (Nombre activo, Nivel 1, Nivel 2, FechaID). La tabla nació solo
+    con el holding y sus upserts históricos no copiaban 'Nombre activo' (quedaba
+    NULL): se normaliza NULL ⇒ 'Lar Group' porque ahora conviven el holding y la
+    apertura por edificio (SOHO/PARK) en la misma tabla."""
     cur = _read(engine, "indicadores_financieros_lar")
+    if "Nombre activo" in cur.columns:
+        cur["Nombre activo"] = cur["Nombre activo"].fillna("Lar Group")
+    else:
+        cur["Nombre activo"] = "Lar Group"
     cols = list(cur.columns)
     n1c = "Nivel 1 " if "Nivel 1 " in cols else "Nivel 1"
 
-    def key(n1, n2, fid):
-        return f"{str(n1).strip()}|{str(n2).strip()}|{_fid(fid)}"
+    def key(act, n1, n2, fid):
+        return f"{str(act).strip()}|{str(n1).strip()}|{str(n2).strip()}|{_fid(fid)}"
 
-    cur["_k"] = [key(a, b, f) for a, b, f in zip(cur[n1c], cur["Nivel 2"], cur["FechaID"])]
+    cur["_k"] = [key(a, b, c, f) for a, b, c, f in
+                 zip(cur["Nombre activo"], cur[n1c], cur["Nivel 2"], cur["FechaID"])]
     existing = set(cur["_k"])
     upd_cols = ["Real Peso", "PPTO Peso", "Versión_Real", "Versión_Ppto", "UF Mes",
-                "YTD REAL", "YTD PPTO"]
+                "UF Mes PPTO", "YTD REAL", "YTD PPTO"]
     n_upd, inserts = 0, []
     for _, r in new_df.iterrows():
-        k = key(r["Nivel 1 "], r["Nivel 2"], r["FechaID"])
+        act = r.get("Nombre activo") or "Lar Group"
+        k = key(act, r["Nivel 1 "], r["Nivel 2"], r["FechaID"])
         if k in existing:
             sel = cur["_k"] == k
             for c in upd_cols:
-                if c in new_df.columns and c in cur.columns:
+                # solo se escribe lo que el informe TRAE (igual que _upsert_wide):
+                # un None pisaría el Real de un mes ya cargado al recargar un
+                # informe viejo (sus meses futuros vienen vacíos), y borraría
+                # columnas que el df nuevo no calcula (p.ej. 'UF Mes PPTO' del
+                # holding, que el consolidado no produce).
+                if c in new_df.columns and c in cur.columns and pd.notna(r.get(c)):
                     cur.loc[sel, c] = r.get(c)
             n_upd += 1
         else:
             row = {c: None for c in cols}
             row[n1c] = r["Nivel 1 "]
+            row["Nombre activo"] = act
             for c in ["Nivel 2", "Periodo", "Mes", "Año", "Indice", "FechaID"] + upd_cols:
                 if c in cols:
                     row[c] = r.get(c)
             inserts.append(row)
+            existing.add(k)            # una clave nueva repetida no se inserta dos veces
     cur = cur.drop(columns=["_k"])
     merged = (pd.concat([cur, pd.DataFrame(inserts, columns=cols)], ignore_index=True)
               if inserts else cur)
@@ -243,7 +261,30 @@ def apply_informes(engine: Engine, specs: list[tuple], consolidado=None) -> dict
         "indicadores_financieros": upsert_indicadores(engine, ind),
         "real_ppto_ly": upsert_real_ppto_ly(engine, facts, kpi_ytd),
     }
+    # Apertura completa por cuenta: SOHO/PARK desde su propio informe + el holding
+    # desde el consolidado — todo a indicadores_financieros_lar (Nombre activo).
+    # Tolerante a fallos: la apertura exige más anclas del informe que el resto del
+    # ETL, así que un cambio de formato SOLO en esa parte no debe tumbar una carga
+    # que antes funcionaba (los indicadores y el Real/PPTO/LY ya quedaron escritos).
+    lar_dfs, avisos = [], []
+    for p, a in specs:
+        try:
+            lar_dfs.append(informe_to_apertura(p, a))
+        except Exception as e:                                     # noqa: BLE001
+            avisos.append(f"apertura de {a} omitida: {type(e).__name__}: {e}")
     if consolidado:
-        out["indicadores_financieros_lar"] = upsert_indicadores_lar(
-            engine, consolidado_to_indicadores_lar(consolidado))
+        try:
+            lar_dfs.append(consolidado_to_indicadores_lar(consolidado))
+        except Exception as e:                                     # noqa: BLE001
+            avisos.append(f"apertura del holding omitida: {type(e).__name__}: {e}")
+    if lar_dfs:
+        try:
+            out["indicadores_financieros_lar"] = upsert_indicadores_lar(
+                engine, pd.concat(lar_dfs, ignore_index=True))
+        except Exception as e:                                     # noqa: BLE001
+            avisos.append(f"apertura no guardada: {type(e).__name__}: {e}")
+    if avisos:
+        for a in avisos:
+            print(f"[apertura] {a}")
+        out["avisos"] = avisos
     return out

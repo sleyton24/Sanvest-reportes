@@ -803,6 +803,93 @@
       "dates": [
         "Fecha"
       ]
+    },
+    {
+      "model_name": "Hotel PnL (apertura por cuenta)",
+      "slug": "hotel_pnl",
+      "rows": 0,
+      "columns": [
+        {
+          "name": "Nombre activo",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 1",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Nivel 2",
+          "dtype": "string",
+          "role": "dimension"
+        },
+        {
+          "name": "Indice",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Periodo",
+          "dtype": "datetime64[us]",
+          "role": "date"
+        },
+        {
+          "name": "Mes",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "Año",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "FechaID",
+          "dtype": "Int64",
+          "role": "dimension"
+        },
+        {
+          "name": "UF Mes",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "UF Mes PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Real Peso",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "PPTO Peso",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Real",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "Versión_Ppto",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD REAL",
+          "dtype": "float64",
+          "role": "measure"
+        },
+        {
+          "name": "YTD PPTO",
+          "dtype": "float64",
+          "role": "measure"
+        }
+      ]
     }
   ]
 }

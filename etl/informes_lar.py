@@ -266,6 +266,186 @@ def consolidado_to_indicadores_lar(path) -> pd.DataFrame:
     return df
 
 
+# --------------------- apertura por cuenta (SOHO / PARK) ---------------------
+def _cuentas(rows, r0, r1):
+    """Cuentas entre dos filas ancla: etiquetas 'Total Ingresos - X' / 'Total Gastos - X'
+    (se descarta el prefijo; el nombre conserva su casing). Ignora subtotales y memos
+    ('Sub Total…', 'Total Clientes…')."""
+    out = []
+    for ri in range(r0 + 1, r1):
+        lbl = rows[ri][1] if len(rows[ri]) > 1 else None
+        if not lbl:
+            continue
+        s = re.sub(r"\s+", " ", str(lbl).strip())
+        if s.lower().startswith(("total ingresos -", "total gastos -")):
+            out.append((ri, s.split("-", 1)[1].strip() or s))
+    return out
+
+
+def _otros(rows, r0, r1):
+    """Líneas entre EBITDA Ajustado y Resultado, clasificadas para que la sección
+    SUME hasta el Resultado: devuelve (fila, nombre, unidad, signo, memo).
+
+    OJO: bajo el EBITDA el informe cambia a UF — todas estas filas vienen en UF
+    aunque conserven el prefijo '$' de arriba. Signos verificados contra el propio
+    informe en los 12 meses de SOHO y PARK (Real y Ppto):
+        Resultado = EBITDA Ajustado − Provisión CAPEX − Intereses pagados
+                    − otros gastos (p.ej. Impto Timbre) + Intereses ganados
+    'Total Gastos - Rehabilitación del Edificio (Capex)' es INFORMATIVA (es el capex
+    efectivamente gastado, que se financia con la provisión) y NO entra en la fórmula:
+    excluirla es lo que hace cuadrar todos los meses."""
+    out = []
+    for ri in range(r0 + 1, r1):
+        lbl = rows[ri][1] if len(rows[ri]) > 1 else None
+        if not lbl or not str(lbl).strip():
+            continue
+        s = re.sub(r"\s+", " ", str(lbl).strip())
+        low = s.lower()
+        if low.startswith(("total ingresos -", "total gastos -")):
+            n2 = s.split("-", 1)[1].strip()
+            es_ingreso = low.startswith("total ingresos")
+            memo = not es_ingreso and "capex" in low      # capex gastado: informativo
+            out.append((ri, n2, "UF", 1 if es_ingreso else -1, memo))
+        elif "(uf)" in low:                                # Provisión CAPEX, Intereses pagados
+            out.append((ri, re.sub(r"\s*\(UF\)\s*", " ", s, flags=re.I).strip(), "UF", -1, False))
+    return out
+
+
+def informe_to_apertura(path, activo) -> pd.DataFrame:
+    """Informe de Gestión SOHO/PARK -> apertura COMPLETA por cuenta, mismo formato
+    que 'Indicadores Financieros Lar' del holding (Nombre activo distingue).
+
+    Replica la estructura del informe: Ingresos y Gastos Operacionales cuenta a
+    cuenta, EBITDA, los gastos bajo EBITDA (seguros, patentes, asesorías…),
+    EBITDA Ajustado, Capex/Intereses, Resultado, Amortización y Flujo Inversionista.
+    Trae los 12 meses del año (Real solo de meses reportados —EBITDA UF ≠ 0 y tasa
+    UF real, los futuros traen placeholder 1—; Ppto del año completo) con $ y UF
+    (tasa de la fila UF del informe) y YTD (cumsum del año, criterio del holding).
+    Las líneas de resultado llevan Nivel 2 == Nivel 1 (así las reconoce el front).
+
+    Signos: sobre el EBITDA se conserva la convención del informe y del holding ya
+    cargado (ingresos y gastos en positivo); BAJO el EBITDA las filas van signadas
+    para que cada sección SUME hasta su línea de resultado:
+        EBITDA + Ajustes bajo EBITDA        = EBITDA Ajustado
+        EBITDA Ajustado + Capex/Int./Otros  = Resultado
+    Así el cuadro se puede auditar sumando. `_conciliar` avisa por log si un informe
+    futuro deja de cuadrar (cambio de formato o cuenta nueva mal clasificada)."""
+    rows = _load(path)
+    months = _month_cols(rows)
+    rate_row = next((r for r in rows
+                     if sum(isinstance(v, (int, float)) and 30000 < v < 60000 for v in r) >= 3), None)
+
+    r_ing_hdr = _row_ns(rows, "cuentas-ingresos")
+    r_ing_sub = _row_ns(rows, "subtotaltotalingresos")
+    r_gas_hdr = _row_ns(rows, "cuentas-gastos")
+    r_gas_tot = _row(rows, ["Total Gastos"])
+    r_eb_uf = _row_ns(rows, "ebitda(ingresos-gastos)uf", exclude=("ajustado",))
+    r_eb_clp = _row_ns(rows, "ebitda(ingresos-gastos)$", exclude=("ajustado",))
+    r_eb_adj = _row_ns(rows, "ebitdaajustado(uf)")
+    r_res = _row(rows, ["RESULTADO (UF)"])
+    r_amort = _row(rows, ["Amortización (UF)", "Amortizacion (UF)"])
+    r_flujo = _row(rows, ["FLUJO INVERSIONISTA (UF)"])
+    anclas = {"tasa UF": rate_row, "Cuentas-INGRESOS": r_ing_hdr, "Sub Total Ingresos": r_ing_sub,
+              "Cuentas-GASTOS": r_gas_hdr, "Total Gastos": r_gas_tot, "EBITDA UF": r_eb_uf,
+              "EBITDA AJUSTADO": r_eb_adj, "RESULTADO": r_res, "FLUJO": r_flujo}
+    faltan = [k for k, v in anclas.items() if v is None]
+    if faltan:
+        raise RuntimeError(f"{activo}: el informe no trae las anclas {faltan} "
+                           f"(¿cambió el formato de la hoja '{SHEET}'?)")
+
+    otros = _otros(rows, r_eb_adj, r_res)
+    # (indice, Nivel 1, [(fila, Nivel 2, unidad, signo)])
+    secciones = [
+        (1, "Ingresos", [(ri, n2, "$", 1) for ri, n2 in _cuentas(rows, r_ing_hdr, r_ing_sub)]),
+        (2, "Gastos Operacionales", [(ri, n2, "$", 1) for ri, n2 in _cuentas(rows, r_gas_hdr, r_gas_tot)]),
+        # bajo el EBITDA el informe está en UF y las secciones suman hasta su resultado
+        (4, "Ajustes bajo EBITDA", [(ri, n2, "UF", -1) for ri, n2 in _cuentas(rows, r_eb_uf, r_eb_adj)]),
+        (6, "Capex, Intereses y Otros",
+         [(ri, n2, un, sg) for ri, n2, un, sg, memo in otros if not memo]),
+        (7, "Informativos (fuera del Resultado)",
+         [(ri, n2, un, 1) for ri, n2, un, _sg, memo in otros if memo]),
+    ]
+    resultados = [
+        (3, "EBITDA", r_eb_uf, r_eb_clp),
+        (5, "EBITDA Ajustado", r_eb_adj, None),
+        (8, "Resultado", r_res, None),
+        (9, "Amortización", r_amort, None),
+        (10, "Flujo Inversionista", r_flujo, None),
+    ]
+
+    recs = []
+    for d, rc, pc in months:            # meses ascendentes: el cumsum YTD depende de esto
+        _rate = lambda ci: (rate_row[ci]
+                            if isinstance(rate_row[ci], (int, float)) and rate_row[ci] > 1000 else None)
+        rate_r, rate_p = _rate(rc), _rate(pc)
+        eb = _num(rows, r_eb_uf, rc)
+        real_ok = rate_r is not None and eb is not None and eb != 0
+        base = {"Nombre activo": activo, "Periodo": d, "Mes": d.month, "Año": d.year,
+                "FechaID": d.year * 100 + d.month, "UF Mes": rate_r, "UF Mes PPTO": rate_p}
+        for indice, n1, accs in secciones:
+            for ri, n2, un, sg in accs:
+                vr = _num(rows, ri, rc) if real_ok else None
+                vp = _num(rows, ri, pc)
+                if un == "$":
+                    recs.append({**base, "Nivel 1 ": n1, "Nivel 2": n2, "Indice": indice,
+                                 "Real Peso": sg * vr if vr is not None else None,
+                                 "PPTO Peso": sg * vp if vp is not None else None,
+                                 "Versión_Real": sg * vr / rate_r if vr is not None and rate_r else None,
+                                 "Versión_Ppto": sg * vp / rate_p if vp is not None and rate_p else None})
+                else:                    # la fila ya viene en UF
+                    recs.append({**base, "Nivel 1 ": n1, "Nivel 2": n2, "Indice": indice,
+                                 "Real Peso": None, "PPTO Peso": None,
+                                 "Versión_Real": sg * vr if vr is not None else None,
+                                 "Versión_Ppto": sg * vp if vp is not None else None})
+        for indice, n2, ri, ri_clp in resultados:
+            if ri is None:
+                continue
+            recs.append({**base, "Nivel 1 ": n2, "Nivel 2": n2, "Indice": indice,
+                         "Real Peso": _num(rows, ri_clp, rc) if real_ok else None,
+                         "PPTO Peso": _num(rows, ri_clp, pc),
+                         "Versión_Real": _num(rows, ri, rc) if real_ok else None,
+                         "Versión_Ppto": _num(rows, ri, pc)})
+
+    df = pd.DataFrame(recs)
+    g = df.groupby(["Nivel 1 ", "Nivel 2", "Año"])
+    df["YTD REAL"] = g["Versión_Real"].cumsum()
+    df["YTD PPTO"] = g["Versión_Ppto"].cumsum()
+    for msg in conciliar_apertura(df, activo):
+        print(f"[apertura] {msg}")
+    return df
+
+
+# Cuadraturas del informe: (línea de partida | None, [secciones], línea de llegada).
+# Las líneas son las de resultado (Nivel 1 == Nivel 2) y las secciones, Nivel 1.
+CUADRATURAS = [("EBITDA", ["Ajustes bajo EBITDA"], "EBITDA Ajustado"),
+               ("EBITDA Ajustado", ["Capex, Intereses y Otros"], "Resultado")]
+
+
+def conciliar_apertura(df: pd.DataFrame, activo: str = "", n1_col: str = "Nivel 1 ",
+                       cuadraturas: list | None = None) -> list[str]:
+    """Verifica que cada sección sume hasta su línea de resultado, mes a mes, en Real
+    y Ppto. Devuelve la lista de descuadres (vacía = todo cuadra). No lanza: un informe
+    con una cuenta nueva mal clasificada debe AVISAR, no tumbar la carga."""
+    out = []
+    for fid, g in df.groupby("FechaID"):
+        for col in ("Versión_Real", "Versión_Ppto"):
+            # líneas de resultado del mes (Nivel 1 == Nivel 2): EBITDA, Resultado, …
+            res_de = dict(zip(g.loc[g[n1_col] == g["Nivel 2"], "Nivel 2"],
+                              g.loc[g[n1_col] == g["Nivel 2"], col]))
+            for base, secciones, destino in (cuadraturas or CUADRATURAS):
+                v1 = res_de.get(destino)
+                v0 = 0.0 if base is None else res_de.get(base)
+                if v0 is None or v1 is None or pd.isna(v0) or pd.isna(v1):
+                    continue          # mes sin Real (futuro) o informe sin esa línea
+                suma = g.loc[g[n1_col].isin(secciones), col].sum()
+                dif = (v0 + suma) - v1
+                if abs(dif) > max(0.05, abs(v1) * 1e-6):
+                    origen = f"{base} + " if base else ""
+                    out.append(f"{activo} {int(fid)} {col}: {origen}{'+'.join(secciones)} "
+                               f"= {v0 + suma:.2f} ≠ {destino} {v1:.2f} (dif {dif:+.2f})")
+    return out
+
+
 # métrica -> (col Real, col Ppto) en real_ppto_ly
 RPL_COLS = {
     "Ingresos totales UF": ("Ingresos totales UF R", "Ingresos totales UF p"),

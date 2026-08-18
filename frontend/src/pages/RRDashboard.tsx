@@ -167,9 +167,17 @@ export function RRDashboard() {
     ytdReal: num(r["YTD REAL"]), ytdPpto: num(r["YTD PPTO"]),
   }));
 
+  // indicadores_financieros_lar guarda el holding Y la apertura por edificio
+  // (Nombre activo); el holding son las filas "Lar Group" (o sin activo: los
+  // upserts históricos no copiaban la columna y quedaba NULL).
+  const larHold = useMemo(() => lar.filter((r) => {
+    const a = String(r["Nombre activo"] ?? "").trim();
+    return !a || /group|grupo/i.test(a);
+  }), [lar]);
+
   // P&L del holding (Lar Group): filas del periodo REPORTADO (Nivel 1 / Nivel 2)
   const larPoint = useMemo(() => {
-    let rs = lar.filter((r) => num(r["Versión_Real"]) != null);
+    let rs = larHold.filter((r) => num(r["Versión_Real"]) != null);
     if (year !== "") rs = rs.filter((r) => num(r["Año"]) === year);
     if (month !== "") rs = rs.filter((r) => num(r["Mes"]) === month);
     const reported = new Set(rs.filter((r) => num(r["Versión_Real"]) !== 0).map((r) => num(r["FechaID"])!));
@@ -177,7 +185,7 @@ export function RRDashboard() {
     if (!fids.length) return [];
     const mx = Math.max(...fids);
     return rs.filter((r) => num(r["FechaID"]) === mx);
-  }, [lar, year, month]);
+  }, [larHold, year, month]);
   // Informe de Gestión LAR unificado: grupos de columnas Mes | YTD, secciones con
   // montos en la línea del grupo (sin filas Total) y EBITDA/Resultado al cierre.
   const larMulti: PnLMultiRow[] = larPoint.map((r) => ({
@@ -188,6 +196,32 @@ export function RRDashboard() {
       { real: num(r["YTD REAL"]), ppto: num(r["YTD PPTO"]) },
     ],
   })).sort((a, b) => (a.indice ?? 9) - (b.indice ?? 9));
+
+  // Apertura por cuenta del edificio (SOHO/PARK): mismas filas Nivel 1/Nivel 2 que
+  // el holding pero desde el Informe de Gestión propio (Nombre activo = edificio).
+  const apPoint = useMemo(() => {
+    let rs = lar.filter((r) => String(r["Nombre activo"] ?? "").trim() === activo
+      && num(r["Versión_Real"]) != null);
+    if (year !== "") rs = rs.filter((r) => num(r["Año"]) === year);
+    if (month !== "") rs = rs.filter((r) => num(r["Mes"]) === month);
+    const reported = new Set(rs.filter((r) => num(r["Versión_Real"]) !== 0).map((r) => num(r["FechaID"])!));
+    const fids = (year === "" && month === "" ? [...reported] : rs.map((r) => num(r["FechaID"])!)).filter((x) => !isNaN(x));
+    if (!fids.length) return [];
+    const mx = Math.max(...fids);
+    return rs.filter((r) => num(r["FechaID"]) === mx);
+  }, [lar, activo, year, month]);
+  const apMulti: PnLMultiRow[] = apPoint.map((r) => {
+    const n1 = String(r["Nivel 1 "] ?? r["Nivel 1"] ?? "");
+    const n2 = String(r["Nivel 2"] ?? "");
+    return {
+      nivel1: n1, nivel2: n2, indice: num(r["Indice"]) ?? 9,
+      result: n1.trim() === n2.trim(),   // líneas de resultado: Nivel 2 == Nivel 1
+      vals: [
+        { real: num(r["Versión_Real"]), ppto: num(r["Versión_Ppto"]) },
+        { real: num(r["YTD REAL"]), ppto: num(r["YTD PPTO"]) },
+      ],
+    };
+  }).sort((a, b) => (a.indice ?? 9) - (b.indice ?? 9));
 
   // KPIs Grupo (tipología): unidades administradas por tipología/métrica [Max], en el
   // orden del informe (totales, desglose por modelo, edificios, m²).
@@ -359,6 +393,15 @@ export function RRDashboard() {
           <section className="row" style={{ gridTemplateColumns: "1fr" }}>
             <IndicatorTableMY title="Informe de Gestión (Mensual y YTD, UF)" rows={indMY} />
           </section>
+
+          {/* Apertura completa por cuenta del Informe de Gestión del edificio
+              (mismo formato que la vista LAR Group; secciones colapsables) */}
+          {apMulti.length > 0 && (
+            <section className="row" style={{ gridTemplateColumns: "1fr" }}>
+              <HoldingPnLMulti title={`Apertura por cuenta — ${activo} (UF)`}
+                rows={apMulti} groups={["Mes", "YTD"]} unit="UF" />
+            </section>
+          )}
 
           {/* Indicadores UF/m² en una tabla (Real/Ppto, Mes + YTD) + gauges de
               ocupación mes y YTD uno al lado del otro (reunión JMB jul-2026) */}

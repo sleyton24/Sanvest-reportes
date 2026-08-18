@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { PrintLabelsProvider } from "./print";
 import { DVDashboard } from "./pages/DVDashboard";
 import { HotelDashboard } from "./pages/HotelDashboard";
@@ -10,7 +10,9 @@ import { GrupoDashboard } from "./pages/GrupoDashboard";
 import { MainMenu } from "./pages/MainMenu";
 import { Login } from "./pages/Login";
 import { AdminPage } from "./pages/AdminPage";
-import { PptDirectorio } from "./pages/PptDirectorio";
+// Chunk aparte (lazy): trae pdf.js (~400 KB gz) que el resto de la app no usa.
+const PptDirectorio = lazy(() =>
+  import("./pages/PptDirectorio").then((m) => ({ default: m.PptDirectorio })));
 import { ChangePassword } from "./components/ChangePassword";
 import { Comments } from "./components/Comments";
 import { useAuth } from "./auth";
@@ -131,7 +133,11 @@ export function App() {
         {unit === "ICEMM" && <ICEMMDashboard />}
         {unit === "Atempora" && <AtemporaDashboard />}
         {unit === "Grupo" && <GrupoDashboard />}
-        {unit === "ppt" && <PptDirectorio />}
+        {unit === "ppt" && (
+          <Suspense fallback={<div className="state">Cargando…</div>}>
+            <PptDirectorio />
+          </Suspense>
+        )}
         {unit === "admin" && user.is_admin && <AdminPage />}
       </div>
     </PrintLabelsProvider>

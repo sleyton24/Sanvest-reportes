@@ -8,6 +8,7 @@ Real=marcador 'Real' en fila 7; fecha en fila 6; LY = Real+3 (mismo mes año ant
 from __future__ import annotations
 
 import datetime as dt
+import re
 from pathlib import Path
 
 import openpyxl
@@ -181,6 +182,149 @@ def ccpp_to_hotel_full(path) -> pd.DataFrame:
     g = df.groupby(["Item", "anio"])
     df["Versión_Real YTD"] = g["Versión_Real"].cumsum()
     df["Versión_Ppto YTD"] = g["Versión_Ppto"].cumsum()
+    return df
+
+
+# --------------------- apertura por cuenta (hoja Informe gestión) ------------
+# Cuadraturas del informe del hotel: (línea de partida | None, [secciones], llegada).
+CUADRATURAS_HOTEL = [
+    (None, ["Ingresos", "Gastos Operacionales"], "GOP"),
+    ("GOP", ["No Operacionales"], "EBITDA"),
+    ("EBITDA", ["Capex e Intereses"], "Resultado antes de Impuestos"),
+]
+
+
+def _hns(s) -> str:
+    """Etiqueta normalizada (sin espacios, minúscula) para anclar filas."""
+    return re.sub(r"\s+", "", str(s).strip().lower())
+
+
+def ccpp_to_hotel_pnl(path) -> pd.DataFrame:
+    """Apertura COMPLETA por cuenta de la hoja 'Informe gestión <año>' del CCPP —
+    el equivalente hotelero de 'Indicadores Financieros Lar'. Estructura del
+    informe: Ingresos y Gastos Operacionales cuenta a cuenta (en $, los gastos
+    vienen negativos), GOP ($ y UF), No Operacionales (UF), EBITDA (UF), Capex e
+    Intereses, y las líneas de resultado/flujo (todas UF: verificado GOP(UF) +
+    no operacionales = EBITDA y Resultado − UGO = Consolidado, exacto).
+
+    Versión_Real/Ppto en UF: cuentas $ divididas por la tasa implícita del mes
+    (GOP $ / GOP UF, por versión). Real solo de meses con operación reportada
+    (mismo corte por ocupación del resto del ETL del hotel); Ppto del año entero.
+    Líneas de resultado con Nivel 2 == Nivel 1 (así las reconoce el front)."""
+    ig_rows, ig_months, _ = _informe_gestion(path)
+    cutoff = _last_reported_month(_load(path))
+    cutoff_m = cutoff.month if cutoff else None   # el año del RESUMEN puede venir
+    # desfasado de la plantilla; el CCPP cubre UN año → el mes basta para cortar
+
+    labels = [(ri, re.sub(r"\s+", " ", str(r[1]).strip())) for ri, r in enumerate(ig_rows)
+              if len(r) > 1 and r[1] and str(r[1]).strip()]
+
+    def find(needle, exclude=()):
+        for ri, s in labels:
+            t = _hns(s)
+            if needle in t and not any(e in t for e in exclude):
+                return ri
+        return None
+
+    def find_exact(*cands):
+        cs = {_hns(c) for c in cands}
+        for ri, s in labels:
+            if _hns(s) in cs:
+                return ri
+        return None
+
+    r_ing_hdr = find("cuentas-ingresos")
+    r_ing_tot = find("ingresosexplotaci")            # 'Total Ingresos Explotación'
+    r_gas_hdr = find("cuentas-gastos")
+    r_gas_tot = find_exact("Total Gastos")
+    r_gop = find_exact("GOP")
+    r_gop_uf = find_exact("GOP (UF)")
+    r_eb = find_exact("EBITDA", "EBITDA (UF)")
+    r_res_imp = find("resultadoantesdeimpuestos")    # (singular; no pisa el Consolidado)
+    r_flujo_cons = find("flujocajaconsolidado")
+    anclas = {"Cuentas-INGRESOS": r_ing_hdr, "Total Ingresos Explotación": r_ing_tot,
+              "Cuentas-GASTOS": r_gas_hdr, "Total Gastos": r_gas_tot, "GOP": r_gop,
+              "GOP (UF)": r_gop_uf, "EBITDA": r_eb,
+              "Resultado antes de Impuestos": r_res_imp, "Flujo Caja Consolidado": r_flujo_cons}
+    faltan = [k for k, v in anclas.items() if v is None]
+    if faltan:
+        raise ValueError(f"hoja 'Informe gestión': faltan las anclas {faltan} "
+                         f"(¿cambió el formato del CCPP?)")
+
+    def cuentas(r0, r1):
+        out = []
+        for ri in range(r0 + 1, r1):
+            lbl = ig_rows[ri][1] if len(ig_rows[ri]) > 1 else None
+            if not lbl or not str(lbl).strip():
+                continue
+            s = re.sub(r"\s+", " ", str(lbl).strip())
+            if _hns(s).startswith("total"):
+                continue                              # subtotales / memos
+            out.append((ri, re.sub(r"\s*\(UF\)\s*", " ", s, flags=re.I).strip()))
+        return out
+
+    nombre = lambda ri: re.sub(r"\s*\(UF\)\s*", " ",
+                               re.sub(r"\s+", " ", str(ig_rows[ri][1]).strip()), flags=re.I).strip()
+    secciones = [                                    # (indice, Nivel 1, cuentas, unidad)
+        (1, "Ingresos", cuentas(r_ing_hdr, r_ing_tot), "$"),
+        (2, "Gastos Operacionales", cuentas(r_gas_hdr, r_gas_tot), "$"),
+        (4, "No Operacionales", cuentas(r_gop_uf, r_eb), "UF"),
+        (6, "Capex e Intereses", cuentas(r_eb, r_res_imp), "UF"),
+    ]
+    resultados = [(3, "GOP", r_gop_uf, r_gop)]       # (indice, nombre, fila UF, fila $)
+    resultados.append((5, "EBITDA", r_eb, None))
+    # cola del informe: Resultado antes de Impuestos, Amortización, Total Flujo Caja,
+    # Resultado UGO, Consolidado… — TODAS las filas con etiqueta (acá sí van los 'Total')
+    tail = [ri for ri in range(r_res_imp + 1, r_flujo_cons)
+            if len(ig_rows[ri]) > 1 and ig_rows[ri][1] and str(ig_rows[ri][1]).strip()]
+    idx = 7
+    for ri in [r_res_imp] + tail + [r_flujo_cons]:
+        resultados.append((idx, nombre(ri), ri, None))
+        idx += 1
+
+    def val(ri, ci):
+        v = ig_rows[ri][ci] if ri is not None and ci is not None and ci < len(ig_rows[ri]) else None
+        return float(v) if isinstance(v, (int, float)) else None
+
+    recs = []
+    for (y, m), rc in sorted(ig_months.items()):     # meses ascendentes: base del YTD
+        pc = rc + 1
+        gop_r, gopuf_r = val(r_gop, rc), val(r_gop_uf, rc)
+        gop_p, gopuf_p = val(r_gop, pc), val(r_gop_uf, pc)
+        rate_r = gop_r / gopuf_r if gop_r and gopuf_r else None
+        rate_p = gop_p / gopuf_p if gop_p and gopuf_p else None
+        real_ok = (m <= cutoff_m) if cutoff_m else bool(gopuf_r)
+        base = {"Nombre activo": ACTIVO, "Periodo": dt.datetime(y, m, 1), "Mes": m, "Año": y,
+                "FechaID": y * 100 + m, "UF Mes": rate_r, "UF Mes PPTO": rate_p}
+        for indice, n1, accs, un in secciones:
+            for ri, n2 in accs:
+                vr = val(ri, rc) if real_ok else None
+                vp = val(ri, pc)
+                if un == "$":
+                    recs.append({**base, "Nivel 1": n1, "Nivel 2": n2, "Indice": indice,
+                                 "Real Peso": vr, "PPTO Peso": vp,
+                                 "Versión_Real": vr / rate_r if vr is not None and rate_r else None,
+                                 "Versión_Ppto": vp / rate_p if vp is not None and rate_p else None})
+                else:                                # la hoja ya trae UF bajo el GOP
+                    recs.append({**base, "Nivel 1": n1, "Nivel 2": n2, "Indice": indice,
+                                 "Real Peso": None, "PPTO Peso": None,
+                                 "Versión_Real": vr, "Versión_Ppto": vp})
+        for indice, n2, ri_uf, ri_clp in resultados:
+            recs.append({**base, "Nivel 1": n2, "Nivel 2": n2, "Indice": indice,
+                         "Real Peso": val(ri_clp, rc) if real_ok else None,
+                         "PPTO Peso": val(ri_clp, pc),
+                         "Versión_Real": val(ri_uf, rc) if real_ok else None,
+                         "Versión_Ppto": val(ri_uf, pc)})
+
+    df = pd.DataFrame(recs)
+    g = df.groupby(["Nivel 1", "Nivel 2", "Año"])
+    df["YTD REAL"] = g["Versión_Real"].cumsum()
+    df["YTD PPTO"] = g["Versión_Ppto"].cumsum()
+    # El informe del hotel ya viene aditivo (gastos en negativo): se verifica que
+    # cada tramo cuadre, para que un cambio de formato o una cuenta nueva avise.
+    from .informes_lar import conciliar_apertura
+    for msg in conciliar_apertura(df, ACTIVO, "Nivel 1", CUADRATURAS_HOTEL):
+        print(f"[apertura] {msg}")
     return df
 
 

@@ -10,10 +10,11 @@ import re
 from pathlib import Path
 
 import pandas as pd
+from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
 
 from .connect_lar import _fid, _read, _write
-from .hotel_ccpp import ccpp_to_hotel_full, ccpp_to_hotel_real
+from .hotel_ccpp import ccpp_to_hotel_full, ccpp_to_hotel_pnl, ccpp_to_hotel_real
 
 # columnas LY del transform -> nombre exacto en hotel_real
 LY_RENAME = {"Costos operacionales UF LY": "Costos operacionales LY"}
@@ -135,6 +136,52 @@ def _upsert_full(engine: Engine, new_df: pd.DataFrame) -> dict:
             "filas_insertadas": len(inserts)}
 
 
+def upsert_hotel_pnl(engine: Engine, new_df: pd.DataFrame) -> dict:
+    """Apertura por cuenta del hotel (hotel_pnl): upsert por (Nivel 1, Nivel 2,
+    FechaID). La primera vez crea la tabla (en prod requiere privilegio CREATE;
+    si falla, correr scripts/backfill_apertura_2026.py con el .env de prod)."""
+    if not inspect(engine).has_table("hotel_pnl"):
+        _write(engine, "hotel_pnl", new_df)
+        return {"filas_resultantes": len(new_df), "filas_actualizadas": 0,
+                "filas_insertadas": len(new_df)}
+    cur = _read(engine, "hotel_pnl")
+    cols = list(cur.columns)
+
+    def key(n1, n2, fid):
+        return f"{str(n1).strip()}|{str(n2).strip()}|{_fid(fid)}"
+
+    cur["_k"] = [key(a, b, f) for a, b, f in zip(cur["Nivel 1"], cur["Nivel 2"], cur["FechaID"])]
+    existing = set(cur["_k"])
+    upd_cols = ["Real Peso", "PPTO Peso", "Versión_Real", "Versión_Ppto", "UF Mes",
+                "UF Mes PPTO", "YTD REAL", "YTD PPTO"]
+    n_upd, inserts = 0, []
+    for _, r in new_df.iterrows():
+        k = key(r["Nivel 1"], r["Nivel 2"], r["FechaID"])
+        if k in existing:
+            sel = cur["_k"] == k
+            for c in upd_cols:
+                # solo lo que el CCPP TRAE (igual que _upsert_wide): recargar un
+                # CCPP viejo traería sus meses futuros vacíos y con un None pisaría
+                # el Real de meses ya cargados.
+                if c in new_df.columns and c in cols and pd.notna(r.get(c)):
+                    cur.loc[sel, c] = r.get(c)
+            n_upd += 1
+        else:
+            row = {c: None for c in cols}
+            for c in ["Nombre activo", "Nivel 1", "Nivel 2", "Periodo", "Mes", "Año",
+                      "Indice", "FechaID"] + upd_cols:
+                if c in cols:
+                    row[c] = r.get(c)
+            inserts.append(row)
+            existing.add(k)
+    cur = cur.drop(columns=["_k"])
+    merged = (pd.concat([cur, pd.DataFrame(inserts, columns=cols)], ignore_index=True)
+              if inserts else cur)
+    _write(engine, "hotel_pnl", merged)
+    return {"filas_resultantes": len(merged), "filas_actualizadas": n_upd,
+            "filas_insertadas": len(inserts)}
+
+
 def _guard_no_regresion(cur_full: pd.DataFrame, new_full: pd.DataFrame) -> None:
     """Aborta si el archivo parece MÁS ANTIGUO que lo ya cargado.
 
@@ -157,6 +204,30 @@ def _guard_no_regresion(cur_full: pd.DataFrame, new_full: pd.DataFrame) -> None:
             f"allow_backfill=True.")
 
 
+def _align_pnl_to_filename(pnl: pd.DataFrame, path) -> int:
+    """Misma corrección de año que _align_years_to_filename pero para la apertura
+    (usa Año/Mes y el último mes CON REAL — la apertura trae Ppto del año entero,
+    así que el máximo (Año, Mes) global siempre sería diciembre y nunca gatillaría).
+    La hoja 'Informe gestión' suele traer el año correcto (a diferencia del RESUMEN),
+    por eso se evalúa por separado: solo corrige si su propio año está corrido."""
+    fp = _filename_period(path)
+    if not fp or not len(pnl):
+        return 0
+    fyear, fmonth = fp
+    conreal = pnl[pnl["Versión_Real"].notna() | pnl["Real Peso"].notna()]
+    if not len(conreal):
+        return 0
+    last = int((conreal["Año"].astype(int) * 100 + conreal["Mes"].astype(int)).max())
+    if last % 100 != fmonth or last // 100 == fyear:
+        return 0
+    delta = fyear - last // 100
+    pnl["Año"] = pnl["Año"].astype(int) + delta
+    pnl["FechaID"] = pnl["Año"] * 100 + pnl["Mes"].astype(int)
+    pnl["Periodo"] = pd.to_datetime(pnl["Año"].astype(str) + "-"
+                                    + pnl["Mes"].astype(int).astype(str).str.zfill(2) + "-01")
+    return delta
+
+
 def apply_ccpp(engine: Engine, path, allow_backfill: bool = False) -> dict:
     real = ccpp_to_hotel_real(path, ppto=False).rename(columns=LY_RENAME)
     ppto = ccpp_to_hotel_real(path, ppto=True)
@@ -168,9 +239,20 @@ def apply_ccpp(engine: Engine, path, allow_backfill: bool = False) -> dict:
         _guard_no_regresion(_read(engine, "hotel_full"), full)
     real_cols = [c for c in real.columns if c not in ("Nombre activo", "FechaID", "Periodo", "anio", "mes")]
     ppto_cols = [c for c in ppto.columns if c not in ("Nombre activo", "FechaID", "Periodo", "anio", "mes")]
-    return {
+    out = {
         "year_shift": year_shift,
         "hotel_real": _upsert_wide(engine, "hotel_real", real, "FechaID", real_cols),
         "hotel_ppto": _upsert_wide(engine, "hotel_ppto", ppto, "FechaID", ppto_cols),
         "hotel_full": _upsert_full(engine, full),
     }
+    # Apertura por cuenta: tolerante a fallos (exige más anclas de la hoja 'Informe
+    # gestión' que el resto del ETL; un cambio de formato ahí no debe tumbar la carga).
+    try:
+        pnl = ccpp_to_hotel_pnl(path)
+        out["pnl_year_shift"] = _align_pnl_to_filename(pnl, path)
+        out["hotel_pnl"] = upsert_hotel_pnl(engine, pnl)
+    except Exception as e:                                         # noqa: BLE001
+        aviso = f"apertura del hotel omitida: {type(e).__name__}: {e}"
+        print(f"[apertura] {aviso}")
+        out["avisos"] = [aviso]
+    return out
