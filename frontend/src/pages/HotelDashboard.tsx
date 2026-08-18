@@ -205,6 +205,13 @@ export function HotelDashboard() {
     const mx = Math.max(...fids);
     return rs.filter((r) => num(r["FechaID"]) === mx);
   })();
+  // Último mes con apertura cargada (la apertura se calcula al subir el CCPP, así que
+  // puede ir más atrás que hotel_full si ese mes se cargó antes de existir esta función).
+  const pnlUltimo = (() => {
+    const f = pnl.filter((r) => num(r["Versión_Real"]) != null && num(r["Versión_Real"]) !== 0)
+      .map((r) => num(r["FechaID"])!).filter((x) => !isNaN(x));
+    return f.length ? Math.max(...f) : null;
+  })();
   const pnlMulti: PnLMultiRow[] = pnlPoint.map((r) => {
     const n1 = String(r["Nivel 1"] ?? r["Nivel 1 "] ?? "");
     const n2 = String(r["Nivel 2"] ?? "");
@@ -246,12 +253,24 @@ export function HotelDashboard() {
       {/* Apertura completa por cuenta de la hoja 'Informe gestión' del CCPP
           (mismo formato que la vista LAR Group; secciones colapsables). Los
           gastos vienen negativos, tal como el informe. */}
-      {pnlMulti.length > 0 && (
+      {pnlMulti.length > 0 ? (
         <section className="row" style={{ gridTemplateColumns: "1fr" }}>
           <HoldingPnLMulti title="Apertura por cuenta — Informe de Gestión (UF)"
             rows={pnlMulti} groups={["Mes", "YTD"]} unit="UF" />
         </section>
-      )}
+      ) : pnlUltimo ? (
+        <section className="row" style={{ gridTemplateColumns: "1fr" }}>
+          <div className="card">
+            <div className="card__title">Apertura por cuenta — Informe de Gestión (UF)</div>
+            <div className="state">
+              El período mostrado no tiene apertura por cuenta cargada. La última disponible
+              es <strong>{MESES[pnlUltimo % 100]} {Math.floor(pnlUltimo / 100)}</strong>:
+              elígela en los filtros, o vuelve a cargar el CCPP del mes que falte
+              (trae el año completo).
+            </div>
+          </div>
+        </section>
+      ) : null}
       <section className="row row--hotel-kpis">
         {/* tablas apiladas a lo ancho (7 columnas no caben a media página) */}
         <div className="stack">

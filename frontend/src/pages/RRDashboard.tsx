@@ -210,6 +210,16 @@ export function RRDashboard() {
     const mx = Math.max(...fids);
     return rs.filter((r) => num(r["FechaID"]) === mx);
   }, [lar, activo, year, month]);
+  // Último mes con apertura cargada del activo: la apertura se calcula al subir el
+  // Informe de Gestión, así que puede ir más atrás que las 4 métricas (los informes
+  // de meses anteriores a esta función no la generaron). Sin esto la sección
+  // desaparecía sin explicación al elegir un mes sin apertura.
+  const apUltimo = useMemo(() => {
+    const f = lar.filter((r) => String(r["Nombre activo"] ?? "").trim() === activo
+      && num(r["Versión_Real"]) != null && num(r["Versión_Real"]) !== 0)
+      .map((r) => num(r["FechaID"])!).filter((x) => !isNaN(x));
+    return f.length ? Math.max(...f) : null;
+  }, [lar, activo]);
   const apMulti: PnLMultiRow[] = apPoint.map((r) => {
     const n1 = String(r["Nivel 1 "] ?? r["Nivel 1"] ?? "");
     const n2 = String(r["Nivel 2"] ?? "");
@@ -396,12 +406,24 @@ export function RRDashboard() {
 
           {/* Apertura completa por cuenta del Informe de Gestión del edificio
               (mismo formato que la vista LAR Group; secciones colapsables) */}
-          {apMulti.length > 0 && (
+          {apMulti.length > 0 ? (
             <section className="row" style={{ gridTemplateColumns: "1fr" }}>
               <HoldingPnLMulti title={`Apertura por cuenta — ${activo} (UF)`}
                 rows={apMulti} groups={["Mes", "YTD"]} unit="UF" />
             </section>
-          )}
+          ) : apUltimo ? (
+            <section className="row" style={{ gridTemplateColumns: "1fr" }}>
+              <div className="card">
+                <div className="card__title">Apertura por cuenta — {activo} (UF)</div>
+                <div className="state">
+                  El período mostrado no tiene apertura por cuenta cargada. La última
+                  disponible es <strong>{MESES[apUltimo % 100]} {Math.floor(apUltimo / 100)}</strong>:
+                  elígela en los filtros, o vuelve a cargar el Informe de Gestión del mes
+                  que falte (trae el año completo).
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           {/* Indicadores UF/m² en una tabla (Real/Ppto, Mes + YTD) + gauges de
               ocupación mes y YTD uno al lado del otro (reunión JMB jul-2026) */}
