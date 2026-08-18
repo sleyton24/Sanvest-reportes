@@ -175,6 +175,7 @@ export function PptDirectorio() {
   const [error, setError] = useState("");
   const [subiendo, setSubiendo] = useState(false);
   const [borrando, setBorrando] = useState(false);
+  const [bajando, setBajando] = useState(false);
   const hoy = new Date();
   const [anio, setAnio] = useState(hoy.getFullYear());
   const [mes, setMes] = useState(hoy.getMonth() + 1);
@@ -241,6 +242,25 @@ export function PptDirectorio() {
       setSel({ id: r.id, tipo: r.tipo, nombre: f.name, ts: new Date().toISOString(), size: r.size });
     } catch (e) { setError((e as Error).message); }
     finally { setSubiendo(false); }
+  };
+
+  // Descarga el documento original. El fetch va con el token, así que no se puede
+  // apuntar un <a href> a la API: se baja el blob y se dispara la descarga con él.
+  const descargar = async () => {
+    if (!sel || bajando) return;
+    setBajando(true); setError("");
+    try {
+      const b = sel.tipo === "ppt" && blob ? blob : await fetchDirDoc(sel.id);
+      const url = URL.createObjectURL(b);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = sel.nombre;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (e) { setError((e as Error).message); }
+    finally { setBajando(false); }
   };
 
   const borrar = async () => {
@@ -326,6 +346,11 @@ export function PptDirectorio() {
                 {sel.tipo === "ppt" ? "📄" : "✉️"} {sel.nombre}
                 <span className="docs__selmeta"> · {fmtSize(sel.size)} · archivado {fmtTs(sel.ts)}</span>
               </span>
+              <button className="ppt__download" onClick={descargar} disabled={bajando}
+                title={sel.tipo === "mail" ? "Descargar el correo (.eml, se abre en Outlook)"
+                                           : "Descargar el PDF"}>
+                {bajando ? "Descargando…" : "⬇ Descargar"}
+              </button>
               {user?.is_admin && (
                 <button className="ppt__delete" onClick={borrar} disabled={borrando}
                   title="Eliminar este documento">

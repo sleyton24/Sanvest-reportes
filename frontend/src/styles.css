@@ -941,8 +941,11 @@ body {
 }
 .ppt__versions:focus, .pcom__unitpick select:focus { outline: none; border-color: var(--accent); }
 .ppt__versions { max-width: min(420px, 70vw); }
-.ppt__delete { margin-left: auto; background: none; border: 1px solid var(--border-strong); border-radius: 999px;
-  padding: 6px 12px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.ppt__download, .ppt__delete { background: none; border: 1px solid var(--border-strong);
+  border-radius: 999px; padding: 6px 12px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.ppt__download { margin-left: auto; }
+.ppt__download:hover { color: var(--strong); border-color: var(--accent); }
+.ppt__download:disabled, .ppt__delete:disabled { opacity: 0.6; cursor: default; }
 .ppt__delete:hover { color: var(--neg); border-color: var(--neg); }
 /* visor paginado (pdf.js): pager centrado + lámina en canvas */
 .ppt__pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
