@@ -4,7 +4,7 @@ import { last12 } from "../data";
 import { fmtUF, fmtPct, fmtNum, fmtInt, periodKey } from "../format";
 import { Slicer } from "../components/Slicer";
 import { Gauge } from "../components/Gauge";
-import { IndicatorTableMY, IndicatorRowMY } from "../components/IndicatorTable";
+import { IndicatorTableMY } from "../components/IndicatorTable";
 import { BarsLineChart, MultiLineChart } from "../components/charts/Charts";
 import { HoldingPnLMulti, PnLMultiRow } from "../components/HoldingPnL";
 
@@ -61,7 +61,6 @@ function KpiTable({ title, cols, rows }: { title: string; cols: Col[]; rows: any
 
 export function RRDashboard() {
   const [data, setData] = useState<Row[]>([]);     // real_ppto_ly
-  const [ind, setInd] = useState<Row[]>([]);       // indicadores_financieros (por activo)
   const [lar, setLar] = useState<Row[]>([]);       // indicadores_financieros_lar (holding)
   const [tipo, setTipo] = useState<Row[]>([]);     // tipologia (KPIs Grupo)
   const [edif, setEdif] = useState<Row[]>([]);     // rr_edificios_lar (KPIs por Edificios)
@@ -75,10 +74,10 @@ export function RRDashboard() {
 
   useEffect(() => {
     let off = false; setLoading(true);
-    Promise.all([fetchRows("RR", "real_ppto_ly"), fetchRows("RR", "indicadores_financieros"),
+    Promise.all([fetchRows("RR", "real_ppto_ly"),
                  fetchRows("RR", "indicadores_financieros_lar"), fetchRows("RR", "tipologia"),
                  fetchRows("RR", "rr_edificios_lar")])
-      .then(([r, i, l, t, e]) => { if (!off) { setData(r); setInd(i); setLar(l); setTipo(t); setEdif(e); } })
+      .then(([r, l, t, e]) => { if (!off) { setData(r); setLar(l); setTipo(t); setEdif(e); } })
       .catch((e) => !off && setError(String(e))).finally(() => !off && setLoading(false));
     // deuda_activos es opcional (tabla nueva; puede no existir aún en prod) → fetch
     // aparte y tolerante a error para no romper el dashboard si falta.
@@ -147,25 +146,6 @@ export function RRDashboard() {
     };
     return { real: avg(C.ocR), ppto: avg(C.ocP) };
   }, [rows, year, month, point]);
-
-  // tablas Indicadores Financieros (Mes / YTD) — indicadores_financieros por activo, periodo puntual
-  const indPoint = useMemo(() => {
-    let rs = ind.filter((r) => String(r["Nombre activo"]) === activo && num(r["Versión_Real"]) != null);
-    if (year !== "") rs = rs.filter((r) => num(r["anio"]) === year);
-    if (month !== "") rs = rs.filter((r) => num(r["mes"]) === month);
-    // FechaID a mostrar: el elegido, o el último REPORTADO (algún Item con Real ≠ 0)
-    const reported = new Set(rs.filter((r) => num(r["Versión_Real"]) !== 0).map((r) => num(r["FechaID"])!));
-    const fids = (year === "" && month === "" ? [...reported] : rs.map((r) => num(r["FechaID"])!)).filter((x) => !isNaN(x));
-    if (!fids.length) return [];
-    const mx = Math.max(...fids);
-    return rs.filter((r) => num(r["FechaID"]) === mx)
-      .sort((a, b) => (num(a["Indice"]) ?? 99) - (num(b["Indice"]) ?? 99));
-  }, [ind, activo, year, month]);
-  const indMY: IndicatorRowMY[] = indPoint.map((r) => ({
-    item: String(r["Item"]),
-    real: num(r["Versión_Real"]), ppto: num(r["Versión_Ppto"]),
-    ytdReal: num(r["YTD REAL"]), ytdPpto: num(r["YTD PPTO"]),
-  }));
 
   // indicadores_financieros_lar guarda el holding Y la apertura por edificio
   // (Nombre activo); el holding son las filas "Lar Group" (o sin activo: los
@@ -399,13 +379,9 @@ export function RRDashboard() {
       ) : (
         /* ===== Página por propiedad (SOHO / PARK) ===== */
         <>
-          {/* Indicadores Financieros Mes + YTD en una sola tabla */}
-          <section className="row" style={{ gridTemplateColumns: "1fr" }}>
-            <IndicatorTableMY title="Informe de Gestión (Mensual y YTD, UF)" rows={indMY} />
-          </section>
-
-          {/* Apertura completa por cuenta del Informe de Gestión del edificio
-              (mismo formato que la vista LAR Group; secciones colapsables) */}
+          {/* Informe de Gestión del edificio abierto cuenta a cuenta (mismo formato que la
+              vista LAR Group; secciones colapsables). Reemplaza la tabla resumen de 4
+              métricas: traía estos mismos totales pero sin el desglose. */}
           {apMulti.length > 0 ? (
             <section className="row" style={{ gridTemplateColumns: "1fr" }}>
               <HoldingPnLMulti title={`Apertura por cuenta — ${activo} (UF)`}
@@ -500,8 +476,8 @@ export function RRDashboard() {
           </section>
 
           <footer className="dash__footer">
-            Visuales originales del Power BI (página SOHO/PARK): Indicadores Financieros (mes+YTD),
-            UF/m² (mes+YTD), Ocupación, EBITDA y Flujo (mensual+acumulado), Tarifa, EBITDA/Cuota Banco
+            Página SOHO/PARK: Informe de Gestión abierto por cuenta (mes+YTD), UF/m² (mes+YTD),
+            Ocupación, EBITDA y Flujo (mensual+acumulado), Tarifa, EBITDA/Cuota Banco
             y Gastos Comunes. "Cargar Informes" → transform → <strong>upsert con histórico</strong> → refresca.
             Deuda (saldo, deuda total, cuota y % amortizado) del cronograma de amortización.
           </footer>
