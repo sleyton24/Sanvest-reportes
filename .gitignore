@@ -32,3 +32,5 @@ Thumbs.db
 
 # PDF PPT Directorio y otros archivos subidos (no van al repo)
 data/
+# correos del directorio (.eml de muestra): confidenciales, van en data/
+mail/

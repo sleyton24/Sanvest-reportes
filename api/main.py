@@ -14,7 +14,8 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
+from fastapi import (Depends, FastAPI, File, Form, Header, HTTPException, Query, Request,
+                     UploadFile)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
@@ -68,7 +69,8 @@ ETL_AGENT_ENABLED = os.environ.get("SANVEST_ETL_AGENT_ENABLED", "").lower() in (
 # PDF). Sobrevive a `git reset --hard` (es untracked) y se puede mover con env.
 DATA_DIR = Path(os.environ.get("SANVEST_DATA_DIR") or (Path(__file__).resolve().parent.parent / "data"))
 PPT_PDF = DATA_DIR / "ppt_directorio.pdf"          # legado: PDF único (pre-versiones)
-PPT_DIR = DATA_DIR / "ppt_versiones"               # una versión por archivo, nada se pisa
+PPT_DIR = DATA_DIR / "ppt_versiones"               # legado: versiones planas (pre-carpetas)
+DIR_ROOT = DATA_DIR / "directorio"                 # AAAA-MM/ con la PPT y el correo del mes
 PPT_MAX_BYTES = 300 * 1024 * 1024                  # tope de subida (PPT con fotos pesa)
 
 
@@ -480,182 +482,299 @@ def post_comment(unit: str, body: CommentBody, user: dict = Depends(auth.current
     return auth.add_comment(unit, user["username"], user.get("full_name"), text_body)
 
 
-# ----------------------------- PPT Directorio (PDF) --------------------------
-# Versionado: cada subida crea un archivo NUEVO en data/ppt_versiones/ con id
-# "<YYYYmmdd_HHMMSS>__<nombre original>.pdf" (el stamp ordena y evita colisiones).
-# El PDF único legado (data/ppt_directorio.pdf) migra solo, como primera versión.
-def _ppt_safe_name(filename: str | None) -> str:
-    """Nombre de archivo seguro para guardar en disco: solo el basename, sin
-    separadores de ruta ni caracteres de control; conserva tildes/ñ. La extensión
-    queda SIEMPRE '.pdf' en minúscula: el listado filtra por ella y en Linux el
-    filesystem es case-sensitive (un '.PDF' quedaría invisible)."""
+# ----------------------------- Directorio (PPT + correos) --------------------
+# Los documentos del directorio se archivan por PERÍODO: una carpeta por año-mes
+# bajo data/directorio/AAAA-MM/, y dentro los archivos del mes (la PPT en PDF y el
+# correo a directores en .eml). El nombre guardado es
+# "<YYYYmmdd_HHMMSS>__<nombre original>" (el stamp ordena y evita colisiones) y el
+# id de un documento es "AAAA-MM/<nombre guardado>".
+#
+# El período NO se deduce del nombre al subir: lo elige el admin. El correo de un
+# mes anuncia el directorio del mes siguiente ("Informe ... Junio 2026" convoca al
+# directorio del 28 de julio), así que deducirlo separaría los dos documentos que
+# deben quedar juntos. `_periodo_sugerido` solo PROPONE un valor para la UI.
+MESES_ES = ["", "enero", "febrero", "marzo", "abril", "mayo", "junio",
+            "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+DOC_EXT = {".pdf": "ppt", ".eml": "mail"}          # extensión -> tipo de documento
+
+
+def _periodo_dir(anio: int, mes: int) -> Path:
+    return DIR_ROOT / f"{anio:04d}-{mes:02d}"
+
+
+def _doc_safe_name(filename: str | None, ext: str) -> str:
+    """Nombre seguro para disco: solo el basename, sin separadores ni caracteres de
+    control; conserva tildes/ñ. La extensión se normaliza a minúscula porque el
+    listado filtra por ella y en Linux el filesystem es case-sensitive."""
     base = Path(filename or "").name
     base = re.sub(r"[^\w \-.()áéíóúÁÉÍÓÚñÑ]", "_", base).strip(" .")
-    if base.lower().endswith(".pdf"):
-        base = base[:-4].rstrip(" .")
-    return f"{(base or 'documento')[-115:]}.pdf"
+    if base.lower().endswith(ext):
+        base = base[:-len(ext)].rstrip(" .")
+    return f"{(base or 'documento')[-115:]}{ext}"
 
 
-def _ppt_migrate() -> None:
-    """Si existe el PDF único legado, pasa a ser una versión más (conserva su fecha).
-    Best-effort: con data/ sin permisos de escritura (incidente conocido en prod) los
-    GET deben seguir sirviendo el legado como versión virtual, no responder 500. El
-    except cubre también la carrera entre workers (el os.replace perdedor)."""
-    if not PPT_PDF.exists():
-        return
+def _periodo_sugerido(texto: str):
+    """(anio, mes) leído de un texto tipo 'Directorio Julio 2026', '2026_Mayo' o
+    '2026-07'. Solo para PROPONER el período en la UI de carga."""
+    t = re.sub(r"\s+", " ", (texto or "")).lower()
+    m = re.search(r"(20\d\d)[-_](0?[1-9]|1[0-2])(?!\d)", t)
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    anio = re.search(r"(20\d\d)", t)
+    if anio:
+        for i, nombre in enumerate(MESES_ES[1:], start=1):
+            if nombre in t or (i == 9 and "setiembre" in t):
+                return int(anio.group(1)), i
+    return None
+
+
+def _periodo_de_stamp(nombre: str):
+    """(anio, mes) del sello 'AAAAMMDD_HHMMSS__' con que se guardan los archivos. Es
+    más confiable que el mtime para archivar: copiar data/ a otra máquina resetea las
+    fechas del filesystem, y ahí los documentos se irían al período equivocado."""
+    m = re.match(r"(20\d\d)(0[1-9]|1[0-2])\d{2}_\d{6}(-\d+)?__", nombre)
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def _doc_meta(p: Path, periodo: str):
+    tipo = DOC_EXT.get(p.suffix.lower())
+    if tipo is None:
+        return None
     try:
-        PPT_DIR.mkdir(parents=True, exist_ok=True)
-        stamp = datetime.fromtimestamp(PPT_PDF.stat().st_mtime).strftime("%Y%m%d_%H%M%S")
-        os.replace(PPT_PDF, PPT_DIR / f"{stamp}__ppt_directorio.pdf")
-    except OSError as e:
-        print(f"[ppt] migración del PDF legado pospuesta: {type(e).__name__}: {e}")
+        st = p.stat()
+    except OSError:                    # borrado por otro request entre listar y stat
+        return None
+    nombre = p.name.split("__", 1)[1] if "__" in p.name else p.name
+    return {"id": f"{periodo}/{p.name}", "tipo": tipo, "nombre": nombre,
+            "ts": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(timespec="seconds"),
+            "size": st.st_size, "_mtime": st.st_mtime}
 
 
-def _ppt_versions() -> list[dict]:
-    """Versiones disponibles, de la más nueva a la más antigua."""
-    _ppt_migrate()
-    out = []
+def _dir_migrar() -> None:
+    """Lleva a data/directorio/ lo que quedó del esquema anterior: el PDF único
+    legado (data/ppt_directorio.pdf) y las versiones planas (data/ppt_versiones/).
+    El período sale del nombre y, si no lo trae, de la fecha del archivo.
+    Best-effort: con data/ sin permiso de escritura los GET deben seguir sirviendo,
+    no responder 500 (ya pasó en prod)."""
+    origenes = []
+    if PPT_PDF.exists():
+        origenes.append(PPT_PDF)
     if PPT_DIR.exists():
-        for p in PPT_DIR.iterdir():
-            if not p.name.lower().endswith(".pdf"):
-                continue
-            try:
-                st = p.stat()
-            except OSError:        # borrada por otro request entre iterdir y stat
-                continue
-            out.append({"id": p.name,
-                        "name": p.name.split("__", 1)[1] if "__" in p.name else p.name,
-                        "ts": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(timespec="seconds"),
-                        "size": st.st_size,
-                        "_mtime": st.st_mtime})
-    if PPT_PDF.exists():           # legado sin migrar (data/ solo lectura): virtual
         try:
-            st = PPT_PDF.stat()
-            out.append({"id": PPT_PDF.name, "name": PPT_PDF.name,
-                        "ts": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(timespec="seconds"),
-                        "size": st.st_size, "_mtime": st.st_mtime})
+            origenes += [p for p in PPT_DIR.iterdir() if p.suffix.lower() in DOC_EXT]
         except OSError:
             pass
-    # Por fecha real de escritura (el stamp del nombre empata cuando dos subidas
-    # caen en el mismo segundo y el sufijo "-1" rompería el orden lexicográfico).
-    out.sort(key=lambda v: (v.pop("_mtime"), v["id"]), reverse=True)
+    for src in origenes:
+        try:
+            st = src.stat()
+            fecha = datetime.fromtimestamp(st.st_mtime)
+            per = (_periodo_sugerido(src.name) or _periodo_de_stamp(src.name)
+                   or (fecha.year, fecha.month))
+            dest_dir = _periodo_dir(*per)
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            nombre = src.name if "__" in src.name else f"{fecha:%Y%m%d_%H%M%S}__{src.name}"
+            dest = dest_dir / nombre
+            if dest.exists():
+                src.unlink()           # ya migrado antes: se descarta el duplicado
+            else:
+                os.replace(src, dest)
+        except OSError as e:
+            print(f"[directorio] migración de {src.name} pospuesta: {type(e).__name__}: {e}")
+
+
+def _dir_periodos() -> list[dict]:
+    """Períodos con sus documentos, del más reciente al más antiguo."""
+    _dir_migrar()
+    out = []
+    if DIR_ROOT.exists():
+        try:
+            carpetas = sorted(DIR_ROOT.iterdir())
+        except OSError:
+            carpetas = []
+        for d in carpetas:
+            if not (d.is_dir() and re.fullmatch(r"20\d\d-(0[1-9]|1[0-2])", d.name)):
+                continue
+            docs = [m for m in (_doc_meta(p, d.name) for p in sorted(d.iterdir())) if m]
+            docs.sort(key=lambda x: (x.pop("_mtime"), x["id"]), reverse=True)
+            if not docs:
+                continue
+            anio, mes = int(d.name[:4]), int(d.name[5:7])
+            out.append({"periodo": d.name, "anio": anio, "mes": mes,
+                        "etiqueta": f"{MESES_ES[mes].capitalize()} {anio}", "docs": docs})
+    out.sort(key=lambda x: x["periodo"], reverse=True)
     return out
 
 
-def _ppt_version_path(vid: str) -> Path:
-    """Path de una versión por id, rechazando cualquier cosa que no sea un nombre
-    simple dentro de la carpeta (sin traversal)."""
-    if Path(vid).name != vid or not vid.lower().endswith(".pdf"):
-        raise HTTPException(400, "id de versión inválido")
-    if vid == PPT_PDF.name and PPT_PDF.exists():
-        return PPT_PDF             # legado aún sin migrar (versión virtual)
-    p = PPT_DIR / vid
+def _doc_path(doc_id: str) -> Path:
+    """Path de un documento por id ('AAAA-MM/archivo.ext'), rechazando cualquier cosa
+    que no sea exactamente esa forma (sin traversal)."""
+    partes = (doc_id or "").split("/")
+    if len(partes) != 2:
+        raise HTTPException(400, "id de documento inválido")
+    per, nombre = partes
+    if not re.fullmatch(r"20\d\d-(0[1-9]|1[0-2])", per) or Path(nombre).name != nombre:
+        raise HTTPException(400, "id de documento inválido")
+    if Path(nombre).suffix.lower() not in DOC_EXT:
+        raise HTTPException(400, "tipo de documento no soportado")
+    p = DIR_ROOT / per / nombre
     if not p.exists():
-        raise HTTPException(404, "Esa versión de la PPT no existe.")
+        raise HTTPException(404, "Ese documento ya no existe.")
     return p
 
 
-@app.get("/docs/ppt-directorio/versions", tags=["documentos"])
-def ppt_versions(_user: dict = Depends(auth.current_user)):
-    """Lista las versiones subidas de la PPT Directorio (la más nueva primero)."""
-    return {"versions": _ppt_versions()}
+@app.get("/docs/directorio", tags=["documentos"])
+def dir_listar(_user: dict = Depends(auth.current_user)):
+    """Árbol de documentos del directorio: un período (año-mes) por carpeta."""
+    return {"periodos": _dir_periodos()}
 
 
-@app.get("/docs/ppt-directorio/meta", tags=["documentos"])
-def ppt_meta(_user: dict = Depends(auth.current_user)):
-    """¿Hay PPT Directorio cargada? (para que el front sepa si mostrarla)."""
-    vs = _ppt_versions()
-    if vs:
-        return {"exists": True, "size": vs[0]["size"], "uploaded_at": vs[0]["ts"],
-                "versions": len(vs)}
-    return {"exists": False}
-
-
-@app.get("/docs/ppt-directorio", tags=["documentos"])
-def ppt_get(v: str | None = Query(None), _user: dict = Depends(auth.current_user)):
-    """Sirve el PDF en línea (el front lo muestra sin descargar). Sin `v` sirve la
-    versión más reciente; con `v=<id>` una versión específica."""
-    if v:
-        p = _ppt_version_path(v)
-    else:
-        vs = _ppt_versions()
-        if not vs:
-            raise HTTPException(404, "Aún no se ha subido la PPT Directorio.")
-        p = _ppt_version_path(vs[0]["id"])   # resuelve también el legado virtual
+@app.get("/docs/directorio/file", tags=["documentos"])
+def dir_file(id: str = Query(...), _user: dict = Depends(auth.current_user)):
+    """Sirve el documento en línea (el front lo muestra sin descargar)."""
+    p = _doc_path(id)
+    tipo = "application/pdf" if p.suffix.lower() == ".pdf" else "message/rfc822"
     # filename= (no un header a mano): starlette lo escapa RFC 5987 — los nombres
-    # con ñ/tildes rompen el header si se interpolan directo (no son latin-1 puros).
-    return FileResponse(str(p), media_type="application/pdf",
-                        filename=p.name, content_disposition_type="inline")
+    # con ñ/tildes rompen el header si se interpolan directo.
+    return FileResponse(str(p), media_type=tipo, filename=p.name,
+                        content_disposition_type="inline")
 
 
-@app.post("/docs/ppt-directorio", tags=["documentos"], dependencies=[Depends(auth.require_admin)])
-async def ppt_upload(file: UploadFile = File(...)):
-    """Sube una NUEVA versión de la PPT Directorio (PDF). Solo admin. Las versiones
-    anteriores se conservan y se pueden elegir en el visor.
+def _eml_a_html(p: Path) -> dict:
+    """Correo .eml -> {asunto, de, para, fecha, html} listo para mostrar.
 
-    Escribe a un temporal en la MISMA carpeta y luego renombra (evita dejar un PDF
-    a medias si el guardado falla). Los errores de filesystem se registran en el log
-    y se devuelven con el motivo exacto (antes daban un 500 opaco): típicamente
-    permisos de la carpeta `data/` del servidor, o el TMPDIR del sistema lleno/sin
-    permisos (Starlette derrama a un temporal los archivos > 1 MB al parsear)."""
-    if not (file.filename or "").lower().endswith(".pdf"):
-        raise HTTPException(400, "el archivo debe ser .pdf")
+    Las imágenes incrustadas (cid:) pasan a data: URIs para que el correo se vea
+    igual sin salir a la red, y se quitan scripts/iframes/handlers: el HTML viene de
+    un archivo subido y se renderiza en el navegador."""
+    import base64
+    import email
+    from email import policy
+
+    with p.open("rb") as f:
+        msg = email.message_from_binary_file(f, policy=policy.default)
+
+    html, texto, imgs = None, None, {}
+    for part in msg.walk():
+        if part.is_multipart():
+            continue
+        ct = part.get_content_type()
+        if ct == "text/html" and html is None:
+            html = part.get_content()
+        elif ct == "text/plain" and texto is None:
+            texto = part.get_content()
+        elif ct.startswith("image/"):
+            cid = (part.get("Content-ID") or "").strip("<>")
+            datos = part.get_payload(decode=True) or b""
+            if cid and datos:
+                imgs[cid] = f"data:{ct};base64,{base64.b64encode(datos).decode('ascii')}"
+
+    if html is None:                   # correo sin parte HTML: se muestra el texto
+        cuerpo = (texto or "(el correo no trae contenido)")
+        cuerpo = cuerpo.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html = f'<pre style="white-space:pre-wrap;font:14px/1.5 system-ui">{cuerpo}</pre>'
+    else:
+        for cid, uri in imgs.items():
+            html = html.replace(f"cid:{cid}", uri)
+        html = re.sub(r"(?is)<(script|iframe|object|embed).*?</\1\s*>", "", html)
+        html = re.sub(r"(?is)<(script|iframe|object|embed)[^>]*/?>", "", html)
+        html = re.sub(r'(?i)\son[a-z]+\s*=\s*"[^"]*"', "", html)
+        html = re.sub(r"(?i)\son[a-z]+\s*=\s*'[^']*'", "", html)
+        # cid: que quedó sin adjunto (imagen ausente): mejor vacío que roto
+        html = re.sub(r"(?i)(src\s*=\s*)([\"'])\s*cid:[^\"']*\2", r"\1\2\2", html)
+
+    hdr = lambda k: str(msg.get(k) or "")
+    return {"asunto": hdr("Subject"), "de": hdr("From"), "para": hdr("To"),
+            "cc": hdr("Cc"), "fecha": hdr("Date"), "html": html}
+
+
+@app.get("/docs/directorio/mail", tags=["documentos"])
+def dir_mail(id: str = Query(...), _user: dict = Depends(auth.current_user)):
+    """Correo a directores (.eml) parseado y listo para mostrar en el panel."""
+    p = _doc_path(id)
+    if p.suffix.lower() != ".eml":
+        raise HTTPException(400, "Ese documento no es un correo.")
+    try:
+        return _eml_a_html(p)
+    except Exception as e:                                         # noqa: BLE001
+        raise HTTPException(422, f"No pude leer el correo: {type(e).__name__}: {e}")
+
+
+@app.get("/docs/directorio/sugerir", tags=["documentos"],
+         dependencies=[Depends(auth.require_admin)])
+def dir_sugerir(nombre: str = Query(...)):
+    """Período propuesto para un nombre de archivo (la UI de carga lo precarga)."""
+    per = _periodo_sugerido(nombre)
+    return {"anio": per[0], "mes": per[1]} if per else {"anio": None, "mes": None}
+
+
+@app.post("/docs/directorio", tags=["documentos"], dependencies=[Depends(auth.require_admin)])
+async def dir_upload(anio: int = Form(...), mes: int = Form(...),
+                     file: UploadFile = File(...)):
+    """Archiva un documento (PDF de la PPT o correo .eml) en el período indicado.
+    Solo admin. Cada subida crea un archivo nuevo: no pisa lo que ya está."""
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in DOC_EXT:
+        raise HTTPException(400, "el archivo debe ser .pdf (la PPT) o .eml (el correo)")
+    if not (2000 <= anio <= 2100) or not (1 <= mes <= 12):
+        raise HTTPException(400, "período inválido")
     head = file.file.read(1024)
     file.file.seek(0)
-    if b"%PDF-" not in head:
+    if ext == ".pdf" and b"%PDF-" not in head:
         raise HTTPException(400, "el archivo no parece un PDF válido")
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     tmp = dest = None
     try:
-        _ppt_migrate()
-        PPT_DIR.mkdir(parents=True, exist_ok=True)
+        _dir_migrar()
+        dest_dir = _periodo_dir(anio, mes)
+        dest_dir.mkdir(parents=True, exist_ok=True)
         # Reclama el destino con O_CREAT|O_EXCL: único incluso entre PROCESOS (prod
         # corre uvicorn con 2 workers; un while exists() sería check-then-act).
-        base = _ppt_safe_name(file.filename)
-        cand, n = PPT_DIR / f"{stamp}__{base}", 1
+        base = _doc_safe_name(file.filename, ext)
+        cand, n = dest_dir / f"{stamp}__{base}", 1
         while True:
             try:
                 os.close(os.open(cand, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
                 dest = cand
                 break
-            except FileExistsError:            # misma hora exacta → sufijo
-                cand = PPT_DIR / f"{stamp}-{n}__{base}"
+            except FileExistsError:
+                cand = dest_dir / f"{stamp}-{n}__{base}"
                 n += 1
-        # Temporal ÚNICO por request (mkstemp) en la misma carpeta → replace atómico.
-        fd, tmp_name = tempfile.mkstemp(dir=PPT_DIR, suffix=".part")
+        fd, tmp_name = tempfile.mkstemp(dir=dest_dir, suffix=".part")
         tmp = Path(tmp_name)
         with os.fdopen(fd, "wb") as f:
-            copied = 0
+            copiado = 0
             while chunk := file.file.read(1024 * 1024):
-                copied += len(chunk)
-                if copied > PPT_MAX_BYTES:
-                    raise HTTPException(413, "PDF demasiado grande "
+                copiado += len(chunk)
+                if copiado > PPT_MAX_BYTES:
+                    raise HTTPException(413, "Archivo demasiado grande "
                                         f"(máx. {PPT_MAX_BYTES // (1024 * 1024)} MB).")
                 f.write(chunk)
-        os.replace(tmp, dest)                  # atómico dentro del mismo filesystem
-        tmp = None                             # ya publicado: nada que limpiar
+        os.replace(tmp, dest)
+        tmp = None
     except HTTPException:
         _ppt_cleanup(tmp, dest)
         raise
-    except OSError as e:                        # permisos, disco/tmp lleno, etc.
+    except OSError as e:
         _ppt_cleanup(tmp, dest)
         import traceback; traceback.print_exc()
-        raise HTTPException(500, f"No se pudo guardar el PDF en el servidor "
+        raise HTTPException(500, f"No se pudo guardar el archivo en el servidor "
                             f"({DATA_DIR}): {type(e).__name__}: {e}")
     finally:
         await file.close()
-    return {"ok": True, "id": dest.name, "size": dest.stat().st_size}
+    return {"ok": True, "id": f"{dest_dir.name}/{dest.name}", "periodo": dest_dir.name,
+            "tipo": DOC_EXT[ext], "size": dest.stat().st_size}
 
 
-@app.delete("/docs/ppt-directorio/versions/{vid}", tags=["documentos"],
+@app.delete("/docs/directorio", tags=["documentos"],
             dependencies=[Depends(auth.require_admin)])
-def ppt_delete_version(vid: str):
-    """Elimina una versión subida por error. Solo admin."""
-    p = _ppt_version_path(vid)
+def dir_delete(id: str = Query(...)):
+    """Elimina un documento subido por error. Solo admin."""
+    p = _doc_path(id)
     try:
         p.unlink()
+        if not any(p.parent.iterdir()):        # período sin documentos: fuera la carpeta
+            p.parent.rmdir()
     except OSError as e:
-        raise HTTPException(500, f"No se pudo eliminar la versión: {type(e).__name__}: {e}")
+        raise HTTPException(500, f"No se pudo eliminar: {type(e).__name__}: {e}")
     return {"ok": True}
 
 

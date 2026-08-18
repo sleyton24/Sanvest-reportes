@@ -1,12 +1,13 @@
-// PPT Directorio: muestra el PDF en línea (sin descargar) lámina a lámina con
-// pdf.js (el iframe nativo no pagina bien en iPad). El admin sube versiones
-// nuevas —las anteriores se conservan y se eligen en el selector— y abajo va el
-// foro de comentarios agrupado por fecha y unidad de negocio.
-import { useEffect, useRef, useState } from "react";
+// Directorio: archivo de documentos por período. Una carpeta por año-mes y dentro
+// los documentos de ese mes — la PPT (PDF, que se ve lámina a lámina con pdf.js
+// porque el <iframe> queda en blanco en WebKit) y el correo a directores (.eml,
+// que la API entrega ya parseado y con las imágenes incrustadas).
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import {
-  PptVersion, deletePptVersion, fetchPptBlob, listPptVersions, uploadPpt,
+  DirDoc, DirMail, DirPeriodo, deleteDirDoc, fetchDirDoc, fetchDirMail,
+  listDirectorio, sugerirPeriodo, uploadDirDoc,
 } from "../api";
 import { useAuth } from "../auth";
 import { Button } from "../components/Button";
@@ -14,14 +15,18 @@ import { DirectorioComments } from "../components/DirectorioComments";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
-const fmtVersionTs = (ts: string) => {
+const MESES = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+const fmtTs = (ts: string) => {
   const d = new Date(ts);
   return isNaN(d.getTime()) ? ts
     : d.toLocaleString("es-CL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 };
+const fmtSize = (b: number) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} KB`);
 
-// Visor paginado: renderiza UNA lámina en un canvas, con Anterior/Siguiente.
-// Se re-renderiza al cambiar el ancho disponible (giro de iPad, resize).
+// ---------------------------------------------------------------- visor de PPT
+// Renderiza UNA lámina en un canvas (60 canvas vivos agotan la memoria del iPad).
 function PdfPager({ blob }: { blob: Blob }) {
   const [doc, setDoc] = useState<pdfjs.PDFDocumentProxy | null>(null);
   const [page, setPage] = useState(1);
@@ -34,8 +39,8 @@ function PdfPager({ blob }: { blob: Blob }) {
 
   useEffect(() => {
     let off = false;
-    // Se destruye el loading task (no solo el doc): eso libera también el Web
-    // Worker de pdf.js, incluso cuando la carga falló (PDF corrupto).
+    // Se destruye el loading task (no solo el doc): libera también el Web Worker
+    // de pdf.js, incluso cuando la carga falló (PDF corrupto).
     let task: ReturnType<typeof pdfjs.getDocument> | null = null;
     setDoc(null); setError("");
     (async () => {
@@ -52,8 +57,8 @@ function PdfPager({ blob }: { blob: Blob }) {
     return () => { off = true; task?.destroy().catch(() => {}); };
   }, [blob]);
 
-  // Ancho disponible: se observa el contenedor y solo importa el cambio de ancho
-  // (el alto cambia con cada render del canvas y volvería a disparar el observer).
+  // Ancho disponible: solo importa el cambio de ANCHO (el alto cambia con cada
+  // render del canvas y volvería a disparar el observer).
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -85,7 +90,6 @@ function PdfPager({ blob }: { blob: Blob }) {
       renderTaskRef.current = task;
       await task.promise;
     })().catch((e) => {
-      // El cancel por cambio rápido de lámina/tamaño es normal; el resto se muestra.
       if (!off && (e as Error)?.name !== "RenderingCancelledException")
         setError(`No se pudo dibujar la lámina: ${(e as Error).message}`);
     });
@@ -123,62 +127,136 @@ function PdfPager({ blob }: { blob: Blob }) {
   );
 }
 
+// -------------------------------------------------------------- visor de correo
+// El HTML del correo va en un <iframe sandbox> SIN allow-scripts: aísla sus estilos
+// (los correos traen CSS que pisaría el panel) y no ejecuta nada. La API ya
+// incrustó las imágenes como data: URIs y quitó scripts/handlers.
+function MailViewer({ mail }: { mail: DirMail }) {
+  const [alto, setAlto] = useState(600);
+  const ref = useRef<HTMLIFrameElement>(null);
+
+  const doc = useMemo(() => `<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;padding:16px;background:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%;height:auto}table{max-width:100%}</style></head><body>${mail.html}</body></html>`, [mail.html]);
+
+  // El iframe crece con su contenido: un correo largo no debe quedar con scroll
+  // propio dentro de la página (queda un scroll dentro de otro, molesto en iPad).
+  const ajustar = () => {
+    const d = ref.current?.contentDocument;
+    if (d?.body) setAlto(Math.max(240, d.body.scrollHeight + 32));
+  };
+
+  return (
+    <div className="card mail">
+      <div className="mail__head">
+        <div className="mail__asunto">{mail.asunto || "(sin asunto)"}</div>
+        <div className="mail__meta">
+          {mail.de && <span><strong>De:</strong> {mail.de}</span>}
+          {mail.para && <span><strong>Para:</strong> {mail.para}</span>}
+          {mail.fecha && <span>{mail.fecha}</span>}
+        </div>
+      </div>
+      <iframe ref={ref} className="mail__body" title={mail.asunto || "Correo"}
+        sandbox="" srcDoc={doc} style={{ height: alto }} onLoad={ajustar} />
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------- la página
 export function PptDirectorio() {
   const { user } = useAuth();
-  const [versions, setVersions] = useState<PptVersion[]>([]);
-  const [cur, setCur] = useState("");            // id de la versión mostrada
+  const [periodos, setPeriodos] = useState<DirPeriodo[]>([]);
+  const [sel, setSel] = useState<DirDoc | null>(null);      // documento abierto
+  const [abiertos, setAbiertos] = useState<Set<string>>(new Set());
   const [blob, setBlob] = useState<Blob | null>(null);
+  const [mail, setMail] = useState<DirMail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cargandoDoc, setCargandoDoc] = useState(false);
   const [error, setError] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [subiendo, setSubiendo] = useState(false);
+  const [borrando, setBorrando] = useState(false);
+  const hoy = new Date();
+  const [anio, setAnio] = useState(hoy.getFullYear());
+  const [mes, setMes] = useState(hoy.getMonth() + 1);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Lista las versiones y deja seleccionada `keep` (si sigue existiendo) o la más nueva.
-  const loadVersions = async (keep?: string) => {
+  // Carga el árbol y deja abierto/seleccionado el período más reciente.
+  const cargar = async (preferir?: string) => {
     setError("");
     try {
-      const vs = await listPptVersions();
-      setVersions(vs);
-      const id = keep && vs.some((v) => v.id === keep) ? keep : vs[0]?.id || "";
-      setCur(id);
-      if (!id) { setBlob(null); setLoading(false); }
-    } catch (e) { setError((e as Error).message); setLoading(false); }
-  };
-  useEffect(() => { loadVersions(); }, []);
-
-  useEffect(() => {
-    if (!cur) return;
-    let off = false;
-    setLoading(true); setError("");
-    fetchPptBlob(cur)
-      .then((b) => { if (!off) setBlob(b); })
-      .catch((e) => { if (!off) setError((e as Error).message); })
-      .finally(() => { if (!off) setLoading(false); });
-    return () => { off = true; };
-  }, [cur]);
-
-  const upload = async () => {
-    const f = fileRef.current?.files?.[0];
-    if (!f) { setError("Elige un PDF primero."); return; }
-    setUploading(true); setError("");
-    try {
-      const { id } = await uploadPpt(f);
-      if (fileRef.current) fileRef.current.value = "";
-      await loadVersions(id);
+      const ps = await listDirectorio();
+      setPeriodos(ps);
+      const per = ps.find((p) => p.periodo === preferir) || ps[0];
+      if (per) {
+        setAbiertos((prev) => new Set(prev).add(per.periodo));
+        setSel((actual) => {
+          const sigue = actual && ps.some((p) => p.docs.some((d) => d.id === actual.id));
+          return sigue ? actual : (per.docs.find((d) => d.tipo === "ppt") || per.docs[0] || null);
+        });
+      } else {
+        setSel(null);
+      }
     } catch (e) { setError((e as Error).message); }
-    finally { setUploading(false); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { cargar(); }, []);
+
+  // Trae el documento seleccionado (PDF como blob, correo ya parseado).
+  useEffect(() => {
+    if (!sel) { setBlob(null); setMail(null); return; }
+    let off = false;
+    setCargandoDoc(true); setError(""); setBlob(null); setMail(null);
+    (sel.tipo === "ppt"
+      ? fetchDirDoc(sel.id).then((b) => { if (!off) setBlob(b); })
+      : fetchDirMail(sel.id).then((m) => { if (!off) setMail(m); })
+    ).catch((e) => { if (!off) setError((e as Error).message); })
+      .finally(() => { if (!off) setCargandoDoc(false); });
+    return () => { off = true; };
+  }, [sel]);
+
+  const togglePeriodo = (p: string) => setAbiertos((prev) => {
+    const n = new Set(prev);
+    if (n.has(p)) n.delete(p); else n.add(p);
+    return n;
+  });
+
+  // Al elegir archivo: propone el período leyéndolo del nombre (el admin puede cambiarlo).
+  const onFile = async () => {
+    const f = fileRef.current?.files?.[0];
+    if (!f) return;
+    try {
+      const s = await sugerirPeriodo(f.name);
+      if (s.anio && s.mes) { setAnio(s.anio); setMes(s.mes); }
+    } catch { /* la sugerencia es opcional */ }
   };
 
-  const removeVersion = async () => {
-    const v = versions.find((x) => x.id === cur);
-    if (!v || deleting) return;
-    if (!window.confirm(`¿Eliminar la versión "${v.name}" del ${fmtVersionTs(v.ts)}? Esta acción no se puede deshacer.`)) return;
-    setDeleting(true); setError("");
-    try { await deletePptVersion(v.id); await loadVersions(); }
-    catch (e) { setError((e as Error).message); }
-    finally { setDeleting(false); }
+  const subir = async () => {
+    const f = fileRef.current?.files?.[0];
+    if (!f) { setError("Elige un archivo primero (PDF de la PPT o correo .eml)."); return; }
+    setSubiendo(true); setError("");
+    try {
+      const r = await uploadDirDoc(f, anio, mes);
+      if (fileRef.current) fileRef.current.value = "";
+      await cargar(r.periodo);
+      setSel({ id: r.id, tipo: r.tipo, nombre: f.name, ts: new Date().toISOString(), size: r.size });
+    } catch (e) { setError((e as Error).message); }
+    finally { setSubiendo(false); }
   };
+
+  const borrar = async () => {
+    if (!sel || borrando) return;
+    if (!window.confirm(`¿Eliminar "${sel.nombre}"? Esta acción no se puede deshacer.`)) return;
+    setBorrando(true); setError("");
+    try { await deleteDirDoc(sel.id); setSel(null); await cargar(); }
+    catch (e) { setError((e as Error).message); }
+    finally { setBorrando(false); }
+  };
+
+  const anios = useMemo(() => {
+    const y = new Set<number>([hoy.getFullYear(), hoy.getFullYear() - 1]);
+    periodos.forEach((p) => y.add(p.anio));
+    return [...y].sort((a, b) => b - a);
+  }, [periodos, hoy]);
 
   return (
     <div className="dash ppt">
@@ -186,46 +264,84 @@ export function PptDirectorio() {
         <h1>PPT Directorio</h1>
         {user?.can_upload && (
           <div className="dash__slicers ppt__upload">
-            <input type="file" accept="application/pdf,.pdf" ref={fileRef} />
-            <Button variant="primary" onClick={upload} disabled={uploading}>
-              {uploading ? "Subiendo…" : (versions.length ? "Subir nueva versión" : "Subir PDF")}
+            <input type="file" accept="application/pdf,.pdf,.eml,message/rfc822"
+              ref={fileRef} onChange={onFile} />
+            <label className="ppt__verlabel">
+              Carpeta
+              <select className="ppt__versions" value={mes} onChange={(e) => setMes(Number(e.target.value))}>
+                {MESES.slice(1).map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+              </select>
+              <select className="ppt__versions" value={anio} onChange={(e) => setAnio(Number(e.target.value))}>
+                {anios.map((y) => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </label>
+            <Button variant="primary" onClick={subir} disabled={subiendo}>
+              {subiendo ? "Subiendo…" : "Archivar documento"}
             </Button>
           </div>
         )}
       </header>
 
-      {versions.length > 0 && (
-        <div className="ppt__bar">
-          <label className="ppt__verlabel">
-            Versión
-            <select className="ppt__versions" value={cur} onChange={(e) => setCur(e.target.value)}>
-              {versions.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {fmtVersionTs(v.ts)} — {v.name.replace(/\.pdf$/i, "")}
-                </option>
-              ))}
-            </select>
-          </label>
-          {user?.is_admin && versions.length > 0 && (
-            <button className="ppt__delete" onClick={removeVersion} disabled={deleting}
-              title="Eliminar esta versión">
-              {deleting ? "Eliminando…" : "🗑 Eliminar versión"}
-            </button>
-          )}
-        </div>
-      )}
-
       {error && <div className="state state--error">{error}</div>}
-      {loading ? (
-        <div className="state">Cargando…</div>
-      ) : blob ? (
-        <PdfPager blob={blob} />
-      ) : !error ? (
-        <div className="state">
-          Aún no se ha subido la PPT Directorio.
-          {user?.can_upload ? " Usa el botón de arriba para subir el PDF." : " Pídele a un administrador que la cargue."}
+
+      <div className="docs">
+        {/* carpetas por año-mes; dentro, los documentos del período */}
+        <aside className="docs__nav">
+          <div className="docs__navtitle">Carpetas por mes</div>
+          {loading ? (
+            <div className="state">Cargando…</div>
+          ) : periodos.length === 0 ? (
+            <div className="docs__empty">
+              Aún no hay documentos archivados.
+              {user?.can_upload ? " Elige un archivo y la carpeta del mes, arriba."
+                : " Pídele a un administrador que los cargue."}
+            </div>
+          ) : periodos.map((p) => {
+            const open = abiertos.has(p.periodo);
+            return (
+              <div key={p.periodo} className="docs__per">
+                <button className="docs__perbtn" onClick={() => togglePeriodo(p.periodo)}>
+                  <span className="docs__chev">{open ? "▾" : "▸"}</span>
+                  <span className="docs__folder">{open ? "📂" : "📁"}</span>
+                  {p.etiqueta}
+                  <span className="docs__count">{p.docs.length}</span>
+                </button>
+                {open && p.docs.map((d) => (
+                  <button key={d.id} title={`${d.nombre} · ${fmtSize(d.size)} · ${fmtTs(d.ts)}`}
+                    className={"docs__doc" + (sel?.id === d.id ? " is-active" : "")}
+                    onClick={() => setSel(d)}>
+                    <span className="docs__icon">{d.tipo === "ppt" ? "📄" : "✉️"}</span>
+                    <span className="docs__name">{d.nombre.replace(/\.(pdf|eml)$/i, "")}</span>
+                  </button>
+                ))}
+              </div>
+            );
+          })}
+        </aside>
+
+        <div className="docs__main">
+          {sel && (
+            <div className="ppt__bar">
+              <span className="docs__selname">
+                {sel.tipo === "ppt" ? "📄" : "✉️"} {sel.nombre}
+                <span className="docs__selmeta"> · {fmtSize(sel.size)} · archivado {fmtTs(sel.ts)}</span>
+              </span>
+              {user?.is_admin && (
+                <button className="ppt__delete" onClick={borrar} disabled={borrando}
+                  title="Eliminar este documento">
+                  {borrando ? "Eliminando…" : "🗑 Eliminar"}
+                </button>
+              )}
+            </div>
+          )}
+          {cargandoDoc ? <div className="state">Cargando documento…</div>
+            : blob ? <PdfPager blob={blob} />
+            : mail ? <MailViewer mail={mail} />
+            : !sel && !loading && periodos.length > 0
+              ? <div className="state">Elige un documento en las carpetas de la izquierda.</div>
+              : null}
         </div>
-      ) : null}
+      </div>
 
       <DirectorioComments />
     </div>

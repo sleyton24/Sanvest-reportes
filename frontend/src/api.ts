@@ -397,39 +397,55 @@ export async function askEtlAgent(unit: string, messages: ChatMsg[], handlers: A
     "El mantenedor de ETL no está habilitado (falta ANTHROPIC_API_KEY o SANVEST_ETL_AGENT_ENABLED=1).");
 }
 
-// --- PPT Directorio (PDF, con versiones) ---
-export interface PptVersion { id: string; name: string; ts: string; size: number; }
-export async function listPptVersions(): Promise<PptVersion[]> {
-  const data = await jsonOrThrow(await apiFetch(`/docs/ppt-directorio/versions`), "versiones PPT");
-  return (data.versions || []) as PptVersion[];
+// --- Directorio: documentos por período (carpetas AAAA-MM) ---
+export interface DirDoc { id: string; tipo: "ppt" | "mail"; nombre: string; ts: string; size: number; }
+export interface DirPeriodo { periodo: string; anio: number; mes: number; etiqueta: string; docs: DirDoc[]; }
+
+export async function listDirectorio(): Promise<DirPeriodo[]> {
+  const d = await jsonOrThrow(await apiFetch(`/docs/directorio`), "documentos del directorio");
+  return (d.periodos || []) as DirPeriodo[];
 }
-// Descarga el PDF como blob (con auth) para mostrarlo en línea sin descarga.
-// Sin `version` trae la más reciente. En error usa el detail del backend (distingue
-// "aún no hay PPT" de "esa versión ya no existe").
-export async function fetchPptBlob(version?: string): Promise<Blob> {
-  const qs = version ? `?v=${encodeURIComponent(version)}` : "";
-  const res = await apiFetch(`/docs/ppt-directorio${qs}`);
+
+// Descarga un documento como blob (con auth) para mostrarlo en línea sin descarga.
+export async function fetchDirDoc(id: string): Promise<Blob> {
+  const res = await apiFetch(`/docs/directorio/file?id=${encodeURIComponent(id)}`);
   if (!res.ok) {
-    const d = (await res.json().catch(() => ({})))?.detail;
-    throw new Error(typeof d === "string" ? d : `PPT: ${res.status}`);
+    const dt = (await res.json().catch(() => ({})))?.detail;
+    throw new Error(typeof dt === "string" ? dt : `documento: ${res.status}`);
   }
   return res.blob();
 }
-// Sube una NUEVA versión (las anteriores se conservan); devuelve su id.
-export async function uploadPpt(file: File): Promise<{ id: string }> {
+
+export interface DirMail {
+  asunto: string; de: string; para: string; cc: string; fecha: string; html: string;
+}
+export async function fetchDirMail(id: string): Promise<DirMail> {
+  return jsonOrThrow(await apiFetch(`/docs/directorio/mail?id=${encodeURIComponent(id)}`), "correo");
+}
+
+// Período propuesto para un nombre de archivo (solo sugerencia; el admin decide).
+export async function sugerirPeriodo(nombre: string): Promise<{ anio: number | null; mes: number | null }> {
+  return jsonOrThrow(await apiFetch(`/docs/directorio/sugerir?nombre=${encodeURIComponent(nombre)}`),
+    "sugerencia de período");
+}
+
+export async function uploadDirDoc(file: File, anio: number, mes: number): Promise<DirDoc & { periodo: string }> {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await apiFetch(`/docs/ppt-directorio`, { method: "POST", body: fd });
+  fd.append("anio", String(anio));
+  fd.append("mes", String(mes));
+  const res = await apiFetch(`/docs/directorio`, { method: "POST", body: fd });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const d = (data as any)?.detail;
-    throw new Error(typeof d === "string" ? d : `subir PDF: ${res.status}`);
+    const dt = (data as any)?.detail;
+    throw new Error(typeof dt === "string" ? dt : `subir documento: ${res.status}`);
   }
-  return data as { id: string };
+  return data;
 }
-export async function deletePptVersion(id: string): Promise<void> {
-  await jsonOrThrow(await apiFetch(`/docs/ppt-directorio/versions/${encodeURIComponent(id)}`,
-    { method: "DELETE" }), "eliminar versión");
+
+export async function deleteDirDoc(id: string): Promise<void> {
+  await jsonOrThrow(await apiFetch(`/docs/directorio?id=${encodeURIComponent(id)}`,
+    { method: "DELETE" }), "eliminar documento");
 }
 
 // --- comentarios (foro por unidad) ---

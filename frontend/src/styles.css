@@ -932,7 +932,8 @@ body {
 /* ----------------------------- PPT Directorio (PDF) ----------------------- */
 .ppt__upload { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 /* barra sobre el visor: selector de versión (izq.) + eliminar (der., admin) */
-.ppt__bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+.ppt__bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px;
+  min-height: 30px; }
 .ppt__verlabel { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .ppt__versions, .pcom__unitpick select {
   padding: 8px 11px; border: 1px solid var(--border-strong); border-radius: 7px;
@@ -951,6 +952,43 @@ body {
 .ppt__canvas { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px;
   background: var(--surface); box-shadow: 0 8px 22px rgba(15, 30, 54, 0.10); }
 
+/* explorador de documentos del directorio: carpetas por mes + visor */
+.docs { display: grid; grid-template-columns: 290px 1fr; gap: 16px; align-items: start; }
+.docs__nav { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px; max-height: calc(100vh - 210px); overflow-y: auto; }
+.docs__navtitle { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.4px; padding: 4px 6px 8px; }
+.docs__empty { color: var(--muted); font-style: italic; font-size: 13px; padding: 6px; line-height: 1.5; }
+.docs__per { margin-bottom: 2px; }
+.docs__perbtn { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer; padding: 7px 6px; border-radius: 8px;
+  font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); }
+.docs__perbtn:hover { background: var(--surface-2); }
+.docs__chev { color: var(--muted); font-size: 11px; width: 10px; }
+.docs__count { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--muted);
+  background: var(--surface-2); border-radius: 999px; padding: 1px 7px; }
+.docs__doc { display: flex; align-items: center; gap: 7px; width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer; padding: 6px 6px 6px 26px; border-radius: 8px;
+  font: inherit; font-size: 13px; color: var(--ink); }
+.docs__doc:hover { background: var(--surface-2); }
+.docs__doc.is-active { background: color-mix(in srgb, var(--accent) 18%, transparent); font-weight: 600; }
+.docs__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.docs__main { min-width: 0; }
+.docs__selname { font-size: 13px; font-weight: 600; color: var(--ink); }
+.docs__selmeta { font-weight: 400; color: var(--muted); }
+
+/* correo a directores: cabecera + cuerpo en iframe aislado (sin scripts) */
+.mail { padding: 0; overflow: hidden; }
+.mail__head { padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.mail__asunto { font-size: 15px; font-weight: 800; color: var(--ink); }
+.mail__meta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 5px; font-size: 12px; color: var(--muted); }
+.mail__body { width: 100%; border: none; display: block; background: #fff; }
+
+@media (max-width: 1023px) {
+  .docs { grid-template-columns: 1fr; }
+  .docs__nav { max-height: 320px; }
+}
+
 /* comentarios agrupados por fecha y unidad (bajo el visor) */
 .pcom { margin-top: 22px; }
 .pcom__title { font-size: 16px; font-weight: 800; color: var(--ink); margin: 0 0 12px; }
@@ -968,7 +1006,8 @@ body {
 .pcom__unithead { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
 .pcom__chip { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; }
 @media print {
-  .ppt__bar, .ppt__pager, .ppt__upload, .pcom { display: none !important; }
+  .ppt__bar, .ppt__pager, .ppt__upload, .pcom, .docs__nav { display: none !important; }
+  .docs { grid-template-columns: 1fr; }
   /* el JS fija el ancho del canvas en px de pantalla: en papel se reescala a la hoja */
   .ppt__canvas { width: 100% !important; height: auto !important; box-shadow: none; }
 }
