@@ -8,6 +8,15 @@ import { ChatMsg, askAgent } from "../api";
 import { useVista } from "../viewctx";
 import { Button } from "./Button";
 
+// Sugerencias de arranque: sirven en cualquier unidad (el contexto de la vista ya
+// dice activo y período, así que no hace falta nombrarlos en la pregunta).
+const SUGERENCIAS = [
+  "¿Cómo viene este mes respecto al presupuesto?",
+  "Compáralo con el mismo mes del año anterior",
+  "¿Qué explica la desviación más grande?",
+  "¿Hay algo raro en los datos de este período?",
+];
+
 export function PanelChat() {
   const getVista = useVista();
   const [abierto, setAbierto] = useState(false);
@@ -36,12 +45,14 @@ export function PanelChat() {
   const vista = getVista();
   const enPanel = !!vista?.unidad;
 
-  const send = async () => {
-    const text = input.trim();
+  // `texto` llega desde las sugerencias; si no viene, se usa lo escrito.
+  const send = async (texto?: string) => {
+    const text = (texto ?? input).trim();
     if (!text || busy) return;
     const v = getVista();                 // se lee AL ENVIAR: refleja los filtros de ahora
     if (!v?.unidad) { setError("Abre un panel de unidad de negocio para preguntar sobre él."); return; }
-    setError(""); setInput("");
+    setError("");
+    if (texto === undefined) setInput("");
     const base: ChatMsg[] = [...messages, { role: "user", content: text }];
     setMessages([...base, { role: "assistant", content: "" }]);
     setBusy(true); setActivity("Pensando…");
@@ -114,12 +125,14 @@ export function PanelChat() {
           <div className="pchat__empty">
             {enPanel ? (
               <>
-                Pregunta sobre <b>lo que estás viendo</b>. Por ejemplo:
-                <ul>
-                  <li>¿Por qué el EBITDA quedó bajo presupuesto este mes?</li>
-                  <li>Compáralo con el mismo mes del año anterior.</li>
-                  <li>¿Cuál es la cuenta que más se desvió del ppto?</li>
-                </ul>
+                Pregunta sobre <b>lo que estás viendo</b>, o toca una:
+                <div className="pchat__sugs">
+                  {SUGERENCIAS.map((q) => (
+                    <button key={q} className="pchat__sug" onClick={() => send(q)} disabled={busy}>
+                      {q}
+                    </button>
+                  ))}
+                </div>
                 Consulta la base y cita de qué tabla y período sale cada cifra. No modifica datos.
               </>
             ) : (
@@ -143,7 +156,7 @@ export function PanelChat() {
         <textarea ref={taRef} value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKey} rows={2} disabled={busy}
           placeholder={enPanel ? `Pregunta sobre ${vista!.titulo}…` : "Abre un panel primero…"} />
-        <Button variant="primary" onClick={send} disabled={busy || !input.trim() || !enPanel}>
+        <Button variant="primary" onClick={() => send()} disabled={busy || !input.trim() || !enPanel}>
           {busy ? "…" : "Enviar"}
         </Button>
       </div>

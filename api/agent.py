@@ -65,7 +65,7 @@ en vez de aproximar.
 4. Usa los nombres EXACTOS de columnas y los valores EXACTOS de filtro. Si dudas del valor de un filtro \
 (p. ej. el nombre exacto de un proyecto o el último período), usa `distinct_values` para descubrirlo antes de filtrar.
 5. Para totales/sumas/promedios usa `aggregate` (no traigas filas y sumes a mano). Para el detalle usa `query_table`.
-6. Las cifras de UF muéstralas con separador de miles y 0-2 decimales. Sé conciso y directo: primero el número/respuesta, luego el contexto.
+6. Las cifras de UF muéstralas con separador de miles y 0-2 decimales. Primero el número/respuesta, después el contexto. El LARGO permitido te lo indica el bloque de abajo y es estricto.
 7. Responde en español (Chile). No reveles SQL ni detalles internos salvo que se pidan.
 
 DIAGNÓSTICO DE CARGAS (cuando te pregunten porque una carga "quedó mal"):
@@ -288,6 +288,29 @@ def _vista_text(vista: dict | None) -> str | None:
     return chr(10).join(partes)
 
 
+def _largo_text(turnos: int) -> str:
+    """Instrucción de largo según cuántas preguntas lleva la conversación.
+
+    La primera respuesta va corta —la cifra y nada más— y se va permitiendo más
+    desarrollo a medida que la persona sigue preguntando: si insiste, quiere
+    profundidad; si preguntó una vez, quiere el dato. `turnos` = preguntas del
+    usuario en esta conversación (incluida la actual)."""
+    if turnos <= 1:
+        return ("LARGO DE LA RESPUESTA (estricto): esta es la PRIMERA pregunta. Responde en "
+                "1 o 2 frases, máximo 40 palabras. Solo la cifra o el hecho, con su activo, "
+                "período y tabla. PROHIBIDO: preámbulos, viñetas, títulos, resumir la pregunta, "
+                "explicar cómo lo consultaste o listar lo que podrías analizar. Si hay algo "
+                "relevante que quedó fuera, cierra con una frase corta ofreciéndolo "
+                "(«¿Lo desgloso por cuenta?»).")
+    if turnos <= 3:
+        return ("LARGO DE LA RESPUESTA: la conversación ya avanzó. Puedes desarrollar hasta "
+                "unas 6 líneas, con una lista corta si aclara de verdad. Sigue partiendo por "
+                "la cifra; sin preámbulos ni relleno.")
+    return ("LARGO DE LA RESPUESTA: conversación de análisis en curso. Puedes profundizar sin "
+            "límite estricto —comparaciones, tabla pequeña, causas— siempre que cada línea "
+            "aporte. Nada de relleno ni repetir lo ya dicho.")
+
+
 def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> Iterator[str]:
     """`history` = [{'role':'user'|'assistant', 'content': str}, ...] (turnos de texto).
     `vista` = reporte que el usuario tiene en pantalla (unidad, filtros, cifras visibles).
@@ -309,6 +332,11 @@ def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> 
     ]
     if (vtxt := _vista_text(vista)):
         system.append({"type": "text", "text": vtxt})
+    # Turnos de la persona (incluye la pregunta actual): manda el largo permitido y,
+    # cuando la conversación se pone densa, sube el esfuerzo de razonamiento.
+    turnos = sum(1 for m in history if m.get("role") == "user")
+    system.append({"type": "text", "text": _largo_text(turnos)})
+    esfuerzo = "medium" if turnos <= 2 else "high"
     messages: list[dict] = [{"role": m["role"], "content": m["content"]} for m in history if m.get("content")]
 
     try:
@@ -320,7 +348,7 @@ def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> 
                 tools=TOOLS,
                 messages=messages,
                 thinking={"type": "adaptive"},
-                output_config={"effort": "medium"},
+                output_config={"effort": esfuerzo},
             ) as stream:
                 for ev in stream:
                     if ev.type == "content_block_delta" and getattr(ev.delta, "type", None) == "text_delta":

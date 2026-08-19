@@ -986,8 +986,12 @@ body {
 .pchat__log { flex: 1 1 auto; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px;
   min-height: 180px; }
 .pchat__empty { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
-.pchat__empty ul { margin: 6px 0; padding-left: 18px; }
-.pchat__empty li { margin: 3px 0; }
+.pchat__sugs { display: flex; flex-direction: column; gap: 6px; margin: 9px 0 11px; }
+.pchat__sug { text-align: left; background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 9px; padding: 8px 11px; font: inherit; font-size: 12.5px; color: var(--ink);
+  cursor: pointer; line-height: 1.4; }
+.pchat__sug:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.pchat__sug:disabled { opacity: 0.55; cursor: default; }
 .pchat__msg { display: flex; flex-direction: column; gap: 3px; }
 .pchat__role { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase;
   letter-spacing: 0.4px; }
