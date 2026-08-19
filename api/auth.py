@@ -83,6 +83,27 @@ def init_db() -> None:
             """
         ))
         con.execute(text("CREATE INDEX IF NOT EXISTS ix_comments_unit_ts ON comments (unit, ts)"))
+        # Consumo del agente (tokens y costo estimado por pregunta). Sin PK
+        # autoincremental (portable SQLite/PG); índice por fecha. `origen` =
+        # 'asistente' (panel/Admin) | 'etl' (mantenedor de ETL).
+        con.execute(text(
+            """
+            CREATE TABLE IF NOT EXISTS agent_usage (
+              ts            TEXT NOT NULL,
+              username      TEXT NOT NULL,
+              origen        TEXT NOT NULL,
+              unit          TEXT,
+              model         TEXT,
+              input_tokens  INTEGER NOT NULL DEFAULT 0,
+              output_tokens INTEGER NOT NULL DEFAULT 0,
+              cache_read    INTEGER NOT NULL DEFAULT 0,
+              cache_write   INTEGER NOT NULL DEFAULT 0,
+              iteraciones   INTEGER NOT NULL DEFAULT 0,
+              costo_usd     REAL    NOT NULL DEFAULT 0
+            )
+            """
+        ))
+        con.execute(text("CREATE INDEX IF NOT EXISTS ix_agent_usage_ts ON agent_usage (ts)"))
 
 
 # ----------------------------- password (pbkdf2) ------------------------------
@@ -401,6 +422,67 @@ def list_comments_all(units: list[str] | None, limit: int = 1000) -> list[dict]:
             "SELECT ts, unit, username, full_name, body FROM comments "
             f"{where}ORDER BY ts DESC LIMIT :lim"), binds).mappings().all()
     return [dict(r) for r in rows]
+
+
+# ----------------------------- consumo del agente ----------------------------
+def add_agent_usage(username: str, origen: str, unit: str | None, model: str,
+                    input_tokens: int, output_tokens: int, cache_read: int,
+                    cache_write: int, iteraciones: int, costo_usd: float) -> None:
+    """Registra el consumo de UNA pregunta al agente. Best-effort: si falla, no
+    debe tumbar la respuesta que el usuario ya recibió (la métrica es secundaria)."""
+    row = {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+           "username": username or "?", "origen": origen, "unit": unit, "model": model,
+           "input_tokens": int(input_tokens), "output_tokens": int(output_tokens),
+           "cache_read": int(cache_read), "cache_write": int(cache_write),
+           "iteraciones": int(iteraciones), "costo_usd": float(costo_usd)}
+    try:
+        with engine.begin() as con:
+            con.execute(text(
+                "INSERT INTO agent_usage (ts, username, origen, unit, model, input_tokens, "
+                "output_tokens, cache_read, cache_write, iteraciones, costo_usd) VALUES "
+                "(:ts, :username, :origen, :unit, :model, :input_tokens, :output_tokens, "
+                ":cache_read, :cache_write, :iteraciones, :costo_usd)"), row)
+    except Exception as e:  # noqa: BLE001
+        print(f"[agent_usage] no se pudo registrar el consumo: {type(e).__name__}: {e}")
+
+
+def agent_usage_stats(days: int = 30) -> dict:
+    """Consumo del agente en la ventana [hoy-days, hoy]: totales, por usuario,
+    por día, por unidad y por origen. Los tokens de caché van aparte porque se
+    cobran distinto (lectura ~10% del precio de entrada)."""
+    since = (datetime.now(timezone.utc) - timedelta(days=max(1, days))
+             ).isoformat(timespec="seconds")
+    SUMAS = ("COUNT(*) AS preguntas, "
+             "COALESCE(SUM(input_tokens),0)  AS input_tokens, "
+             "COALESCE(SUM(output_tokens),0) AS output_tokens, "
+             "COALESCE(SUM(cache_read),0)    AS cache_read, "
+             "COALESCE(SUM(cache_write),0)   AS cache_write, "
+             "COALESCE(SUM(costo_usd),0)     AS costo_usd")
+    with engine.connect() as con:
+        def agrupar(sql: str) -> list[dict]:
+            return [dict(r) for r in con.execute(text(sql), {"since": since}).mappings().all()]
+
+        by_user = agrupar(
+            f"SELECT a.username AS username, u.full_name AS full_name, {SUMAS}, "
+            "MAX(a.ts) AS last_seen FROM agent_usage a "
+            "LEFT JOIN app_users u ON u.username = a.username "
+            "WHERE a.ts >= :since GROUP BY a.username, u.full_name "
+            "ORDER BY costo_usd DESC")
+        by_day = agrupar(f"SELECT substr(ts,1,10) AS day, {SUMAS} FROM agent_usage "
+                         "WHERE ts >= :since GROUP BY substr(ts,1,10) ORDER BY day")
+        by_unit = agrupar(f"SELECT COALESCE(unit,'—') AS unit, {SUMAS} FROM agent_usage "
+                          "WHERE ts >= :since GROUP BY unit ORDER BY costo_usd DESC")
+        by_origen = agrupar(f"SELECT origen AS origen, {SUMAS} FROM agent_usage "
+                            "WHERE ts >= :since GROUP BY origen ORDER BY costo_usd DESC")
+        tot = con.execute(text(f"SELECT {SUMAS} FROM agent_usage WHERE ts >= :since"),
+                          {"since": since}).mappings().first() or {}
+        recientes = [dict(r) for r in con.execute(text(
+            "SELECT ts, username, origen, unit, model, input_tokens, output_tokens, "
+            "cache_read, iteraciones, costo_usd FROM agent_usage "
+            "ORDER BY ts DESC LIMIT 60"), {}).mappings().all()]
+    return {"days": days, "since": since, "totals": dict(tot), "by_user": by_user,
+            "by_day": by_day, "by_unit": by_unit, "by_origen": by_origen,
+            "recientes": recientes}
 
 
 # ----------------------------- perfilado -------------------------------------

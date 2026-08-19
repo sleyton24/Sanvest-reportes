@@ -198,6 +198,13 @@ def access_log(limit: int = Query(200, ge=1, le=1000),
     return auth.recent_access(limit)
 
 
+@app.get("/agent/usage", tags=["agente"], dependencies=[Depends(auth.require_admin)])
+def agent_usage(days: int = Query(30, ge=1, le=365)):
+    """Consumo del agente (tokens y costo estimado) por usuario, día, unidad y
+    origen, en los últimos `days` días. Solo admin — es información de gasto."""
+    return auth.agent_usage_stats(days)
+
+
 @app.get("/audit/run", tags=["auditoria"])
 def run_data_audit(_admin: dict = Depends(auth.require_admin)):
     """Auditoría de datos cargados (solo admin): chequeos deterministas READ-ONLY
@@ -318,7 +325,7 @@ class AskBody(BaseModel):
 
 
 @app.post("/units/{unit}/ask", tags=["agente"], dependencies=[Depends(auth.require_admin)])
-def ask_agent(unit: str, body: AskBody):
+def ask_agent(unit: str, body: AskBody, user: dict = Depends(auth.current_user)):
     """Pregunta en lenguaje natural sobre los datos de la unidad. El agente (Claude)
     consulta las tablas vía herramientas read-only y responde citando las cifras.
     `vista` (opcional) describe el reporte en pantalla —filtros y cifras visibles—
@@ -333,7 +340,7 @@ def ask_agent(unit: str, body: AskBody):
     history = [m.model_dump() for m in body.messages]
     vista = body.vista.model_dump() if body.vista else None
     return StreamingResponse(
-        agent.run_agent_sse(unit, history, vista),
+        agent.run_agent_sse(unit, history, vista, user.get("username")),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
@@ -381,7 +388,7 @@ async def etl_upload(unit: str, files: list[UploadFile] = File(...)):
 
 @app.post("/units/{unit}/etl/ask", tags=["mantenedor-etl"],
           dependencies=[Depends(auth.require_admin)])
-def etl_ask(unit: str, body: AskBody):
+def etl_ask(unit: str, body: AskBody, user: dict = Depends(auth.current_user)):
     """Chat con el mantenedor (SSE). Ajusta el spec en staging y hace dry-runs; NO
     aplica (eso es /etl/apply, aprobado por el admin)."""
     if not ETL_AGENT_ENABLED:
@@ -391,7 +398,7 @@ def etl_ask(unit: str, body: AskBody):
         raise HTTPException(413, "Conversación demasiado larga.")
     history = [m.model_dump() for m in body.messages]
     return StreamingResponse(
-        agent_etl.run_etl_agent_sse(unit, history),
+        agent_etl.run_etl_agent_sse(unit, history, user.get("username")),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

@@ -227,7 +227,7 @@ def _client():
     return anthropic.Anthropic()
 
 
-def run_etl_agent_sse(unit: str, history: list[dict]) -> Iterator[str]:
+def run_etl_agent_sse(unit: str, history: list[dict], usuario: str | None = None) -> Iterator[str]:
     """`history` = [{'role','content'}]. Eventos SSE: {type:text|tool|done|error}."""
     try:
         if not ss.is_spec_driven(unit):
@@ -246,6 +246,7 @@ def run_etl_agent_sse(unit: str, history: list[dict]) -> Iterator[str]:
     ]
     messages: list[dict] = [{"role": m["role"], "content": m["content"]} for m in history if m.get("content")]
 
+    uso = {"entrada": 0, "salida": 0, "cache_read": 0, "cache_write": 0, "iteraciones": 0}
     try:
         for _ in range(MAX_ITERS):
             with client.messages.stream(
@@ -257,6 +258,7 @@ def run_etl_agent_sse(unit: str, history: list[dict]) -> Iterator[str]:
                     if ev.type == "content_block_delta" and getattr(ev.delta, "type", None) == "text_delta":
                         yield _sse({"type": "text", "text": ev.delta.text})
                 final = stream.get_final_message()
+            _acumular(uso, final)
 
             if final.stop_reason != "tool_use":
                 break
@@ -280,3 +282,11 @@ def run_etl_agent_sse(unit: str, history: list[dict]) -> Iterator[str]:
         yield _sse({"type": "done"})
     except Exception as e:  # noqa: BLE001
         yield _sse({"type": "error", "error": f"{type(e).__name__}: {e}"})
+    finally:
+        # Consumo al panel Admin (mismo registro que el asistente, origen 'etl').
+        if uso["iteraciones"]:
+            from . import auth
+            auth.add_agent_usage(
+                usuario or "?", "etl", unit, MODEL, uso["entrada"], uso["salida"],
+                uso["cache_read"], uso["cache_write"], uso["iteraciones"],
+                costo_usd(MODEL, uso["entrada"], uso["salida"], uso["cache_read"], uso["cache_write"]))

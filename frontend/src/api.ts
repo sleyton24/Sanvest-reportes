@@ -146,6 +146,27 @@ export async function fetchAccessLog(limit = 200): Promise<AccessLogRow[]> {
   return jsonOrThrow(await apiFetch(`/auth/access/log?limit=${limit}`), "bitácora de acceso");
 }
 
+// --- consumo del agente (tokens y costo, solo admin) ---
+export interface AgentUsageRow {
+  preguntas: number; input_tokens: number; output_tokens: number;
+  cache_read: number; cache_write: number; costo_usd: number;
+}
+export interface AgentUsage {
+  days: number; since: string;
+  totals: AgentUsageRow;
+  by_user: (AgentUsageRow & { username: string; full_name: string | null; last_seen: string | null })[];
+  by_day: (AgentUsageRow & { day: string })[];
+  by_unit: (AgentUsageRow & { unit: string })[];
+  by_origen: (AgentUsageRow & { origen: string })[];
+  recientes: { ts: string; username: string; origen: string; unit: string | null; model: string;
+               input_tokens: number; output_tokens: number; cache_read: number;
+               iteraciones: number; costo_usd: number }[];
+}
+
+export async function fetchAgentUsage(days = 30): Promise<AgentUsage> {
+  return jsonOrThrow(await apiFetch(`/agent/usage?days=${days}`), "consumo del agente");
+}
+
 // --- auditoría de datos (solo admin) ---
 export interface AuditAlert {
   severity: "error" | "warn" | "info";

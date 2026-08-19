@@ -288,6 +288,37 @@ def _vista_text(vista: dict | None) -> str | None:
     return chr(10).join(partes)
 
 
+# Precio por millón de tokens (USD) para estimar el gasto que se muestra en Admin.
+# Fuente: tarifas de la API de Anthropic. La lectura de caché cuesta ~10% de la
+# entrada y escribirlo ~125%. Si cambian las tarifas, se ajusta acá.
+PRECIOS_USD = {
+    "claude-opus-5":   (5.0, 25.0),
+    "claude-opus-4-8": (5.0, 25.0),
+    "claude-sonnet-5": (3.0, 15.0),
+    "claude-haiku-4-5": (1.0, 5.0),
+}
+
+
+def costo_usd(model: str, entrada: int, salida: int, cache_read: int, cache_write: int) -> float:
+    """Costo estimado de una pregunta. Si el modelo no está en la tabla se usa la
+    tarifa de Opus (la más alta de las que usamos): mejor sobreestimar que ocultar."""
+    pe, ps = PRECIOS_USD.get(model, (5.0, 25.0))
+    return ((entrada * pe) + (salida * ps)
+            + (cache_read * pe * 0.10) + (cache_write * pe * 1.25)) / 1_000_000
+
+
+def _acumular(uso, final) -> None:
+    """Suma el usage de una vuelta del bucle de herramientas al acumulador."""
+    u = getattr(final, "usage", None)
+    if u is None:
+        return
+    uso["entrada"] += getattr(u, "input_tokens", 0) or 0
+    uso["salida"] += getattr(u, "output_tokens", 0) or 0
+    uso["cache_read"] += getattr(u, "cache_read_input_tokens", 0) or 0
+    uso["cache_write"] += getattr(u, "cache_creation_input_tokens", 0) or 0
+    uso["iteraciones"] += 1
+
+
 def _largo_text(turnos: int) -> str:
     """Instrucción de largo según cuántas preguntas lleva la conversación.
 
@@ -311,9 +342,11 @@ def _largo_text(turnos: int) -> str:
             "aporte. Nada de relleno ni repetir lo ya dicho.")
 
 
-def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> Iterator[str]:
+def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None,
+                  usuario: str | None = None) -> Iterator[str]:
     """`history` = [{'role':'user'|'assistant', 'content': str}, ...] (turnos de texto).
     `vista` = reporte que el usuario tiene en pantalla (unidad, filtros, cifras visibles).
+    `usuario` = quién pregunta, para registrar el consumo de tokens (panel Admin).
     Genera eventos SSE: {type:text|tool|done|error}."""
     try:
         if not cat.get_unit(unit):
@@ -339,6 +372,7 @@ def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> 
     esfuerzo = "medium" if turnos <= 2 else "high"
     messages: list[dict] = [{"role": m["role"], "content": m["content"]} for m in history if m.get("content")]
 
+    uso = {"entrada": 0, "salida": 0, "cache_read": 0, "cache_write": 0, "iteraciones": 0}
     try:
         for _ in range(MAX_ITERS):
             with client.messages.stream(
@@ -354,6 +388,7 @@ def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> 
                     if ev.type == "content_block_delta" and getattr(ev.delta, "type", None) == "text_delta":
                         yield _sse({"type": "text", "text": ev.delta.text})
                 final = stream.get_final_message()
+            _acumular(uso, final)
 
             if final.stop_reason != "tool_use":
                 break
@@ -378,3 +413,12 @@ def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> 
         yield _sse({"type": "done"})
     except Exception as e:  # noqa: BLE001
         yield _sse({"type": "error", "error": f"{type(e).__name__}: {e}"})
+    finally:
+        # Registrar el gasto aunque el usuario haya cerrado el chat a media respuesta
+        # (ahí el generador recibe GeneratorExit y este finally sigue corriendo).
+        if uso["iteraciones"]:
+            from . import auth
+            auth.add_agent_usage(
+                usuario or "?", "asistente", unit, MODEL, uso["entrada"], uso["salida"],
+                uso["cache_read"], uso["cache_write"], uso["iteraciones"],
+                costo_usd(MODEL, uso["entrada"], uso["salida"], uso["cache_read"], uso["cache_write"]))
