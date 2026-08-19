@@ -75,7 +75,8 @@ export function PanelChat() {
     return (
       <button className="pchat__fab" onClick={() => setAbierto(true)}
         title="Preguntar sobre este reporte (solo administradores)">
-        <span className="pchat__fabicon">✦</span> Preguntar
+        <span className="pchat__fabicon">💬</span>
+        <span className="pchat__fabtxt">Preguntar al panel</span>
       </button>
     );
   }
@@ -86,7 +87,7 @@ export function PanelChat() {
     <div className="pchat">
       <div className="pchat__head">
         <div>
-          <div className="pchat__title">✦ Asistente del panel</div>
+          <div className="pchat__title">💬 Asistente del panel</div>
           <div className="pchat__sub">
             {enPanel ? vista!.titulo : "Abre un panel de unidad de negocio"}
           </div>

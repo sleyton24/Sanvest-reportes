@@ -956,13 +956,17 @@ body {
   background: var(--surface); box-shadow: 0 8px 22px rgba(15, 30, 54, 0.10); }
 
 /* asistente del panel (solo admin): burbuja flotante + panel de chat */
-.pchat__fab { position: fixed; right: 22px; bottom: 22px; z-index: 150; display: flex; align-items: center;
+.pchat__fab { position: fixed; left: 22px; bottom: 22px; z-index: 150; display: flex; align-items: center;
   gap: 8px; padding: 11px 18px; border-radius: 999px; border: none; cursor: pointer;
   background: var(--navy); color: var(--white); font: inherit; font-size: 14px; font-weight: 700;
   box-shadow: 0 8px 24px rgba(15, 30, 54, 0.28); }
 .pchat__fab:hover { background: var(--navy-2, var(--navy)); }
-.pchat__fabicon { color: var(--green); font-size: 15px; }
-.pchat { position: fixed; right: 22px; bottom: 22px; z-index: 150; width: min(430px, calc(100vw - 32px));
+.pchat__fabicon { color: var(--green); font-size: 17px; line-height: 1; }
+@media (max-width: 900px) {              /* en pantallas angostas queda solo el globo */
+  .pchat__fab { padding: 13px; border-radius: 50%; }
+  .pchat__fabtxt { display: none; }
+}
+.pchat { position: fixed; left: 22px; bottom: 22px; z-index: 150; width: min(430px, calc(100vw - 32px));
   max-height: min(680px, calc(100vh - 110px)); display: flex; flex-direction: column;
   background: var(--surface); border: 1px solid var(--border-strong); border-radius: 14px;
   box-shadow: 0 18px 48px rgba(15, 30, 54, 0.30); overflow: hidden; }
@@ -999,7 +1003,7 @@ body {
 .pchat__input textarea:focus { outline: none; border-color: var(--accent); }
 @media (max-width: 640px) {
   .pchat { right: 8px; left: 8px; bottom: 8px; width: auto; max-height: calc(100vh - 90px); }
-  .pchat__fab { right: 12px; bottom: 12px; }
+  .pchat__fab { left: 12px; bottom: 12px; }
 }
 @media print { .pchat, .pchat__fab { display: none !important; } }
 

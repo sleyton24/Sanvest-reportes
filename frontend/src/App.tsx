@@ -142,8 +142,10 @@ export function App() {
           </Suspense>
         )}
         {unit === "admin" && user.is_admin && <AdminPage />}
-        {/* asistente del panel: solo admin (gasta API) y solo con un panel abierto */}
-        {user.is_admin && UNIT_IDS.has(unit) && <PanelChat />}
+        {/* asistente del panel: solo admin (gasta API). Se muestra en todas las
+            páginas para que se encuentre; si no hay un panel de unidad abierto, el
+            propio chat avisa que hay que abrir uno. */}
+        {user.is_admin && <PanelChat />}
       </div>
      </VistaProvider>
     </PrintLabelsProvider>
