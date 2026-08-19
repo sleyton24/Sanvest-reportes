@@ -1,4 +1,4 @@
-// Asistente del panel (solo administradores): burbuja flotante que sabe QUÉ reporte
+// SofIA, la asistente del panel (solo administradores): burbuja flotante que sabe QUÉ reporte
 // está abierto. Cada dashboard publica su vista con useSetVista (unidad, filtros y
 // cifras en pantalla) y acá se manda como contexto, así se puede preguntar "¿por qué
 // bajó el EBITDA?" sin repetir activo ni período. Las cifras las verifica el agente
@@ -85,9 +85,9 @@ export function PanelChat() {
   if (!abierto) {
     return (
       <button className="pchat__fab" onClick={() => setAbierto(true)}
-        title="Preguntar sobre este reporte (solo administradores)">
+        title="Preguntar a SofIA sobre este reporte (solo administradores)">
         <span className="pchat__fabicon">💬</span>
-        <span className="pchat__fabtxt">Preguntar al panel</span>
+        <span className="pchat__fabtxt">Preguntar a SofIA</span>
       </button>
     );
   }
@@ -98,7 +98,7 @@ export function PanelChat() {
     <div className="pchat">
       <div className="pchat__head">
         <div>
-          <div className="pchat__title">💬 Asistente del panel</div>
+          <div className="pchat__title">💬 SofIA</div>
           <div className="pchat__sub">
             {enPanel ? vista!.titulo : "Abre un panel de unidad de negocio"}
           </div>
@@ -136,13 +136,13 @@ export function PanelChat() {
                 Consulta la base y cita de qué tabla y período sale cada cifra. No modifica datos.
               </>
             ) : (
-              "Entra a una unidad de negocio (Renta Residencial, Hotel, …) y vuelve a abrir el asistente."
+              "Entra a una unidad de negocio (Renta Residencial, Hotel, …) y vuelve a abrir a SofIA."
             )}
           </div>
         )}
         {messages.map((m, i) => (
           <div key={i} className={`pchat__msg pchat__msg--${m.role}`}>
-            <div className="pchat__role">{m.role === "user" ? "Tú" : "Asistente"}</div>
+            <div className="pchat__role">{m.role === "user" ? "Tú" : "SofIA"}</div>
             <div className="pchat__text">
               {m.content || (busy && i === messages.length - 1 ? "…" : "")}
             </div>
@@ -155,7 +155,7 @@ export function PanelChat() {
       <div className="pchat__input">
         <textarea ref={taRef} value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={onKey} rows={2} disabled={busy}
-          placeholder={enPanel ? `Pregunta sobre ${vista!.titulo}…` : "Abre un panel primero…"} />
+          placeholder={enPanel ? `Pregúntale a SofIA sobre ${vista!.titulo}…` : "Abre un panel primero…"} />
         <Button variant="primary" onClick={() => send()} disabled={busy || !input.trim() || !enPanel}>
           {busy ? "…" : "Enviar"}
         </Button>

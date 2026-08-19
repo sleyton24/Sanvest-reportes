@@ -24,7 +24,7 @@ export function AdminPage() {
           <Button variant="toggle" active={section === "usuarios"} onClick={() => setSection("usuarios")}>Usuarios</Button>
           <Button variant="toggle" active={section === "accesos"} onClick={() => setSection("accesos")}>Accesos</Button>
           <Button variant="toggle" active={section === "auditoria"} onClick={() => setSection("auditoria")}>Auditoría</Button>
-          <Button variant="toggle" active={section === "asistente"} onClick={() => setSection("asistente")}>Asistente</Button>
+          <Button variant="toggle" active={section === "asistente"} onClick={() => setSection("asistente")}>SofIA</Button>
           <Button variant="toggle" active={section === "gastoIA"} onClick={() => setSection("gastoIA")}>Gasto IA</Button>
           <Button variant="toggle" active={section === "etl"} onClick={() => setSection("etl")}>Mantener ETL</Button>
         </div>

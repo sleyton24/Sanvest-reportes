@@ -1,4 +1,4 @@
-// Asistente conversacional (agente Claude, read-only) para diagnosticar cargas
+// SofIA en modo diagnóstico de cargas (la misma IA del panel, read-only):
 // que quedaron mal: revisa los datos de la unidad y guía cómo corregir. NO modifica
 // datos. Requiere que el servidor tenga ANTHROPIC_API_KEY y SANVEST_ASK_ENABLED=1.
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
@@ -77,7 +77,7 @@ export function AgentChat() {
         )}
         {messages.map((m, i) => (
           <div key={i} className={`agent__msg agent__msg--${m.role}`}>
-            <div className="agent__role">{m.role === "user" ? "Tú" : "Asistente"}</div>
+            <div className="agent__role">{m.role === "user" ? "Tú" : "SofIA"}</div>
             <div className="agent__text">
               {m.content || (busy && i === messages.length - 1 ? "…" : "")}
             </div>
