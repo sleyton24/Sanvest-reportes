@@ -237,16 +237,6 @@ export function HotelDashboard() {
     };
   }).sort((a, b) => (a.indice ?? 99) - (b.indice ?? 99));
 
-  const indItems = [...new Set((pointRows[FULL] ?? []).map((r) => String(r["Item"])))];
-  const indRowMY = (item: string): IndicatorRowMY => {
-    const rows = (pointRows[FULL] ?? []).filter((r) => String(r["Item"]) === item);
-    return {
-      item: item.trim(),
-      real: aggregate(rows, "Versión_Real", "max"), ppto: aggregate(rows, "Versión_Ppto", "max"),
-      ytdReal: aggregate(rows, "Versión_Real YTD", "max"), ytdPpto: aggregate(rows, "Versión_Ppto YTD", "max"),
-    };
-  };
-
   return (
     <div className="dash">
       <header className="dash__header">
@@ -257,14 +247,10 @@ export function HotelDashboard() {
         </div>
       </header>
 
-      <section className="row" style={{ gridTemplateColumns: "1fr" }}>
-        <IndicatorTableMY title="Informe de Gestión (Mensual y YTD)"
-          rows={indItems.map((it) => indRowMY(it))} />
-      </section>
-
-      {/* Apertura completa por cuenta de la hoja 'Informe gestión' del CCPP
-          (mismo formato que la vista LAR Group; secciones colapsables). Los
-          gastos vienen negativos, tal como el informe. */}
+      {/* Informe de Gestión abierto cuenta a cuenta, de la hoja 'Informe gestión' del
+          CCPP (mismo formato que la vista LAR Group; secciones colapsables). Los gastos
+          vienen negativos, tal como el informe. Reemplaza la tabla resumen de 4 métricas:
+          traía estos mismos totales (Ingresos, Gastos, GOP, Flujo) sin el desglose. */}
       {pnlMulti.length > 0 ? (
         <section className="row" style={{ gridTemplateColumns: "1fr" }}>
           <HoldingPnLMulti title="Apertura por cuenta — Informe de Gestión (UF)"
@@ -368,8 +354,9 @@ export function HotelDashboard() {
       </section>
 
       <footer className="dash__footer">
-        Reconstruido del layout del .pbix (página "OLÁ Hotel"). Real / Ppto / Año anterior
-        desde las tablas Hotel Real, Hotel PPTO y columnas LY precalculadas. La deuda sale del
+        Página "OLÁ Hotel": Informe de Gestión abierto por cuenta (mes+YTD) desde el CCPP,
+        indicadores ADR/REVPAR, ocupación y combos. Real / Ppto / Año anterior desde las
+        tablas Hotel Real, Hotel PPTO y columnas LY precalculadas. La deuda sale del
         cronograma de amortización del crédito Hotel Ola (deuda oficial del hotel).
       </footer>
     </div>
