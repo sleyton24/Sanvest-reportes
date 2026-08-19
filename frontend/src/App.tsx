@@ -19,6 +19,8 @@ import { useAuth } from "./auth";
 import { UNITS } from "./units";
 import { logUnitAccess } from "./api";
 import { scheduleFit } from "./fit";
+import { VistaProvider } from "./viewctx";
+import { PanelChat } from "./components/PanelChat";
 
 const UNIT_IDS = new Set(UNITS.map((u) => u.id));
 
@@ -68,6 +70,7 @@ export function App() {
 
   return (
     <PrintLabelsProvider value={printLabels}>
+     <VistaProvider>
       <div className={`app unit-${unit}`}>
         <nav className="topnav">
           <button className="brand brand--btn" onClick={() => setUnit("menu")} title="Menú principal">
@@ -139,7 +142,10 @@ export function App() {
           </Suspense>
         )}
         {unit === "admin" && user.is_admin && <AdminPage />}
+        {/* asistente del panel: solo admin (gasta API) y solo con un panel abierto */}
+        {user.is_admin && UNIT_IDS.has(unit) && <PanelChat />}
       </div>
+     </VistaProvider>
     </PrintLabelsProvider>
   );
 }

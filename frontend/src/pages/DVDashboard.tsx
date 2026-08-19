@@ -14,6 +14,7 @@ import { DvDebtEntry } from "../components/DvDebtEntry";
 import { DvAvanceEntry } from "../components/DvAvanceEntry";
 import { Button } from "../components/Button";
 import { useAuth } from "../auth";
+import { useSetVista } from "../viewctx";
 
 // tablas que se cargan una vez por proyecto (filtradas proyecto+versión)
 const DATASET_SLUGS = [
@@ -172,6 +173,14 @@ export function DVDashboard() {
     .reduce((a, r) => a + (num(r["Monto"]) ?? 0), 0);
   const amortizado = aggregate(pointRows["amortizacion"], "Amortizado", "max") ?? 0;
   const saldoDeuda = Math.max(0, deudaGirada - amortizado);
+
+  // Publica el reporte visible para el asistente del panel (PanelChat).
+  useSetVista({
+    unidad: "DV",
+    titulo: `Desarrollo para la Venta · ${project.label}`,
+    filtros: { Proyecto: project.label, "Año": year || "", Mes: month || "" },
+    cifras: [],
+  });
 
   if (error) return <div className="state state--error">Error cargando datos: {error}</div>;
   if (loading) return <div className="state">Cargando {project.label}…</div>;

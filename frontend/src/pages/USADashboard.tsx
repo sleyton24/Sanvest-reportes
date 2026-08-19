@@ -11,6 +11,7 @@ import { UsaKpiEntry } from "../components/UsaKpiEntry";
 import { Button } from "../components/Button";
 import { useAuth } from "../auth";
 import { BarsLineChart, MultiLineChart } from "../components/charts/Charts";
+import { useSetVista } from "../viewctx";
 
 // Operating Statements (Seccion > Linea) con columnas Mensual | YTD fusionadas
 const STMT_LEVELS = ["Seccion", "Linea"];
@@ -193,6 +194,14 @@ export function USADashboard() {
       .map((e) => ({ key: e.key, iso: e.iso, Actual: e._a ? e.Actual : null, Ppto: e._p ? e.Ppto : null }))
       .sort((a, b) => a.key.localeCompare(b.key));
   };
+
+  // Publica el reporte visible para el asistente del panel (PanelChat).
+  useSetVista({
+    unidad: "USA",
+    titulo: `USA · ${prop}`,
+    filtros: { Propiedad: prop, "Año": year || "", Mes: month || "" },
+    cifras: [],
+  });
 
   if (error) return <div className="state state--error">Error: {error}</div>;
   if (loading) return <div className="state">Cargando USA…</div>;

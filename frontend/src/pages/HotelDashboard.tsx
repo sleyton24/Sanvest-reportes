@@ -7,6 +7,7 @@ import { Gauge } from "../components/Gauge";
 import { IndicatorTableMY, IndicatorRowMY } from "../components/IndicatorTable";
 import { BarsLineChart, MultiLineChart } from "../components/charts/Charts";
 import { HoldingPnLMulti, PnLMultiRow } from "../components/HoldingPnL";
+import { useSetVista } from "../viewctx";
 
 const REAL = "hotel_real", PPTO = "hotel_ppto", FULL = "hotel_full";
 const MESES = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -138,6 +139,17 @@ export function HotelDashboard() {
       return fid > selFid - 100 && fid <= selFid;
     });
   };
+
+  // Publica el reporte visible para el asistente del panel (PanelChat).
+  useSetVista({
+    unidad: "Hotel",
+    titulo: "OLÁ Hotel",
+    filtros: { "Año": year || "", Mes: month ? MESES[month] : "", "A la fecha": asOfKey },
+    cifras: (pointRows[FULL] ?? []).slice(0, 12).map((r) => ({
+      label: `${String(r["Item"]).trim()} (mes Real)`,
+      valor: fmtUF(num(r["Versión_Real"])),
+    })),
+  });
 
   if (error) return <div className="state state--error">Error: {error}</div>;
   if (loading) return <div className="state">Cargando Hotel…</div>;

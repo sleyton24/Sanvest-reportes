@@ -9,6 +9,7 @@ import { KpiCard } from "../components/KpiCard";
 import { HoldingPnLMulti, PnLMultiRow } from "../components/HoldingPnL";
 import { PivotTable } from "../components/PivotTable";
 import { ColumnLinesChart } from "../components/charts/Charts";
+import { useSetVista } from "../viewctx";
 
 const MESES = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const card = (title: string, fields: [string, "uf" | "pct" | "num" | "int"][]): CardSpec => ({
@@ -266,6 +267,14 @@ export function AtemporaDashboard() {
     })).sort((a, b) => a.comprador.localeCompare(b.comprador, "es"));
     return { compradores, total: compradores.reduce((a, c) => a + c.subtotal, 0) };
   }, [ven]);
+
+  // Publica el reporte visible para el asistente del panel (PanelChat).
+  useSetVista({
+    unidad: "Atempora",
+    titulo: "Atémpora",
+    filtros: { "Año": year || "", Mes: month || "" },
+    cifras: [],
+  });
 
   if (error) return <div className="state state--error">Error: {error}</div>;
   if (loading) return <div className="state">Cargando Atémpora…</div>;

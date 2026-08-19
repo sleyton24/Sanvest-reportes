@@ -6,6 +6,7 @@ import { BalanceSheet } from "../components/BalanceSheet";
 import { PnLMatrix, PnLCol } from "../components/PnLMatrix";
 import { HBarChart, PieChart, WaterfallChart } from "../components/charts/Charts";
 import { Button } from "../components/Button";
+import { useSetVista } from "../viewctx";
 
 // Colores de marca por unidad de negocio del patrimonio (los del menú / "Aperturas
 // por unidad"): verde=Desarrollo, teal=Renta Residencial, naranja=USA, amarillo=OLÁ,
@@ -168,6 +169,14 @@ export function GrupoDashboard() {
 
   // pantalla completa (balance o EERR) con la columna Nota integrada en la tabla
   const [expand, setExpand] = useState<"" | "balance" | "eerr">("");
+
+  // Publica el reporte visible para el asistente del panel (PanelChat).
+  useSetVista({
+    unidad: "Grupo",
+    titulo: "Estados Financieros del Grupo",
+    filtros: { Trimestre: tri || "" },
+    cifras: [],
+  });
 
   if (error) return <div className="state state--error">Error: {error}</div>;
   if (loading) return <div className="state">Cargando Estados Financieros del Grupo…</div>;

@@ -17,7 +17,7 @@ from . import catalog as cat
 from . import measures as meas
 from .db import build_where, fetch, qi
 
-MODEL = "claude-opus-4-8"
+MODEL = "claude-opus-5"
 MAX_ITERS = 8          # tope de vueltas de tool-use por pregunta
 MAX_TOKENS = 8000      # suficiente para una respuesta analítica (streaming)
 ROW_CAP = 500          # tope duro de filas por consulta
@@ -79,6 +79,11 @@ esperado (los informes se detectan por nombre), revisar hoja/columnas contra la 
 ejemplo», o restaurar desde respaldo si se pisó un período.
 - IMPORTANTE: tú NO modificas ni cargas datos; solo diagnosticas y guías paso a paso. Nunca digas que \
 "ya lo arreglaste"; el usuario ejecuta la corrección.
+
+SOBRE EL REPORTE QUE EL USUARIO ESTÁ VIENDO:
+- Si más abajo viene un bloque "REPORTE EN PANTALLA", el usuario te pregunta MIRANDO ese reporte: sus filtros (activo/proyecto, año, mes) son el contexto por defecto. Si pregunta "¿por qué bajó el EBITDA?" se refiere a ese activo y ese período, no tienes que preguntárselo.
+- Esas cifras son las que él ve, pero NO son tu fuente: verifícalas con las herramientas antes de explicarlas. Si lo que consultas no coincide con lo que está en pantalla, dilo explícitamente (suele significar que el filtro que ves y el dato de la tabla no son el mismo período).
+- Cuando pregunte por una comparación que el reporte no muestra (otro mes, otro activo), consúltala con las herramientas; no te limites a lo que está en pantalla.
 
 Tienes el esquema completo de la unidad activa más abajo. Empieza razonando qué tabla/columna responde la \
 pregunta; descubre valores de filtro con distinct_values si hace falta; consulta; y responde con la cifra citada."""
@@ -263,8 +268,29 @@ def _client():
     return anthropic.Anthropic()
 
 
-def run_agent_sse(unit: str, history: list[dict]) -> Iterator[str]:
+def _vista_text(vista: dict | None) -> str | None:
+    """Bloque legible con lo que el usuario tiene en pantalla (unidad, filtros y cifras).
+    Va DESPUÉS del esquema cacheado: cambia con cada pregunta y rompería el caché."""
+    if not vista:
+        return None
+    partes = [f"REPORTE EN PANTALLA: {vista.get('titulo') or vista.get('unidad') or ''}".strip()]
+    filtros = vista.get("filtros") or {}
+    if isinstance(filtros, dict) and filtros:
+        partes.append("Filtros activos: "
+                      + ", ".join(f"{k} = {v}" for k, v in list(filtros.items())[:12]))
+    cifras = vista.get("cifras") or []
+    if isinstance(cifras, list) and cifras:
+        vis = [f"  · {c.get('label')}: {c.get('valor')}" for c in cifras[:40]
+               if isinstance(c, dict) and c.get("label")]
+        if vis:
+            partes.append("Cifras visibles en pantalla:" + chr(10)
+                          + chr(10).join(vis))
+    return chr(10).join(partes)
+
+
+def run_agent_sse(unit: str, history: list[dict], vista: dict | None = None) -> Iterator[str]:
     """`history` = [{'role':'user'|'assistant', 'content': str}, ...] (turnos de texto).
+    `vista` = reporte que el usuario tiene en pantalla (unidad, filtros, cifras visibles).
     Genera eventos SSE: {type:text|tool|done|error}."""
     try:
         if not cat.get_unit(unit):
@@ -275,10 +301,14 @@ def run_agent_sse(unit: str, history: list[dict]) -> Iterator[str]:
         yield _sse({"type": "error", "error": str(e)})
         return
 
+    # El esquema es estable y va con cache_control (se reusa entre preguntas); la
+    # vista cambia en cada pregunta, así que va DESPUÉS del punto de caché.
     system = [
         {"type": "text", "text": SYSTEM_BASE},
         {"type": "text", "text": build_schema_text(unit), "cache_control": {"type": "ephemeral"}},
     ]
+    if (vtxt := _vista_text(vista)):
+        system.append({"type": "text", "text": vtxt})
     messages: list[dict] = [{"role": m["role"], "content": m["content"]} for m in history if m.get("content")]
 
     try:

@@ -304,14 +304,25 @@ class ChatMsg(BaseModel):
     content: str
 
 
+class VistaBody(BaseModel):
+    """Reporte que el usuario tiene en pantalla (lo publica el dashboard)."""
+    unidad: str | None = None
+    titulo: str | None = None
+    filtros: dict[str, str | int | float | None] = {}
+    cifras: list[dict[str, str | None]] = []
+
+
 class AskBody(BaseModel):
     messages: list[ChatMsg]
+    vista: VistaBody | None = None
 
 
-@app.post("/units/{unit}/ask", tags=["agente"], dependencies=[Depends(auth.require_unit_access)])
+@app.post("/units/{unit}/ask", tags=["agente"], dependencies=[Depends(auth.require_admin)])
 def ask_agent(unit: str, body: AskBody):
     """Pregunta en lenguaje natural sobre los datos de la unidad. El agente (Claude)
     consulta las tablas vía herramientas read-only y responde citando las cifras.
+    `vista` (opcional) describe el reporte en pantalla —filtros y cifras visibles—
+    para que responda sobre lo que el usuario está mirando. Solo admin: gasta API.
     Respuesta en streaming SSE: eventos {type: text|tool|done|error}."""
     if not ASK_ENABLED:
         raise HTTPException(503, "El agente está deshabilitado (SANVEST_ASK_ENABLED=0).")
@@ -320,8 +331,9 @@ def ask_agent(unit: str, body: AskBody):
     if len(body.messages) > 40 or sum(len(m.content or "") for m in body.messages) > 40000:
         raise HTTPException(413, "Conversación demasiado larga.")
     history = [m.model_dump() for m in body.messages]
+    vista = body.vista.model_dump() if body.vista else None
     return StreamingResponse(
-        agent.run_agent_sse(unit, history),
+        agent.run_agent_sse(unit, history, vista),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )

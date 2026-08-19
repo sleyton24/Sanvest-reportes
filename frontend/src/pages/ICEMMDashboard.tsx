@@ -6,6 +6,7 @@ import { Slicer } from "../components/Slicer";
 import { HoldingPnLMulti, PnLMultiRow } from "../components/HoldingPnL";
 import { FlujoPivot } from "../components/FlujoPivot";
 import { ColumnLinesChart } from "../components/charts/Charts";
+import { useSetVista } from "../viewctx";
 
 const MESES = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 const n1 = (r: Row) => String(r["Nivel 1"] ?? "").trim();   // Nivel 1 trae espacios finales
@@ -139,6 +140,14 @@ export function ICEMMDashboard() {
     }
     return last12([...m.values()].sort((a, b) => a.key.localeCompare(b.key)), endKey);
   };
+
+  // Publica el reporte visible para el asistente del panel (PanelChat).
+  useSetVista({
+    unidad: "ICEMM",
+    titulo: "Construcción (ICEMM)",
+    filtros: { "Año": year || "", Mes: month || "" },
+    cifras: [],
+  });
 
   if (error) return <div className="state state--error">Error: {error}</div>;
   if (loading) return <div className="state">Cargando Construcción (ICEMM)…</div>;

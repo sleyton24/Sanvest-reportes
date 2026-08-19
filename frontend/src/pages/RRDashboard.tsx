@@ -7,6 +7,7 @@ import { Gauge } from "../components/Gauge";
 import { IndicatorTableMY } from "../components/IndicatorTable";
 import { BarsLineChart, MultiLineChart } from "../components/charts/Charts";
 import { HoldingPnLMulti, PnLMultiRow } from "../components/HoldingPnL";
+import { useSetVista } from "../viewctx";
 
 // columnas de real_ppto_ly usadas por los visuales originales (página SOHO/PARK)
 const C = {
@@ -299,6 +300,24 @@ export function RRDashboard() {
       .sort((a, b) => (num(a["FechaId"]) ?? 0) - (num(b["FechaId"]) ?? 0));
     return rs.length ? rs[rs.length - 1] : null;
   }, [deuda, activo, point, lastRealFid, isHolding]);
+
+  // Publica el reporte visible para el asistente del panel (PanelChat).
+  useSetVista({
+    unidad: "RR",
+    titulo: `Renta Residencial · ${activo}`,
+    filtros: { Activo: activo, "Año": year || "", Mes: month ? MESES[month] : "" },
+    cifras: [
+      { label: "EBITDA UF (mes, Real)", valor: fmtUF(v(C.ebR)) },
+      { label: "EBITDA UF (mes, Ppto)", valor: fmtUF(v(C.ebP)) },
+      { label: "EBITDA UF (YTD, Real)", valor: fmtUF(v(C.ebYtdR)) },
+      { label: "Ingresos UF (mes, Real)", valor: fmtUF(v(C.ingR)) },
+      { label: "Costos operacionales UF (mes, Real)", valor: fmtUF(v(C.cosR)) },
+      { label: "Flujo UF (mes, Real)", valor: fmtUF(v(C.fluR)) },
+      { label: "Ocupación (mes)", valor: fmtPct(v(C.ocR), 1) },
+      { label: "Ocupación YTD", valor: fmtPct(ocYtd.real, 1) },
+      { label: "UF/m² depto (mes)", valor: fmtNum(v(C.m2DeptoR), 3) },
+    ],
+  });
 
   if (error) return <div className="state state--error">Error: {error}</div>;
   if (loading) return <div className="state">Cargando Renta Residencial…</div>;

@@ -320,11 +320,12 @@ interface AgentHandlers { onText?: (t: string) => void; onTool?: (name: string) 
 // Núcleo SSE: postea la conversación a `path` y entrega texto/eventos por callbacks.
 async function streamAgentSSE(
   path: string, messages: ChatMsg[], handlers: AgentHandlers, disabledMsg: string,
+  extra?: Record<string, unknown>,
 ): Promise<void> {
   const res = await apiFetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, ...(extra || {}) }),
   });
   if (res.status === 503) throw new Error(disabledMsg);
   if (!res.ok || !res.body) throw new Error(`agente: ${res.status}`);
@@ -350,10 +351,21 @@ async function streamAgentSSE(
   }
 }
 
-// Asistente read-only de datos (diagnóstico de cargas). SSE.
-export async function askAgent(unit: string, messages: ChatMsg[], handlers: AgentHandlers): Promise<void> {
+// Reporte en pantalla: el asistente lo recibe para responder sobre lo que se ve.
+export interface VistaBody {
+  unidad?: string;
+  titulo?: string;
+  filtros?: Record<string, string | number | null>;
+  cifras?: { label: string; valor: string }[];
+}
+
+// Asistente read-only de datos (solo admin). SSE. `vista` es opcional: cuando se
+// manda, responde sobre el reporte que el usuario tiene abierto.
+export async function askAgent(unit: string, messages: ChatMsg[], handlers: AgentHandlers,
+                               vista?: VistaBody | null): Promise<void> {
   return streamAgentSSE(`/units/${unit}/ask`, messages, handlers,
-    "El asistente no está habilitado en el servidor (falta ANTHROPIC_API_KEY o SANVEST_ASK_ENABLED=1).");
+    "El asistente no está habilitado en el servidor (falta ANTHROPIC_API_KEY o SANVEST_ASK_ENABLED=1).",
+    vista ? { vista } : undefined);
 }
 
 // --- F4: mantenedor de ETL (ajusta el spec en staging; el admin aplica) ---
