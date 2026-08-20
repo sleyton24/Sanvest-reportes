@@ -108,15 +108,23 @@ def init_db() -> None:
     # Migración: `can_ask` (permiso para usar SofIA) se agregó después, así que en
     # las bases ya creadas el CREATE TABLE de arriba no la añade. ALTER guardado por
     # inspección, portable en SQLite y Postgres.
+    from sqlalchemy import inspect as _sa_inspect
+
+    def _tiene_can_ask() -> bool:
+        return "can_ask" in {c["name"] for c in _sa_inspect(engine).get_columns("app_users")}
+
     try:
-        from sqlalchemy import inspect as _sa_inspect
-        cols = {c["name"] for c in _sa_inspect(engine).get_columns("app_users")}
-        if "can_ask" not in cols:
+        if not _tiene_can_ask():
             with engine.begin() as con:
                 con.execute(text("ALTER TABLE app_users ADD COLUMN can_ask INTEGER NOT NULL DEFAULT 0"))
             print("[auth] app_users: columna can_ask agregada")
     except Exception as e:  # noqa: BLE001
-        print(f"[auth] no se pudo verificar/agregar can_ask: {type(e).__name__}: {e}")
+        # Con varios workers (prod corre uvicorn --workers 2) los dos arrancan a la
+        # vez, ven la columna ausente y ambos lanzan el ALTER: el segundo falla con
+        # DuplicateColumn. Si la columna YA está, la migración se cumplió y no hay
+        # nada que reportar; solo avisamos si de verdad quedó sin crear.
+        if not _tiene_can_ask():
+            print(f"[auth] no se pudo agregar can_ask: {type(e).__name__}: {e}")
 
 
 # ----------------------------- password (pbkdf2) ------------------------------
