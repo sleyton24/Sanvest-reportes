@@ -148,23 +148,47 @@ def _yardi_property(path) -> str:
     raise RuntimeError(f"No reconozco la propiedad en el informe Yardi (r0='{r0[:60]}')")
 
 
-def upsert_usa_pnl(engine: Engine, activo: str, df: pd.DataFrame) -> dict:
+def upsert_usa_pnl(engine: Engine, activo: str, df: pd.DataFrame,
+                   reemplazar_mes: bool = False) -> dict:
+    """Carga el informe en usa_pnl. Con reemplazar_mes, las filas del mes y de las
+    secciones que trae el informe se BORRAN antes de insertar, en vez de actualizarse
+    línea por línea. Se usa en St Grand: su informe es el estado completo del mes, y
+    el desglose de líneas cambió al corregir la hoja que se lee (11 líneas agregadas
+    del árbol consolidado -> ~124 del residencial). Sin el borrado las viejas se
+    quedarían sumando junto a las nuevas y el total saldría al doble."""
     cur = _read(engine, "usa_pnl")
     sub = cur[cur["Activo"] == activo]
-    secmap = {str(l).strip(): str(s) for l, s in zip(sub["Linea"], sub["Seccion"])}
+    secmap = {str(l).strip(): str(s).strip() for l, s in zip(sub["Linea"], sub["Seccion"])
+              if str(s).strip().lower() not in ("", "nan", "none")}
     catmap = {str(l).strip(): c for l, c in zip(sub["Linea"], sub["Categoria"])}
     for c in ["Real", "Ppto", "YTD", "YTD_Ppto"]:
         cur[c] = pd.to_numeric(cur[c], errors="coerce").astype("float64")
+    n_borradas = 0
+    if reemplazar_mes and len(df):
+        meses = {_fid(f) for f in df["FechaID"]}
+        secs = {str(x).strip().upper() for x in df.get("Seccion", pd.Series(dtype=object)).dropna()}
+        fuera = ((cur["Activo"] == activo)
+                 & cur["FechaID"].map(lambda f: _fid(f) in meses)
+                 & cur["Seccion"].map(lambda x: str(x).strip().upper() in secs))
+        n_borradas = int(fuera.sum())
+        cur = cur[~fuera].reset_index(drop=True)
     cur["_k"] = [f"{a}|{str(l).strip()}|{_fid(f)}"
                  for a, l, f in zip(cur["Activo"], cur["Linea"], cur["FechaID"])]
     existing = set(cur["_k"])
-    n_upd, inserts = 0, []
+    n_upd, n_dedup, inserts = 0, 0, []
     for _, r in df.iterrows():
         line = str(r["Nivel 1"]).strip()
-        # sección: la que trae el df (St Grand la deriva del código de cuenta) o, si no,
-        # la del histórico (Bemiston/MILA se apoyan en las filas ya cargadas).
-        sec = str(r.get("Seccion") or secmap.get(line, "") or "")
-        sign = 1 if "REVENUE" in sec.upper() else -1
+        # Sección: la que trae el informe (todas las rutas la deducen ya, recorriendo
+        # los encabezados). El histórico queda solo como respaldo para informes
+        # antiguos; heredarla era la causa de que una línea NUEVA quedara sin
+        # sección, con signo -1, y desapareciera del total de REVENUE del panel.
+        sec_inf = str(r.get("Seccion") or "").strip()
+        sec = sec_inf if sec_inf.lower() not in ("", "nan", "none") else secmap.get(line, "")
+        # El signo lo manda el informe cuando lo trae: dentro de una sección de
+        # gastos puede haber un sub-bloque de ingreso (Bemiston "Other Income"),
+        # que el propio informe resta en su subtotal.
+        signo = r.get("Signo")
+        sign = int(signo) if signo in (1, -1) else (1 if "REVENUE" in sec.upper() else -1)
         vals = {"Real": sign * r["Real"] if r["Real"] is not None else None,
                 "Ppto": sign * r["Monto"] if r.get("Monto") is not None else None,
                 "YTD": sign * r["YTD"] if r.get("YTD") is not None else None,
@@ -172,9 +196,25 @@ def upsert_usa_pnl(engine: Engine, activo: str, df: pd.DataFrame) -> dict:
         k = f"{activo}|{line}|{_fid(r['FechaID'])}"
         if k in existing:
             sel = cur["_k"] == k
+            if int(sel.sum()) > 1:
+                # Misma línea repetida en el mes: el upsert las actualizaría TODAS
+                # al mismo valor y el total saldría multiplicado. Pasó con "Other
+                # Interest" de Bemiston, que el informe traía dos veces (resultado
+                # y conciliación de caja). Deja la primera.
+                sobran = list(cur.index[sel])[1:]
+                cur = cur.drop(index=sobran)
+                n_dedup += len(sobran)
+                sel = cur["_k"] == k
             for c, v in vals.items():
                 if v is not None:
                     cur.loc[sel, c] = v
+            # Repara también la sección de las filas ya guardadas: sin esto una
+            # línea cargada antes sin sección seguía fuera del total del panel
+            # aunque el signo ya viniera bien (Bemiston "Retail - Late Fee",
+            # Mila "Interest Income"). Solo si el informe trae sección, para no
+            # borrar con nulos lo que ya está bueno.
+            if sec:
+                cur.loc[sel, "Seccion"] = sec
             n_upd += 1
         else:
             row = {c: None for c in cur.columns}
@@ -187,15 +227,19 @@ def upsert_usa_pnl(engine: Engine, activo: str, df: pd.DataFrame) -> dict:
               if inserts else cur)
     _write(engine, "usa_pnl", merged)
     return {"tabla": "usa_pnl", "activo": activo, "filas_resultantes": len(merged),
-            "filas_actualizadas": n_upd, "filas_insertadas": len(inserts)}
+            "filas_actualizadas": n_upd, "filas_insertadas": len(inserts),
+            "filas_borradas": n_borradas, "filas_duplicadas_eliminadas": n_dedup}
 
 
 def apply_yardi(engine: Engine, path) -> dict:
     """Informe -> usa_pnl homologado. Bemiston/MILA = Budget_Comparison (1ª hoja);
     St Grand = Consolidated Reports (hoja 'Budget Comp'/'Budget Comp Comm')."""
     activo = _yardi_property(path)
-    df = st_grand_to_pnl(path) if activo == "St Grand" else budget_comparison_to_pnl(path)
-    return upsert_usa_pnl(engine, activo, df)
+    es_grand = activo == "St Grand"
+    df = st_grand_to_pnl(path) if es_grand else budget_comparison_to_pnl(path)
+    # St Grand reemplaza el mes (ver upsert_usa_pnl). Bemiston/MILA no: sus Income
+    # Statement vienen sin columnas de presupuesto y el upsert las preserva.
+    return upsert_usa_pnl(engine, activo, df, reemplazar_mes=es_grand)
 
 
 def apply_usa_budget(engine: Engine, path) -> dict:
