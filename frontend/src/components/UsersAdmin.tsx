@@ -27,6 +27,7 @@ export function UsersAdmin() {
   const [editUnits, setEditUnits] = useState<string[]>([]);
   const [editPass, setEditPass] = useState("");
   const [editName, setEditName] = useState("");
+  const [editAsk, setEditAsk] = useState(false);   // permiso de SofIA
 
   const load = async () => {
     setLoading(true); setError("");
@@ -55,14 +56,17 @@ export function UsersAdmin() {
 
   const startEdit = (u: AppUser) => {
     setEditUser(u.username); setEditRole(u.role); setEditUnits(u.units || []);
+    setEditAsk(!!u.can_ask);
     setEditPass(""); setEditName(u.full_name || "");
   };
   const saveEdit = async () => {
     setError("");
     try {
-      const body: { role: string; units: string[]; full_name: string; password?: string } = {
+      const body: { role: string; units: string[]; full_name: string; can_ask: boolean;
+                    password?: string } = {
         role: editRole, units: editRole === "admin" ? [] : editUnits,
         full_name: editName,  // "" limpia el nombre
+        can_ask: editAsk,
       };
       if (editPass) body.password = editPass;
       await updateUser(editUser!, body);
@@ -120,7 +124,7 @@ export function UsersAdmin() {
         {loading ? <div className="state">Cargando…</div> : (
           <table className="admin-table">
             <thead>
-              <tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Unidades</th><th>Estado</th><th></th></tr>
+              <tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Unidades</th><th>SofIA</th><th>Estado</th><th></th></tr>
             </thead>
             <tbody>
               {users.map((u) => (
@@ -130,6 +134,7 @@ export function UsersAdmin() {
                     <td>{u.full_name || "—"}</td>
                     <td>{u.is_admin ? "admin" : "viewer"}</td>
                     <td>{u.is_admin ? "TODAS" : (u.units.join(", ") || "—")}</td>
+                    <td>{u.can_ask ? (u.is_admin ? "sí (admin)" : "sí") : "no"}</td>
                     <td>{u.active ? "activo" : "inactivo"}</td>
                     <td className="admin-actions">
                       <Button variant="ghost" size="sm"
@@ -139,7 +144,7 @@ export function UsersAdmin() {
                     </td>
                   </tr>
                   {editUser === u.username && (
-                    <tr className="admin-edit-row"><td colSpan={6}>
+                    <tr className="admin-edit-row"><td colSpan={7}>
                       <div className="admin-edit">
                         <label className="kpi-in"><span>Nombre</span>
                           <input value={editName} placeholder="vacío = sin nombre"
@@ -159,6 +164,20 @@ export function UsersAdmin() {
                             ))}
                           </div>
                         )}
+                        {/* SofIA gasta API por pregunta, así que es un permiso
+                            aparte del rol: un viewer puede tenerla sin ser admin.
+                            Los admin la tienen siempre. */}
+                        <label className="admin-ask">
+                          <input type="checkbox" checked={editRole === "admin" || editAsk}
+                            disabled={editRole === "admin"}
+                            onChange={() => setEditAsk(!editAsk)} />
+                          <span>
+                            Habilitar <b>SofIA</b>
+                            {editRole === "admin"
+                              ? " — los administradores la tienen siempre"
+                              : " — podrá preguntar sobre las unidades que ve"}
+                          </span>
+                        </label>
                         <label className="kpi-in"><span>Nueva clave (opcional)</span>
                           <input type="password" value={editPass} autoComplete="new-password"
                             placeholder="vacío = no cambiar" onChange={(e) => setEditPass(e.target.value)} /></label>

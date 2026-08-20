@@ -142,10 +142,11 @@ export function App() {
           </Suspense>
         )}
         {unit === "admin" && user.is_admin && <AdminPage />}
-        {/* asistente del panel: solo admin (gasta API). Se muestra en todas las
-            páginas para que se encuentre; si no hay un panel de unidad abierto, el
-            propio chat avisa que hay que abrir uno. */}
-        {user.is_admin && <PanelChat />}
+        {/* SofIA: admin siempre, y los viewers a los que se les habilitó en
+            Admin ▸ Usuarios (gasta API, por eso es un permiso aparte). Se muestra
+            en todas las páginas para que se encuentre; si no hay un panel de unidad
+            abierto, el propio chat avisa que hay que abrir uno. */}
+        {user.can_ask && <PanelChat />}
       </div>
      </VistaProvider>
     </PrintLabelsProvider>

@@ -51,6 +51,7 @@ def init_db() -> None:
               role          TEXT NOT NULL DEFAULT 'viewer',
               units         TEXT NOT NULL DEFAULT '[]',
               active        INTEGER NOT NULL DEFAULT 1,
+              can_ask       INTEGER NOT NULL DEFAULT 0,
               created_at    TEXT
             )
             """
@@ -104,6 +105,18 @@ def init_db() -> None:
             """
         ))
         con.execute(text("CREATE INDEX IF NOT EXISTS ix_agent_usage_ts ON agent_usage (ts)"))
+    # Migración: `can_ask` (permiso para usar SofIA) se agregó después, así que en
+    # las bases ya creadas el CREATE TABLE de arriba no la añade. ALTER guardado por
+    # inspección, portable en SQLite y Postgres.
+    try:
+        from sqlalchemy import inspect as _sa_inspect
+        cols = {c["name"] for c in _sa_inspect(engine).get_columns("app_users")}
+        if "can_ask" not in cols:
+            with engine.begin() as con:
+                con.execute(text("ALTER TABLE app_users ADD COLUMN can_ask INTEGER NOT NULL DEFAULT 0"))
+            print("[auth] app_users: columna can_ask agregada")
+    except Exception as e:  # noqa: BLE001
+        print(f"[auth] no se pudo verificar/agregar can_ask: {type(e).__name__}: {e}")
 
 
 # ----------------------------- password (pbkdf2) ------------------------------
@@ -166,6 +179,7 @@ def norm_username(username: str) -> str:
 
 def _row_to_user(row: Any) -> dict:
     u = dict(row)
+    u["can_ask"] = bool(u.get("can_ask"))
     try:
         u["units"] = json.loads(u.get("units") or "[]")
     except Exception:  # noqa: BLE001
@@ -202,6 +216,9 @@ def public_user(u: dict) -> dict:
         "active": u["active"],
         "is_admin": is_admin,
         "can_upload": is_admin,    # decisión de negocio: carga solo admin
+        # SofIA: los admin siempre; un viewer solo si se le habilita expresamente
+        # (gasta API, así que es un permiso aparte del rol).
+        "can_ask": is_admin or bool(u.get("can_ask")),
     }
 
 
@@ -214,7 +231,7 @@ def authenticate(username: str, password: str) -> dict | None:
     return u
 
 
-def create_user(username: str, password: str, *, role: str = "viewer",
+def create_user(username: str, password: str, *, role: str = "viewer", can_ask: bool = False,
                 full_name: str | None = None, units: list[str] | None = None) -> None:
     """Crea o reemplaza (upsert manual portable) un usuario."""
     username = norm_username(username)
@@ -225,6 +242,7 @@ def create_user(username: str, password: str, *, role: str = "viewer",
         "r": role,
         "un": json.dumps(units or []),
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ca": 1 if can_ask else 0,
     }
     with engine.begin() as con:
         exists = con.execute(
@@ -233,11 +251,12 @@ def create_user(username: str, password: str, *, role: str = "viewer",
         if exists:
             con.execute(text(
                 "UPDATE app_users SET password_hash=:ph, full_name=:fn, role=:r, "
-                "units=:un, active=1 WHERE username=:u"), row)
+                "units=:un, active=1, can_ask=:ca WHERE username=:u"), row)
         else:
             con.execute(text(
                 "INSERT INTO app_users (username, password_hash, full_name, role, "
-                "units, active, created_at) VALUES (:u, :ph, :fn, :r, :un, 1, :ts)"), row)
+                "units, active, can_ask, created_at) "
+                "VALUES (:u, :ph, :fn, :r, :un, 1, :ca, :ts)"), row)
 
 
 def set_password(username: str, password: str) -> bool:
@@ -271,6 +290,14 @@ def set_units(username: str, units: list[str]) -> bool:
         res = con.execute(text("UPDATE app_users SET units=:un WHERE username=:u"),
                           {"un": json.dumps(units), "u": username})
         return res.rowcount > 0
+
+
+def set_can_ask(username: str, can_ask: bool) -> bool:
+    """Habilita/deshabilita SofIA para un usuario (los admin la tienen siempre)."""
+    with engine.begin() as con:
+        r = con.execute(text("UPDATE app_users SET can_ask = :c WHERE username = :u"),
+                        {"c": 1 if can_ask else 0, "u": norm_username(username)})
+    return r.rowcount > 0
 
 
 def set_active(username: str, active: bool) -> bool:
@@ -516,6 +543,17 @@ def current_user(authorization: str | None = Header(None)) -> dict:
 def require_admin(user: dict = Depends(current_user)) -> dict:
     if user["role"] != "admin":
         raise HTTPException(403, "Acción restringida al rol admin.")
+    return user
+
+
+def require_ask(unit: str, user: dict = Depends(current_user)) -> dict:
+    """Permite usar SofIA: admin siempre; viewer solo si tiene `can_ask`. Además
+    exige acceso a la unidad consultada — un viewer habilitado no puede preguntar
+    por unidades que no ve en el panel."""
+    if not (user["role"] == "admin" or user.get("can_ask")):
+        raise HTTPException(403, "SofIA no está habilitada para tu usuario.")
+    if not user_can_see(user, unit):
+        raise HTTPException(403, f"Sin acceso a la unidad '{unit}'.")
     return user
 
 

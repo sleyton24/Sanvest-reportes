@@ -955,6 +955,14 @@ body {
 .ppt__canvas { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px;
   background: var(--surface); box-shadow: 0 8px 22px rgba(15, 30, 54, 0.10); }
 
+/* interruptor "habilitar SofIA" en el formulario de usuarios */
+.admin-ask { display: flex; align-items: center; gap: 8px; grid-column: 1 / -1;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px;
+  padding: 9px 12px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.admin-ask input { cursor: pointer; }
+.admin-ask input:disabled { cursor: default; }
+.admin-ask b { color: var(--ink); }
+
 /* asistente del panel (solo admin): burbuja flotante + panel de chat */
 .pchat__fab { position: fixed; left: 22px; bottom: 22px; z-index: 150; display: flex; align-items: center;
   gap: 8px; padding: 11px 18px; border-radius: 999px; border: none; cursor: pointer;

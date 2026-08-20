@@ -142,6 +142,7 @@ class UpdateUserBody(BaseModel):
     full_name: str | None = None
     units: list[str] | None = None
     active: bool | None = None
+    can_ask: bool | None = None       # permiso para usar SofIA
 
 
 def _client_ip(request: Request) -> str | None:
@@ -294,6 +295,8 @@ def update_user(username: str, body: UpdateUserBody,
         auth.set_units(username, body.units)
     if body.active is not None:
         auth.set_active(username, body.active)
+    if body.can_ask is not None:
+        auth.set_can_ask(username, body.can_ask)
     return {"ok": True, "user": auth.public_user(auth.get_user(username))}
 
 app.add_middleware(
@@ -324,7 +327,7 @@ class AskBody(BaseModel):
     vista: VistaBody | None = None
 
 
-@app.post("/units/{unit}/ask", tags=["agente"], dependencies=[Depends(auth.require_admin)])
+@app.post("/units/{unit}/ask", tags=["agente"], dependencies=[Depends(auth.require_ask)])
 def ask_agent(unit: str, body: AskBody, user: dict = Depends(auth.current_user)):
     """Pregunta en lenguaje natural sobre los datos de la unidad. El agente (Claude)
     consulta las tablas vía herramientas read-only y responde citando las cifras.

@@ -46,6 +46,7 @@ export interface AppUser {
   active: boolean;
   is_admin: boolean;
   can_upload: boolean;
+  can_ask: boolean;              // puede usar SofIA (admin siempre; viewer si se habilita)
 }
 
 // status=401 → credenciales malas; otro status (500, red caída) NO es culpa de la clave.
@@ -99,6 +100,7 @@ export interface UpdateUser {
   full_name?: string | null;
   units?: string[];
   active?: boolean;
+  can_ask?: boolean;
 }
 
 async function jsonOrThrow(res: Response, what: string): Promise<any> {
