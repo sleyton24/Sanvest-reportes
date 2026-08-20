@@ -90,10 +90,41 @@ def budget_comparison_to_pnl(path) -> pd.DataFrame:
     return pd.DataFrame(recs)
 
 
+def _cols_por_encabezado(rows, archivo: str) -> tuple[int, int, int, int]:
+    """Índices de (PTD Actual, PTD Budget, YTD Actual, YTD Budget) leídos del ENCABEZADO.
+
+    Antes estaban fijos (2,3,7,8) porque el informe de St Grand trae una columna extra
+    ('PTD Change Comments') que corre el bloque YTD. Cuando Yardi cambia las columnas
+    de un mes a otro, las posiciones fijas leen la celda equivocada EN SILENCIO: el
+    informe de jul-2026 dejó el YTD de presupuesto en 9.963 (vs ~6,1 M) porque cayó
+    sobre la columna de varianza. Buscar por nombre aguanta el cambio; si no aparecen
+    las cuatro, se levanta error en vez de cargar basura."""
+    for r in rows[:12]:
+        hdr = [str(v).strip().lower() if isinstance(v, str) else "" for v in r]
+        if not any("ytd actual" in c for c in hdr):
+            continue
+        def buscar(*claves):
+            for i, c in enumerate(hdr):
+                if all(k in c for k in claves):
+                    return i
+            return None
+        real, ppto = buscar("ptd", "actual"), buscar("ptd", "budget")
+        ytd, ytdp = buscar("ytd", "actual"), buscar("ytd", "budget")
+        faltan = [n for n, v in (("PTD Actual", real), ("PTD Budget", ppto),
+                                 ("YTD Actual", ytd), ("YTD Budget", ytdp)) if v is None]
+        if faltan:
+            raise RuntimeError(f"St Grand ({archivo}): la fila de encabezados no trae "
+                               f"{faltan}. Columnas vistas: {[c for c in hdr if c]}")
+        return real, ppto, ytd, ytdp
+    raise RuntimeError(f"St Grand ({archivo}): no encontré la fila de encabezados "
+                       f"(se busca una con 'YTD Actual')")
+
+
 def st_grand_to_pnl(path) -> pd.DataFrame:
     """St Grand llega en 'Consolidated Reports' (Cover Sheet vacía + hoja 'Budget
     Comp'/'Budget Comp Comm' = P&L consolidado res+comm). Diferencias con Bemiston/MILA:
-    - columna extra ('PTD Change Comments') que corre el YTD a las columnas H/I (7/8);
+    - columna extra ('PTD Change Comments') que corre el bloque YTD: las columnas se
+      ubican por ENCABEZADO (_cols_por_encabezado), no por posición;
     - se carga SOLO lo OPERACIONAL, hasta NET OPERATING INCOME (fuera balance, cash flow
       y subtotales); la sección sale del código de cuenta: 3xxx=REVENUE, 4xxx/5xxx=
       OPERATING EXPENSES. Verificado: Σ ingresos 853.670 − Σ gastos 419.468 = NOI 434.202.
@@ -115,11 +146,13 @@ def st_grand_to_pnl(path) -> pd.DataFrame:
         raise RuntimeError(f"St Grand: no pude leer el período en la hoja '{sheet}'")
     anio, mes = pe
     fid = anio * 100 + mes
+    c_real, c_ppto, c_ytd, c_ytdp = _cols_por_encabezado(rows, Path(path).name)
+    val = lambda r, i: r[i] if len(r) > i and isinstance(r[i], (int, float)) else None
     recs = []
     for r in rows:
         code = str(r[0]).strip() if len(r) > 0 and r[0] is not None else ""
         name = r[1] if len(r) > 1 else None
-        real = r[2] if len(r) > 2 else None
+        real = val(r, c_real)
         if isinstance(name, str) and "net operating income" in name.strip().lower():
             break                                   # solo operacional: cortar en NOI
         if not (isinstance(name, str) and name.strip()):
@@ -134,9 +167,21 @@ def st_grand_to_pnl(path) -> pd.DataFrame:
             "Nivel 1": name.strip(),
             "Seccion": "REVENUE" if code[:1] == "3" else "OPERATING EXPENSES",
             "Real": real,
-            "Monto": r[3] if len(r) > 3 and isinstance(r[3], (int, float)) else None,
-            "YTD": r[7] if len(r) > 7 and isinstance(r[7], (int, float)) else None,
-            "YTD PPTO": r[8] if len(r) > 8 and isinstance(r[8], (int, float)) else None,
+            "Monto": val(r, c_ppto),
+            "YTD": val(r, c_ytd),
+            "YTD PPTO": val(r, c_ytdp),
             "Año": anio, "Mes": mes, "FechaID": fid,
         })
-    return pd.DataFrame(recs)
+    df = pd.DataFrame(recs)
+    # Chequeo del acumulado: el YTD nunca puede ser MENOR que el mes (es su suma).
+    # Es la firma exacta del informe de jul-2026, que dejó el YTD de presupuesto en
+    # 9.963 contra 863.815 del mes; avisa en vez de cargar la cifra en silencio.
+    if mes > 1 and len(df):
+        for col_mes, col_ytd, etiqueta in (("Monto", "YTD PPTO", "presupuesto"),
+                                           ("Real", "YTD", "real")):
+            m, y = df[col_mes].sum(), df[col_ytd].sum()
+            if m and y and abs(y) < abs(m) * 0.9:
+                print(f"[usa] OJO St Grand {anio}-{mes:02d}: el YTD de {etiqueta} "
+                      f"({y:,.0f}) es menor que el mes ({m:,.0f}). ¿Cambiaron las "
+                      f"columnas del informe? Revisar antes de confiar en el YTD.")
+    return df
