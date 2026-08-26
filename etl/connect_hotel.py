@@ -1,8 +1,9 @@
 """Conexión Hotel: aplica el CCPP OLÁ Providencia mensual a las tablas planas
 de Hotel preservando el HISTÓRICO (upsert por (Nombre activo, FechaID)).
 
-Actualiza solo las columnas que el CCPP provee; conserva el resto (REVPAR,
-EBITDA/Cuota, etc.) y todos los meses no tocados.
+Actualiza solo las columnas que el CCPP provee — incluido EBITDA/CUOTA BANCO,
+que se CALCULA desde la hoja 'Informe gestión' (ver _ratio en hotel_ccpp.py) —
+y conserva el resto y todos los meses no tocados.
 """
 from __future__ import annotations
 

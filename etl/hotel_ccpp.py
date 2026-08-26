@@ -94,6 +94,14 @@ IG_REVPAR_CLP = "TRevPAR (CLP)"
 IG_REVPAR_USD = "TRevPAR (US$)"
 IG_ADR_CLP = "ADR ($) Room"
 IG_ADR_USD = "ADR (US$) Room"
+# EBITDA/Cuota Banco: el CCPP no trae el ratio; el panel legado (BD HOTEL .xlsx)
+# lo calculaba en Excel contra esta misma hoja: =EBITDA / -(Intereses Crédito +
+# Amortización de Capital). Verificado por value-matching contra hotel_real
+# ene-abr 2026 (2.7044 / 1.2257 / 2.8545 / 2.0686) y hotel_ppto (2.6831 / 0.5147
+# / 2.8482 / 2.4983): reproduce exacto. Intereses y amortización vienen NEGATIVOS.
+IG_EBITDA = "EBITDA"
+IG_INTERESES = "Intereses Crédito"
+IG_AMORT = "Amortización de Capital"
 
 
 def _informe_gestion(path):
@@ -367,10 +375,24 @@ def ccpp_to_hotel_real(path, ppto=False) -> pd.DataFrame:
     ig_rows, ig_months, ig_ytd = _informe_gestion(path)
     r = {k: _find_row(ig_rows, k) for k in
          (IG_FLUJO, IG_REVPAR_CLP, IG_REVPAR_USD, IG_ADR_CLP, IG_ADR_USD)}
+    r_eb, r_int, r_am = (_find_row(ig_rows, k) for k in (IG_EBITDA, IG_INTERESES, IG_AMORT))
+    if None in (r_eb, r_int, r_am):
+        print("[hotel] 'Informe gestión' sin EBITDA / Intereses Crédito / Amortización "
+              "de Capital → EBITDA/CUOTA BANCO no se calcula (¿cambió el formato?)")
+
+    def _ratio(ci):
+        """EBITDA / -(Intereses + Amortización de Capital) de la columna ci."""
+        eb, it, am = (_ig_val(ig_rows, ri, ci) for ri in (r_eb, r_int, r_am))
+        if eb is None or it is None or am is None:
+            return None
+        cuota = -(it + am)
+        return eb / cuota if cuota > 0 else None
+
     off = 1 if ppto else 0
     for c in ("REVPAR (CLP)", "REVPAR USD", "REVPAR USD LY",
               "ADR Room (CLP) YTD", "ADR Room (USD) YTD",
-              "REVPAR (CLP) YTD", "REVPAR (USD) YTD"):
+              "REVPAR (CLP) YTD", "REVPAR (USD) YTD",
+              "EBITDA/CUOTA BANCO", "EBITDA/CUOTA BANCO LY"):
         if c not in df.columns:
             df[c] = pd.NA
     latest = max(((int(a) * 100 + int(m)) for a, m in zip(df["anio"], df["mes"])),
@@ -387,6 +409,9 @@ def ccpp_to_hotel_real(path, ppto=False) -> pd.DataFrame:
                 df.at[i, "REVPAR (CLP)"] = rc
             if ru is not None:
                 df.at[i, "REVPAR USD"] = ru
+            ratio = _ratio(col)
+            if ratio is not None:
+                df.at[i, "EBITDA/CUOTA BANCO"] = ratio
             if not ppto:  # LY (Real LY = col+3)
                 fly = _ig_val(ig_rows, r[IG_FLUJO], ci + 3)
                 if fly is not None:
@@ -394,6 +419,9 @@ def ccpp_to_hotel_real(path, ppto=False) -> pd.DataFrame:
                 uly = _ig_val(ig_rows, r[IG_REVPAR_USD], ci + 3)
                 if uly is not None:
                     df.at[i, "REVPAR USD LY"] = uly
+                rly = _ratio(ci + 3)
+                if rly is not None:
+                    df.at[i, "EBITDA/CUOTA BANCO LY"] = rly
         # YTD solo para el último mes reportado (el bloque 'YTD' es único, al corte)
         if ig_ytd is not None and int(rw["anio"]) * 100 + int(rw["mes"]) == latest:
             yc = ig_ytd + off
