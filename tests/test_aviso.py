@@ -104,19 +104,37 @@ class SmtpMock(unittest.TestCase):
         self.assertEqual(args[0], "sofia@sanvest.cl")
         self.assertEqual(args[1], ["ana@sanvest.cl"])
 
+    def test_alias_reportes_smtp(self):
+        env = {
+            "REPORTES_SMTP_HOST": "smtp.office365.com",
+            "REPORTES_SMTP_PORT": "587",
+            "REPORTES_SMTP_USER": "sofia@sanvest.cl",
+            "REPORTES_SMTP_PASSWORD": "clave-propia-bi",
+            "REPORTES_SMTP_FROM": "sofia@sanvest.cl",
+            "SMTP_HOST": "", "SMTP_PORT": "", "SMTP_USER": "",
+            "SMTP_PASSWORD": "", "SMTP_PASS": "", "SMTP_FROM": "",
+            "SMTP_USERNAME": "",
+        }
+        with patch.dict(os.environ, env, clear=False):
+            cfg = aviso.smtp_config()
+        self.assertEqual(cfg["user"], "sofia@sanvest.cl")
+        self.assertEqual(cfg["password"], "clave-propia-bi")
+        self.assertEqual(cfg["host"], "smtp.office365.com")
+        self.assertEqual(cfg["port"], 587)
+
     def test_sin_password_no_toca_smtp(self):
         msg = aviso.armar_mensaje(destinatarios=["ana@sanvest.cl"], enviado_por="seba")
-        with patch.dict(os.environ, {"SMTP_PASSWORD": "", "SMTP_PASS": ""}, clear=False):
-            # smtp_config lee SMTP_PASSWORD or SMTP_PASS; forzamos ambos vacíos
-            with patch("api.aviso._env", side_effect=lambda n, d="": {
-                "SMTP_USER": "sofia@sanvest.cl", "SMTP_USERNAME": "",
-                "SMTP_PASSWORD": "", "SMTP_PASS": "",
-                "SMTP_FROM": "sofia@sanvest.cl", "SMTP_HOST": "smtp.office365.com",
-                "SMTP_PORT": "587",
-            }.get(n, d)):
-                with patch("api.aviso.smtplib.SMTP") as ctor:
-                    with self.assertRaises(aviso.AvisoError) as ctx:
-                        aviso.enviar_smtp(msg, ["ana@sanvest.cl"])
+        vacio = {
+            "REPORTES_SMTP_USER": "sofia@sanvest.cl", "REPORTES_SMTP_PASSWORD": "",
+            "REPORTES_SMTP_FROM": "sofia@sanvest.cl", "REPORTES_SMTP_HOST": "smtp.office365.com",
+            "REPORTES_SMTP_PORT": "587",
+            "SMTP_USER": "", "SMTP_USERNAME": "", "SMTP_PASSWORD": "", "SMTP_PASS": "",
+            "SMTP_FROM": "", "SMTP_HOST": "", "SMTP_PORT": "",
+        }
+        with patch("api.aviso._env", side_effect=lambda n, d="": vacio.get(n, d)):
+            with patch("api.aviso.smtplib.SMTP") as ctor:
+                with self.assertRaises(aviso.AvisoError) as ctx:
+                    aviso.enviar_smtp(msg, ["ana@sanvest.cl"])
         self.assertEqual(ctx.exception.status, 503)
         ctor.assert_not_called()
 
@@ -134,6 +152,7 @@ class Disparo(unittest.TestCase):
         res = aviso.disparar_aviso(username="seba", send=fake_send)
         self.assertTrue(res["ok"])
         self.assertEqual(res["enviados"], 2)
+        self.assertEqual(res["origen"], "env")
         self.assertEqual(sent[0][1], ["ana@sanvest.cl", "bob@sanvest.cl"])
 
     def test_cooldown(self):
@@ -145,15 +164,43 @@ class Disparo(unittest.TestCase):
     def test_sin_destinatarios(self):
         with patch.dict(os.environ, {"REPORTES_AVISO_DESTINATARIOS": ""}):
             with self.assertRaises(aviso.AvisoError) as ctx:
-                aviso.disparar_aviso(username="seba", extra=None, send=lambda *_: None)
+                aviso.disparar_aviso(username="seba", extra=None, send=lambda *_: None,
+                                     admins=[])
         self.assertEqual(ctx.exception.status, 400)
         self.assertIn("REPORTES_AVISO_DESTINATARIOS", ctx.exception.detail)
 
     def test_cuerpo_si_env_vacio(self):
         with patch.dict(os.environ, {"REPORTES_AVISO_DESTINATARIOS": ""}):
             res = aviso.disparar_aviso(
-                username="seba", extra=["otro@sanvest.cl"], send=lambda *_: None)
+                username="seba", extra=["otro@sanvest.cl"], send=lambda *_: None,
+                admins=[])
         self.assertEqual(res["destinatarios"], ["otro@sanvest.cl"])
+        self.assertEqual(res["origen"], "cuerpo")
+
+    def test_fallback_admins(self):
+        with patch.dict(os.environ, {"REPORTES_AVISO_DESTINATARIOS": ""}):
+            res = aviso.disparar_aviso(
+                username="seba", extra=None, send=lambda *_: None,
+                admins=["sleyton@sanvest.cl", "no-es-mail", "sleyton@sanvest.cl"])
+        self.assertEqual(res["destinatarios"], ["sleyton@sanvest.cl"])
+        self.assertEqual(res["origen"], "admins")
+
+    def test_env_gana_sobre_admins(self):
+        res = aviso.disparar_aviso(
+            username="seba", send=lambda *_: None,
+            admins=["otro@sanvest.cl"])
+        self.assertEqual(res["origen"], "env")
+        self.assertEqual(res["destinatarios"], ["ana@sanvest.cl", "bob@sanvest.cl"])
+
+    def test_admins_desde_app_users(self):
+        fake = [
+            {"username": "sleyton@sanvest.cl", "role": "admin", "active": True},
+            {"username": "viewer@sanvest.cl", "role": "viewer", "active": True},
+            {"username": "old@sanvest.cl", "role": "admin", "active": False},
+            {"username": "admin-sin-mail", "role": "admin", "active": True},
+        ]
+        with patch("api.auth.list_users", return_value=fake):
+            self.assertEqual(aviso.destinatarios_desde_admins(), ["sleyton@sanvest.cl"])
 
 
 class Endpoint(unittest.TestCase):
@@ -196,6 +243,7 @@ class Endpoint(unittest.TestCase):
         data = r.json()
         self.assertTrue(data["ok"])
         self.assertEqual(data["enviados"], 2)
+        self.assertEqual(data["origen"], "env")
         self.smtp_ctor.assert_called()
         smtp = self.smtp_ctor.return_value.__enter__.return_value
         smtp.login.assert_called()

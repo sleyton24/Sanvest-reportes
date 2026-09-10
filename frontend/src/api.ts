@@ -78,6 +78,7 @@ export interface AvisoResult {
   ok: boolean;
   enviados: number;
   destinatarios: string[];
+  origen?: "env" | "cuerpo" | "admins";
   enviado_en: string;
   asunto: string;
 }

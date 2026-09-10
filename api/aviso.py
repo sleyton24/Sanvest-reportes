@@ -50,6 +50,15 @@ def _env(name: str, default: str = "") -> str:
     return (os.environ.get(name) or default).strip()
 
 
+def _first(*names: str, default: str = "") -> str:
+    """Primera variable de entorno no vacía. Nombres propios de BI primero."""
+    for name in names:
+        v = _env(name)
+        if v:
+            return v
+    return default
+
+
 def cooldown_segundos() -> int:
     raw = _env("REPORTES_AVISO_COOLDOWN", "60")
     try:
@@ -89,18 +98,46 @@ def destinatarios_desde_env() -> list[str]:
     return parse_destinatarios(_env("REPORTES_AVISO_DESTINATARIOS"))
 
 
+def destinatarios_desde_admins() -> list[str]:
+    """Correos de usuarios admin activos (el username de la app es el email).
+
+    Default útil cuando REPORTES_AVISO_DESTINATARIOS está vacío: avisa a quienes
+    ya pueden cargar datos. Si el username no es un email, se omite.
+    """
+    try:
+        from . import auth
+        users = auth.list_users()
+    except Exception:  # noqa: BLE001 — sin BD / tabla: no hay default
+        return []
+    mails: list[str] = []
+    for u in users:
+        if not u.get("active"):
+            continue
+        if str(u.get("role") or "").strip().lower() != "admin":
+            continue
+        mail = (u.get("username") or "").strip().lower()
+        if mail and _EMAIL_RE.match(mail):
+            mails.append(mail)
+    return parse_destinatarios(",".join(mails))
+
+
 def public_url() -> str | None:
     url = _env("REPORTES_PUBLIC_URL") or _env("SANVEST_PUBLIC_URL")
     return url.rstrip("/") if url else None
 
 
 def smtp_config() -> dict[str, str | int]:
-    """Config SMTP Office365. La clave NUNCA se loguea ni se devuelve al cliente."""
-    user = _env("SMTP_USER") or _env("SMTP_USERNAME")
-    password = _env("SMTP_PASSWORD") or _env("SMTP_PASS")
-    frm = _env("SMTP_FROM") or user or "sofia@sanvest.cl"
-    host = _env("SMTP_HOST") or "smtp.office365.com"
-    port_raw = _env("SMTP_PORT", "587")
+    """Config SMTP Office 365. Nombres de BI: REPORTES_SMTP_* (alias SMTP_*).
+
+    Mismo patrón que Status (`STATUS_ALERT_SMTP_*`: host smtp.office365.com:587,
+    STARTTLS, user/pass) pero variables propias — no se leen las de Status.
+    La clave NUNCA se loguea ni se devuelve al cliente.
+    """
+    user = _first("REPORTES_SMTP_USER", "SMTP_USER", "SMTP_USERNAME")
+    password = _first("REPORTES_SMTP_PASSWORD", "SMTP_PASSWORD", "SMTP_PASS")
+    frm = _first("REPORTES_SMTP_FROM", "SMTP_FROM", default=user or "sofia@sanvest.cl")
+    host = _first("REPORTES_SMTP_HOST", "SMTP_HOST", default="smtp.office365.com")
+    port_raw = _first("REPORTES_SMTP_PORT", "SMTP_PORT", default="587")
     try:
         port = int(port_raw)
     except ValueError:
@@ -122,18 +159,29 @@ def formatear_fecha(dt: datetime) -> str:
             f"de {local.year}, {local.strftime('%H:%M')} (America/Santiago)")
 
 
-def resolver_destinatarios(extra: list[str] | None = None) -> list[str]:
-    """Prioriza REPORTES_AVISO_DESTINATARIOS. Si está vacía, admite la lista del cuerpo."""
+def resolver_destinatarios(extra: list[str] | None = None,
+                           admins: list[str] | None = None) -> tuple[list[str], str]:
+    """Orden: env → cuerpo → admins activos de la app. Sin hardcodear correos.
+
+    `admins` es inyectable (tests). Si es None, se leen de app_users.
+    Devuelve (lista, origen) con origen en 'env' | 'cuerpo' | 'admins'.
+    """
     env_list = destinatarios_desde_env()
     if env_list:
-        return env_list
+        return env_list, "env"
     if extra:
-        # Reusa el parser (acepta ya-lista o vuelve a validar uno a uno)
-        return parse_destinatarios(",".join(extra))
+        cuerpo = parse_destinatarios(",".join(extra))
+        if cuerpo:
+            return cuerpo, "cuerpo"
+    admin_list = destinatarios_desde_admins() if admins is None else parse_destinatarios(
+        ",".join(admins))
+    if admin_list:
+        return admin_list, "admins"
     raise AvisoError(
         400,
         "No hay destinatarios. Define REPORTES_AVISO_DESTINATARIOS en el entorno "
-        "(correos separados por coma) o envía la lista en el cuerpo de la petición.",
+        "(correos separados por coma), envía la lista en el cuerpo, o crea al menos "
+        "un usuario admin activo cuyo username sea un email.",
     )
 
 
@@ -195,8 +243,8 @@ def enviar_smtp(msg: EmailMessage, destinatarios: list[str]) -> None:
     if not cfg["user"] or not cfg["password"]:
         raise AvisoError(
             503,
-            "Falta SMTP_USER o SMTP_PASSWORD (o SMTP_PASS) en el entorno. "
-            "No se envió el aviso.",
+            "Falta REPORTES_SMTP_USER / SMTP_USER o REPORTES_SMTP_PASSWORD / "
+            "SMTP_PASSWORD en el entorno. No se envió el aviso.",
         )
     host, port = str(cfg["host"]), int(cfg["port"])
     try:
@@ -232,9 +280,10 @@ def _reservar_cooldown() -> None:
 
 
 def disparar_aviso(*, username: str, extra: list[str] | None = None,
-                   send=None, ahora: datetime | None = None) -> dict:
-    """Resuelve destinatarios, reserva cooldown y envía. `send` es inyectable (tests)."""
-    dest = resolver_destinatarios(extra)
+                   send=None, ahora: datetime | None = None,
+                   admins: list[str] | None = None) -> dict:
+    """Resuelve destinatarios, reserva cooldown y envía. `send`/`admins` inyectables."""
+    dest, origen = resolver_destinatarios(extra, admins=admins)
     _reservar_cooldown()
     msg = armar_mensaje(destinatarios=dest, enviado_por=username, ahora=ahora)
     (send or enviar_smtp)(msg, dest)
@@ -243,6 +292,7 @@ def disparar_aviso(*, username: str, extra: list[str] | None = None,
         "ok": True,
         "enviados": len(dest),
         "destinatarios": dest,
+        "origen": origen,
         "enviado_en": formatear_fecha(when),
         "asunto": str(msg["Subject"]),
     }

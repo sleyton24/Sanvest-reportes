@@ -41,12 +41,17 @@ enlace a `REPORTES_PUBLIC_URL` si está definido.
 - **Auth:** JWT de sesión. Rol `admin` por defecto, o los de `REPORTES_AVISO_ROLES`.
   Sin token → 401; rol no autorizado → 403. **Ni 401 ni 403 tocan SMTP.**
 - **Destinatarios:** `REPORTES_AVISO_DESTINATARIOS` (coma-separados). Si está
-  vacío, se admite `destinatarios` en el cuerpo; si tampoco hay lista → 400
-  pidiendo la variable. No hay correos hardcodeados.
+  vacío: (1) `destinatarios` en el cuerpo, o (2) emails de usuarios **admin
+  activos** de `app_users` (el username de la app). Si tampoco hay → 400.
+  No hay correos hardcodeados.
 - **Cooldown:** 60 s anti-doble-clic (`REPORTES_AVISO_COOLDOWN`). Segundo envío
   → 429.
-- **SMTP:** `SMTP_HOST` (default `smtp.office365.com`), `SMTP_PORT` (587),
-  `SMTP_USER`, `SMTP_PASSWORD` (o `SMTP_PASS`), `SMTP_FROM`. Falta user/clave → 503.
+- **SMTP (nombres de BI):** `REPORTES_SMTP_HOST` (default `smtp.office365.com`),
+  `REPORTES_SMTP_PORT` (587), `REPORTES_SMTP_USER`, `REPORTES_SMTP_PASSWORD`,
+  `REPORTES_SMTP_FROM`. Alias: `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` /
+  `SMTP_PASSWORD` / `SMTP_FROM`. Mismo patrón que Status
+  (`STATUS_ALERT_SMTP_*`, STARTTLS :587) pero **no** se leen esas variables:
+  copiar los valores al `.env` de BI. Falta user/clave → 503.
 - Tests: `python -m unittest tests.test_aviso` (SMTP mockeado).
 
 ### Carga directa (Fase 4)

@@ -24,7 +24,8 @@ export function AvisoReportes({ variant = "nav" }: { variant?: Variant }) {
       const res = await enviarAvisoReportes();
       setOpen(false);
       const n = res.enviados;
-      showToast("ok", `Aviso enviado a ${n} destinatario${n === 1 ? "" : "s"}.`);
+      const via = res.origen === "admins" ? " (admins de la app)" : "";
+      showToast("ok", `Aviso enviado a ${n} destinatario${n === 1 ? "" : "s"}${via}.`);
     } catch (e) {
       showToast("err", (e as Error).message || "No se pudo enviar el aviso.");
     } finally {
@@ -47,8 +48,9 @@ export function AvisoReportes({ variant = "nav" }: { variant?: Variant }) {
           <div>
             <div className="aviso-panel__title">Aviso de reportes cargados</div>
             <p className="aviso-panel__lead">
-              Envía un correo a los destinatarios configurados informando que los
-              reportes Sanvest ya están disponibles.
+              Envía un correo informando que los reportes Sanvest ya están
+              disponibles. Destinatarios: <code>REPORTES_AVISO_DESTINATARIOS</code>
+              o, si está vacío, los admin activos de la app.
             </p>
           </div>
           <Button variant="primary" onClick={() => setOpen(true)}>
@@ -67,8 +69,9 @@ export function AvisoReportes({ variant = "nav" }: { variant?: Variant }) {
               disponibles</strong>, con fecha y hora de Chile.
             </p>
             <p className="aviso-modal__txt aviso-modal__txt--muted">
-              Los destinatarios salen de la configuración del servidor
-              (<code>REPORTES_AVISO_DESTINATARIOS</code>). No se puede deshacer el envío.
+              Destinatarios: <code>REPORTES_AVISO_DESTINATARIOS</code> en el servidor
+              o, si no está definido, los usuarios admin activos (cuyo usuario es un
+              email). No se puede deshacer el envío.
             </p>
             <div className="pwmodal__foot">
               <Button variant="primary" onClick={enviar} disabled={busy}>
