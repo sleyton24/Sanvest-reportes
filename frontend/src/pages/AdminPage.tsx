@@ -9,6 +9,7 @@ import { MaintainEtlPanel } from "../components/MaintainEtlPanel";
 import { AccessStats } from "../components/AccessStats";
 import { AuditPanel } from "../components/AuditPanel";
 import { AgentUsage } from "../components/AgentUsage";
+import { AvisoReportes } from "../components/AvisoReportes";
 import { Button } from "../components/Button";
 
 type Section = "carga" | "usuarios" | "accesos" | "auditoria" | "asistente" | "gastoIA" | "etl";
@@ -43,6 +44,7 @@ export function AdminPage() {
 function CargaCentral() {
   return (
     <div className="admin-carga">
+      <AvisoReportes variant="panel" />
       <p className="admin-carga__intro">
         Sube los archivos de cada unidad. Corre el ETL y actualiza los dashboards.
       </p>

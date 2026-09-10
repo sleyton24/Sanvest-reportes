@@ -47,6 +47,7 @@ export interface AppUser {
   is_admin: boolean;
   can_upload: boolean;
   can_ask: boolean;              // puede usar SofIA (admin siempre; viewer si se habilita)
+  can_aviso?: boolean;           // aviso «reportes cargados» (admin por defecto)
 }
 
 // status=401 → credenciales malas; otro status (500, red caída) NO es culpa de la clave.
@@ -71,6 +72,26 @@ export async function fetchMe(): Promise<AppUser> {
   const res = await apiFetch(`/auth/me`);
   if (!res.ok) throw new Error(`me ${res.status}`);
   return res.json();
+}
+
+export interface AvisoResult {
+  ok: boolean;
+  enviados: number;
+  destinatarios: string[];
+  enviado_en: string;
+  asunto: string;
+}
+
+/** Dispara el correo «los reportes ya están cargados». Solo roles autorizados. */
+export async function enviarAvisoReportes(): Promise<AvisoResult> {
+  return jsonOrThrow(
+    await apiFetch(`/aviso/reportes-cargados`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    }),
+    "enviar aviso de reportes",
+  );
 }
 
 // Cambia la contraseña del propio usuario (exige la actual).

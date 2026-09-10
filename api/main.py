@@ -40,6 +40,7 @@ from sqlalchemy import inspect as sa_inspect
 from . import agent
 from . import agent_etl
 from . import auth
+from . import aviso
 from . import catalog as cat
 from . import filetables as ftab
 from . import measures as meas
@@ -298,6 +299,29 @@ def update_user(username: str, body: UpdateUserBody,
     if body.can_ask is not None:
         auth.set_can_ask(username, body.can_ask)
     return {"ok": True, "user": auth.public_user(auth.get_user(username))}
+
+
+class AvisoBody(BaseModel):
+    """Cuerpo opcional del aviso. Si REPORTES_AVISO_DESTINATARIOS está definido,
+    se ignora (no se deja elegir destinatarios arbitrarios desde el cliente)."""
+    destinatarios: list[str] | None = None
+
+
+@app.post("/aviso/reportes-cargados", tags=["aviso"])
+def post_aviso_reportes(body: AvisoBody = AvisoBody(),
+                        user: dict = Depends(auth.require_aviso)):
+    """Envía el correo «los reportes Sanvest ya están cargados».
+
+    Solo roles autorizados (admin por defecto). Cooldown ~60 s anti-doble-clic.
+    Un 401/403 no llega a SMTP. Destinatarios: REPORTES_AVISO_DESTINATARIOS, o
+    la lista del cuerpo si esa variable está vacía.
+    """
+    extra = body.destinatarios or None
+    try:
+        result = aviso.disparar_aviso(username=user.get("username") or "", extra=extra)
+    except aviso.AvisoError as e:
+        raise HTTPException(e.status, e.detail)
+    return result
 
 app.add_middleware(
     CORSMiddleware,

@@ -31,6 +31,14 @@ PGPASSWORD=<la clave de Postgres>
 PGDATABASE=sanvest
 SANVEST_ENV=prod
 SANVEST_AUTH_SECRET=<generar uno nuevo: python3 -c "import secrets;print(secrets.token_urlsafe(48))">
+
+# Aviso «reportes cargados» (botón en el header). SMTP Office 365.
+# SMTP_HOST=smtp.office365.com
+# SMTP_PORT=587
+# SMTP_USER=sofia@sanvest.cl
+# SMTP_PASSWORD=<clave de la casilla; NUNCA en el repo>
+# REPORTES_AVISO_DESTINATARIOS=correo1@sanvest.cl,correo2@sanvest.cl
+# REPORTES_PUBLIC_URL=https://reportes.sanvest.cl
 ```
 Notas:
 - `SANVEST_ENV=prod` oculta /docs y /openapi.json.

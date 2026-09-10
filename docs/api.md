@@ -29,6 +29,25 @@ catálogo (`scripts/build_catalog.py <UNIDAD>`).
 | GET | `/units/{unit}/measures/{measure_id}` | Calcula la medida con filtros |
 | GET | `/units/{unit}/expected-structure` | Hojas y columnas que debe traer el Excel |
 | POST | `/units/{unit}/upload` | **Fase 4**: sube el Excel crudo → valida → corre el ETL → reescribe tablas |
+| POST | `/aviso/reportes-cargados` | Aviso por correo: los reportes ya están cargados (solo admin / `REPORTES_AVISO_ROLES`) |
+
+### Aviso de reportes cargados
+`POST /aviso/reportes-cargados` (JSON `{}` o `{destinatarios: ["a@x.cl"]}`):
+
+Envía un correo desde `sofia@sanvest.cl` (SMTP Office 365, STARTTLS :587) avisando
+que los reportes Sanvest ya están disponibles. Fecha/hora en America/Santiago y
+enlace a `REPORTES_PUBLIC_URL` si está definido.
+
+- **Auth:** JWT de sesión. Rol `admin` por defecto, o los de `REPORTES_AVISO_ROLES`.
+  Sin token → 401; rol no autorizado → 403. **Ni 401 ni 403 tocan SMTP.**
+- **Destinatarios:** `REPORTES_AVISO_DESTINATARIOS` (coma-separados). Si está
+  vacío, se admite `destinatarios` en el cuerpo; si tampoco hay lista → 400
+  pidiendo la variable. No hay correos hardcodeados.
+- **Cooldown:** 60 s anti-doble-clic (`REPORTES_AVISO_COOLDOWN`). Segundo envío
+  → 429.
+- **SMTP:** `SMTP_HOST` (default `smtp.office365.com`), `SMTP_PORT` (587),
+  `SMTP_USER`, `SMTP_PASSWORD` (o `SMTP_PASS`), `SMTP_FROM`. Falta user/clave → 503.
+- Tests: `python -m unittest tests.test_aviso` (SMTP mockeado).
 
 ### Carga directa (Fase 4)
 `POST /units/DV/upload` (multipart, campo `file`): guarda el Excel en temporal,

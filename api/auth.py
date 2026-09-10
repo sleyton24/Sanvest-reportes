@@ -213,6 +213,14 @@ def list_users() -> list[dict]:
     return [public_user(_row_to_user(r)) for r in rows]
 
 
+def _user_can_avisar(u: dict) -> bool:
+    try:
+        from .aviso import user_can_avisar
+        return user_can_avisar(u)
+    except Exception:  # noqa: BLE001 — si el módulo no carga, solo admin
+        return u.get("role") == "admin"
+
+
 def public_user(u: dict) -> dict:
     """Vista del usuario para el front / respuestas (sin el hash de la clave)."""
     is_admin = u["role"] == "admin"
@@ -227,6 +235,9 @@ def public_user(u: dict) -> dict:
         # SofIA: los admin siempre; un viewer solo si se le habilita expresamente
         # (gasta API, así que es un permiso aparte del rol).
         "can_ask": is_admin or bool(u.get("can_ask")),
+        # Aviso "reportes cargados": por defecto solo admin; se puede ampliar
+        # con REPORTES_AVISO_ROLES (import perezoso para no circular).
+        "can_aviso": _user_can_avisar(u),
     }
 
 
@@ -551,6 +562,21 @@ def current_user(authorization: str | None = Header(None)) -> dict:
 def require_admin(user: dict = Depends(current_user)) -> dict:
     if user["role"] != "admin":
         raise HTTPException(403, "Acción restringida al rol admin.")
+    return user
+
+
+def require_aviso(user: dict = Depends(current_user)) -> dict:
+    """Quién puede disparar el aviso de reportes cargados.
+
+    Por defecto solo admin. Se puede ampliar con REPORTES_AVISO_ROLES
+    (lista separada por comas, p. ej. 'admin,viewer'). Un 403 no envía mail.
+    """
+    if not _user_can_avisar(user):
+        raise HTTPException(
+            403,
+            "No tienes permiso para enviar el aviso de reportes. "
+            "Se requiere rol admin (o uno listado en REPORTES_AVISO_ROLES).",
+        )
     return user
 
 

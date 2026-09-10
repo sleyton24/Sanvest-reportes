@@ -15,6 +15,7 @@ const PptDirectorio = lazy(() =>
   import("./pages/PptDirectorio").then((m) => ({ default: m.PptDirectorio })));
 import { ChangePassword } from "./components/ChangePassword";
 import { Comments } from "./components/Comments";
+import { AvisoReportes } from "./components/AvisoReportes";
 import { useAuth } from "./auth";
 import { UNITS } from "./units";
 import { logUnitAccess } from "./api";
@@ -101,27 +102,28 @@ export function App() {
               Admin
             </button>
           )}
-          {/* comentarios de la unidad abierta (foro de directores) */}
-          {currentUnit && (
-            <button className="topnav__pdf topnav__comments" onClick={() => setShowComments(true)}
-              title={`Comentarios de ${currentUnit.label}`}>
-              💬 Comentarios
+          {/* a la derecha: aviso (admin), comentarios, PDF, usuario */}
+          <div className="topnav__actions">
+            {(user.can_aviso ?? user.is_admin) && <AvisoReportes />}
+            {currentUnit && (
+              <button className="topnav__pdf topnav__comments" onClick={() => setShowComments(true)}
+                title={`Comentarios de ${currentUnit.label}`}>
+                💬 Comentarios
+              </button>
+            )}
+            <button className="topnav__pdf" onClick={exportPDF} title="Exportar a PDF / imprimir">
+              🖨 PDF
             </button>
-          )}
-          {/* a la derecha: exporta la vista actual a PDF con etiquetas de datos */}
-          <button className="topnav__pdf" onClick={exportPDF} title="Exportar a PDF / imprimir">
-            🖨 PDF
-          </button>
-          {/* menú de usuario: nombre + cerrar sesión */}
-          <div className="usermenu">
-            <button className="usermenu__name usermenu__name--btn" onClick={() => setShowPw(true)}
-              title="Cambiar mi contraseña">
-              <span className="usermenu__fullname">{user.full_name || user.username}</span>
-              {user.is_admin && <span className="usermenu__role">admin</span>}
-            </button>
-            <button className="usermenu__logout" onClick={logout} title="Cerrar sesión">
-              Salir
-            </button>
+            <div className="usermenu">
+              <button className="usermenu__name usermenu__name--btn" onClick={() => setShowPw(true)}
+                title="Cambiar mi contraseña">
+                <span className="usermenu__fullname">{user.full_name || user.username}</span>
+                {user.is_admin && <span className="usermenu__role">admin</span>}
+              </button>
+              <button className="usermenu__logout" onClick={logout} title="Cerrar sesión">
+                Salir
+              </button>
+            </div>
           </div>
         </nav>
         {showPw && <ChangePassword onClose={() => setShowPw(false)} />}

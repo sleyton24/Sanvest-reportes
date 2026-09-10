@@ -140,9 +140,16 @@ body {
 }
 .topnav__tab:hover { color: var(--white); }
 .topnav__tab--active { color: var(--white); border-bottom-color: var(--accent); font-weight: 700; }
-/* botón "🖨 PDF": a la derecha del topnav (margin-left:auto lo empuja al borde) */
-.topnav__pdf {
+/* acciones a la derecha del topnav (aviso, comentarios, PDF, usuario) */
+.topnav__actions {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+/* botón "🖨 PDF" / comentarios / aviso */
+.topnav__pdf {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.35);
   color: rgba(255, 255, 255, 0.8);
@@ -151,10 +158,16 @@ body {
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
   flex-shrink: 0; white-space: nowrap;
 }
 .topnav__pdf:hover { color: var(--white); border-color: var(--accent); }
+.topnav__aviso {
+  border-color: var(--green);
+  color: var(--white);
+  background: rgba(168, 200, 19, 0.18);
+}
+.topnav__aviso:hover { background: rgba(168, 200, 19, 0.32); border-color: var(--green); }
 /* menú de usuario (derecha del topnav, sobre el navy): nunca se encoge ni se
    corta; el nombre va en UNA línea y si es muy largo se abrevia con "…" */
 .usermenu { display: inline-flex; align-items: center; gap: 10px; margin-left: 12px; flex-shrink: 0; }
@@ -199,6 +212,28 @@ body {
 .pwmodal__title { font-size: 16px; font-weight: 700; color: var(--strong); }
 .pwmodal__foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 
+/* aviso de reportes cargados */
+.aviso-modal { max-width: 440px; }
+.aviso-modal__txt { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.aviso-modal__txt--muted { font-size: 12.5px; color: var(--muted); }
+.aviso-modal__txt code { font-size: 11px; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+.aviso-panel {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-left: 4px solid var(--green); border-radius: 12px; padding: 14px 18px;
+}
+.aviso-panel__title { font-size: 15px; font-weight: 700; color: var(--strong); }
+.aviso-panel__lead { margin: 4px 0 0; font-size: 13px; color: var(--muted); max-width: 52ch; }
+.aviso-toast {
+  position: fixed; right: 24px; bottom: 24px; z-index: 80;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  box-shadow: 0 12px 32px rgba(15, 30, 54, 0.22);
+}
+.aviso-toast--ok { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+.aviso-toast--err { background: #fdecea; color: #8a2b28; border: 1px solid #f2d3d0; }
+
 /* Notebook (≤1520px, p. ej. Lenovo X13): la MISMA barra en versión compacta —
    todos los títulos completos y legibles, solo un poco más pequeños, para que
    quepa en una línea. En monitores grandes no cambia nada. */
@@ -209,6 +244,7 @@ body {
   .brand__tag { display: none; }
   .topnav__tab { font-size: 13.5px; padding: 0 8px; height: 62px; border-bottom-width: 3px; }
   .topnav__pdf { padding: 6px 10px; font-size: 13px; }
+  .topnav__actions { gap: 6px; }
   .usermenu { margin-left: 8px; gap: 8px; }
   .usermenu__fullname { max-width: 110px; }
   .usermenu__logout { padding: 5px 10px; }
@@ -352,7 +388,8 @@ body {
   .brand { margin-right: 8px; }
   .brand__logo { height: 34px; }
   .topnav__tab { height: 58px; font-size: 13px; padding: 0 9px; border-bottom-width: 3px; }
-  .topnav__pdf { margin-left: 8px; padding: 6px 10px; font-size: 12.5px; }
+  .topnav__pdf { padding: 6px 10px; font-size: 12.5px; }
+  .topnav__actions { gap: 6px; margin-left: 8px; }
   .usermenu { margin-left: 8px; gap: 6px; }
   .usermenu__fullname { max-width: 92px; }
 }
@@ -1101,7 +1138,7 @@ body {
 .cmodal__compose textarea { flex: 1; resize: vertical; min-height: 46px; background: var(--surface-2);
   border: 1px solid var(--border-strong); border-radius: 8px; padding: 9px 11px; font: inherit; font-size: 14px; color: var(--ink); }
 .cmodal__compose textarea:focus { outline: none; border-color: var(--accent); }
-@media print { .cmodal__backdrop, .topnav__comments { display: none !important; } }
+@media print { .cmodal__backdrop, .topnav__comments, .topnav__aviso, .aviso-toast, .aviso-panel { display: none !important; } }
 
 /* ----------------------------- "Agregar a pantalla de inicio" (iOS) ------- */
 /* botón en el menú principal (solo pantallas táctiles, ver AddToHome.tsx):
