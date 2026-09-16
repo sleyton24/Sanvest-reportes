@@ -28,7 +28,7 @@
 - **Línea Crédito SV99**: congelada 318.709 (pagada desde 202306).
 - **Línea Crédito SV155**: **MANUAL** (giros banco, externo). ROJO si no llegó.
 - **Preventas ML**: congelada 24.118 (desde 202504). **Preventas SV99**: congelada 56.171,56 (desde 202305).
-- **Preventas SV155**: Estadística → Pagado (aún en preventa).
+- **Preventas SV155**: Estadística → Pagado (aún en preventa). El ETL (`apply_dv`) lee `estadistica_venta().pagado` (fila TOTALES, col Pagado) en cada carga; si no hay Estadística, arrastra el mes anterior. ML/SV99 siguen congeladas.
 - **Capital Socios**: residual = Egresos − Línea − Preventas. ROJO si Línea en rojo.
 
 ### DV Escrituras
@@ -81,3 +81,7 @@ Línea SV155 (giros banco) · Capital SV155 (residual) · Avance obra · PPTO Re
 ## 7. Congelamiento
 - Preventas se congelan al empezar escrituras (1er mes con EscRec>0); valor fijo del último mes con EscRec=0.
 - Línea de Crédito se congela cuando no hay más giros (ML, SV99 pagadas; SV155 sigue).
+- **Excepción SV155:** sigue en preventa (EscRec=0), así que Preventas NO se congelan: se refrescan desde Estadística.Pagado en cada `apply_dv`.
+
+## 8. Re-correr el ETL en producción
+Tras `git pull` en `/opt/sanvest-bi` y `sudo systemctl restart sanvest-api`, volver a subir juntos **Rentabilidad** + **Estadística de Ventas** (botón «Cargar Informes de Ventas» en el dashboard DV, o `POST /units/DV/upload-informes`). `apply_dv` toma el último mes con flujo de Rentabilidad y hace upsert de ese `Fecha ID` (reescribe PREVENTAS SV155 con Pagado). No hay script CLI dedicado.
