@@ -12,7 +12,8 @@ Inputs (carpeta del mes, ej. `2026/<mes>/Ventas/`):
 
 Estado validado contra las tablas reconciliadas:
   Egresos(M) = Egresos(M-1) + Rentab.D(Socio) + Rentab.F(Danacorp)   [value-match: 712+654=1366 ✓]
-  Línea/Preventas congeladas; Capital = Egresos − Línea − Preventas.
+  Línea/Preventas ML y SV99 congeladas; Preventas SV155 = Estadística.Pagado;
+  Capital = Egresos − Línea − Preventas.
 """
 from __future__ import annotations
 
@@ -137,6 +138,7 @@ def usos_y_fondos_rows(prev: dict, project: str, year: int, month: int,
     egresos = prev["egresos"] + flujo["socio"] + flujo["danacorp"]
     if project == "Sta. Victoria 155":
         linea = sv155_linea if sv155_linea is not None else prev.get("linea", 0.0)  # MANUAL/rojo
+        # Pagado de Estadística (lo resuelve apply_dv); None → carry / 0
         preventas = sv155_pagado if sv155_pagado is not None else prev.get("preventas", 0.0)
     elif project == "Millalongo":
         # carry: sigue el último valor de la tabla (o el máximo conocido como piso)
@@ -208,31 +210,80 @@ def escrituracion_resumen(path: str | Path) -> dict:
 
 
 # --------------------------- Estadística (Sub-Total Precio Venta) ------------
+def _norm_sheet(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(name).lower())
+
+
+def _open_sheet(wb, name: str):
+    """Hoja por nombre exacto, o alias sin puntos/espacios (SV.155 ≡ SV155 ≡ Sv155)."""
+    if name in wb.sheetnames:
+        return wb[name]
+    want = _norm_sheet(name)
+    for sn in wb.sheetnames:
+        if _norm_sheet(sn) == want:
+            return wb[sn]
+    raise KeyError(f"Estadística: no existe la hoja '{name}' (hojas: {wb.sheetnames})")
+
+
 def estadistica_venta(path: str | Path, sheet: str) -> dict:
     """VtasAcum = 'Sub-Total Precio Venta' (vendido a precio venta); unidades de la
-    fila 'Deptos.' (vendidas/ofertas/disponible). Por vender = 'Falta x Vender'."""
+    fila 'Deptos.' (vendidas/ofertas/disponible). Por vender = 'Falta x Vender'.
+
+    Pagado (preventas SV155 / UF Recaudadas) = col 'Pagado' de la fila TOTALES;
+    por defecto col P (idx 15). `pagado` es alias de `recaud`.
+    """
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
-    sh = wb[sheet]
+    sh = _open_sheet(wb, sheet)
     out = {"vtas_acum": None, "por_vender": None, "por_rec": None, "recaud": None,
-           "unid_vendidas": 0, "unid_ofertas": 0, "unid_disponible": 0}
+           "pagado": None, "unid_vendidas": 0, "unid_ofertas": 0, "unid_disponible": 0}
     num = lambda v: float(v) if isinstance(v, (int, float)) else None
-    # col N (idx13) = Precio Venta ; col P (idx15) = Pagado
-    for row in sh.iter_rows(min_row=1, max_row=45, max_col=16, values_only=True):
+    rows = list(sh.iter_rows(min_row=1, max_row=80, max_col=20, values_only=True))
+    # col N (idx13) = Precio Venta ; col P (idx15) = Pagado — salvo que el encabezado diga otra cosa
+    pagado_col, precio_col = 15, 13
+    for row in rows[:20]:
+        for i, cell in enumerate(row):
+            lab = str(cell).strip().lower() if cell else ""
+            if lab == "pagado" or lab.startswith("pagado"):
+                pagado_col = i
+            elif lab in ("precio venta", "precio de venta") or lab.startswith("precio venta"):
+                precio_col = i
+    for row in rows:
         lbl = str(row[0]).strip().lower() if row[0] else ""
         if lbl.startswith("deptos"):
             out["unid_vendidas"] = num(row[3]) or 0
             out["unid_ofertas"] = num(row[5]) or 0
             out["unid_disponible"] = num(row[7]) or 0
-        if lbl == "totales":                 # UF Recaudadas = Pagado (col P) de TOTALES
-            out["recaud"] = num(row[15])
+        if lbl == "totales" or lbl.startswith("totales"):
+            # UF Recaudadas / Preventas SV155 = Pagado de TOTALES
+            if pagado_col < len(row):
+                out["recaud"] = num(row[pagado_col])
         c = str(row[10]).strip().lower() if len(row) > 10 and row[10] else ""
         if "sub-total precio ven" in c:
-            out["vtas_acum"] = num(row[13])   # Sub-Total Precio Venta = Ventas acumuladas
+            out["vtas_acum"] = num(row[precio_col]) if precio_col < len(row) else None
         if "falta x vender" in c and out.get("por_vender") is None:
-            out["por_vender"] = num(row[13])  # Precio Venta por vender (compat)
-            out["por_rec"] = num(row[15])     # Pagado por recaudar (col P)
+            out["por_vender"] = num(row[precio_col]) if precio_col < len(row) else None
+            out["por_rec"] = num(row[pagado_col]) if pagado_col < len(row) else None
+    out["pagado"] = out["recaud"]
     wb.close()
     return out
+
+
+def preventas_sv155(estad_path: str | Path | None, fallback: float | None
+                    ) -> tuple[float | None, str]:
+    """Preventas de Sta. Victoria 155 = Estadística → Pagado (fila TOTALES).
+
+    Si no hay archivo o no se lee Pagado, devuelve `fallback` (carry del mes
+    anterior). ML/SV99 no usan esta función: siguen PREVENTAS_FROZEN.
+    """
+    if not estad_path:
+        return fallback, "carry_forward"
+    est = estadistica_venta(estad_path, PROJECTS["Sta. Victoria 155"]["estad"])
+    pag = est.get("pagado")
+    if pag is None:
+        pag = est.get("recaud")
+    if pag is None:
+        return fallback, "carry_forward_sin_pagado"
+    return float(pag), "estadistica.pagado"
 
 
 # --------------------------- Informe Mensual (VENTAS DEL MES) ----------------

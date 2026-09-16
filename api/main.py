@@ -1421,7 +1421,8 @@ async def upload_informes(unit: str, files: list[UploadFile] = File(...)):
                 r = apply_dv(engine, paths)
             except Exception as e:  # noqa: BLE001
                 raise HTTPException(422, f"No pude procesar los informes DV: {e}")
-            return {"ok": True, "periodo": r["periodo"], "resultado": r["tablas"]}
+            return {"ok": True, "periodo": r["periodo"], "resultado": r["tablas"],
+                    "sv155_preventas": r.get("sv155_preventas")}
         if unit == "ICEMM":
             # Informe ICEMM crudo -> despivota INFORME GESTIÓN -> upsert icemm_mensual
             aplicados, result = [], {}

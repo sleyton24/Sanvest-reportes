@@ -2,10 +2,11 @@
 las tablas planas DV, ACUMULATIVO y con estado (ver docs/dv_actualizacion.md).
 
 Por proyecto:
- - Millalongo: full (Rentabilidad→Egresos, Escrituración→ventas, Informe Mensual→KPIs).
- - Sta. Victoria 99: 100% vendido → ventas/KPIs CONGELADOS (carry-forward); solo Egresos.
- - Sta. Victoria 155: preventa → Egresos (Rentabilidad); ventas carry-forward; Línea/Preventas
-   manual → carry-forward del mes anterior (recalcula Capital).
+ - Millalongo: Egresos desde Rentabilidad; Preventas congeladas; Línea carry del mes anterior.
+ - Sta. Victoria 99: 100% vendido → Preventas/Línea congeladas; solo Egresos se actualizan.
+ - Sta. Victoria 155: en preventa → Egresos desde Rentabilidad; Preventas = Estadística.Pagado
+   (si no hay archivo, carry del mes anterior); Línea de crédito MANUAL (carry / botón deuda).
+   Capital = Egresos − Línea − Preventas.
 """
 from __future__ import annotations
 
@@ -69,6 +70,8 @@ def apply_dv(engine: Engine, paths: dict) -> dict:
     # ---------------- USOS Y FONDOS ----------------
     uf = _read(engine, "dv_uso_y_fondo")
     rows = []
+    sv155_pag = None
+    sv155_pag_origen = "carry_forward"
     for proj in PROJ:
         sheet = I.PROJECTS[proj]["rentab"]
         flujo = I.rentab_flujo(rent, sheet, year, month)
@@ -78,9 +81,15 @@ def apply_dv(engine: Engine, paths: dict) -> dict:
             return float(_num(r["Monto"]).iloc[0]) if len(r) else 0.0
         prev_egr = prevmonto("EGRESOS A LA FECHA")
         sv155_lin = prevmonto("LÍNEA DE CRÉDITO GIRADA") if proj == SV155 else None   # manual → carry
-        sv155_pag = prevmonto("PREVENTAS") if proj == SV155 else None                 # carry
+        # SV155 preventas: Pagado de Estadística (no carry). ML/SV99 siguen congeladas
+        # dentro de usos_y_fondos_rows. Sin archivo / sin Pagado → arrastra el mes anterior.
+        if proj == SV155:
+            sv155_pag, sv155_pag_origen = I.preventas_sv155(estad, prevmonto("PREVENTAS"))
+            pag_arg = sv155_pag
+        else:
+            pag_arg = None
         ml_lin = prevmonto("LÍNEA DE CRÉDITO GIRADA") if proj == ML else None          # Millalongo → carry (sigue la tabla)
-        rows += I.usos_y_fondos_rows({"egresos": prev_egr}, proj, year, month, flujo, sv155_pag, sv155_lin, ml_lin)
+        rows += I.usos_y_fondos_rows({"egresos": prev_egr}, proj, year, month, flujo, pag_arg, sv155_lin, ml_lin)
     res["dv_uso_y_fondo"] = _upsert(engine, "dv_uso_y_fondo", pd.DataFrame(rows), "Nombre proyecto", "Fecha ID")
 
     # ---------------- Amortización ----------------
@@ -176,4 +185,5 @@ def apply_dv(engine: Engine, paths: dict) -> dict:
         new = pd.concat(out, ignore_index=True) if out else pd.DataFrame()
         res[table] = _upsert(engine, table, new, "Nombre proyecto", fcol)
 
-    return {"periodo": fid, "tablas": res}
+    return {"periodo": fid, "tablas": res,
+            "sv155_preventas": {"origen": sv155_pag_origen, "valor": sv155_pag}}

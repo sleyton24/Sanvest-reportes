@@ -63,9 +63,8 @@ informes del mes; el sistema los clasifica por el nombre:
 
 - Si falta el de **Rentabilidad**, la carga se rechaza (error 422).
 - Notas de negocio:
-  - **Sta. Victoria 99**: ya vendida al 100 %; solo cambian los gastos. No esperes nuevas ventas.
-  - **Sta. Victoria 155**: en preventa; mantiene la misma lógica que Millalongo (aún sin escrituración).
-  - La **línea de crédito** es el único dato 100 % manual.
+  - **Sta. Victoria 99**: ya vendida al 100 %; Preventas y línea congeladas; solo cambian los gastos.
+  - **Sta. Victoria 155**: en preventa. **Preventas = Pagado de Estadística** (se actualiza en cada carga del informe). La **línea de crédito** es el único dato 100 % manual (botón «Actualizar deuda» / carry del mes anterior). Capital = Egresos − Línea − Preventas.
 - Alternativa: el botón **"⬆ Cargar Excel"** sube el formato maestro completo de DV
   (reemplazo) si prefieres reconstruir todo desde un solo archivo.
 
@@ -152,6 +151,7 @@ Reescribe Balance, EERR del grupo y cascada. Slicer por trimestre.
 | No veo "Estados Financieros" / el Flujo de ICEMM / cambios recientes | Pestaña vieja o puerto equivocado | Abre **:5176** y recarga con **Ctrl + Shift + R** |
 | Veo una app distinta | Abriste **:5173** o **:8000** (otro proyecto) | Usa **:5176** |
 | "Falta el archivo 'Rentabilidad…'" (DV) | No incluiste el de Rentabilidad | Agrégalo a la selección |
+| PREVENTAS de Sta. Victoria 155 no cambia | El ETL viejo arrastraba el mes anterior en vez de leer Pagado de Estadística | Tras desplegar el fix: `git pull` en `/opt/sanvest-bi`, `sudo systemctl restart sanvest-api`, y **volver a subir** Rentabilidad + Estadística (el nombre debe contener `estad`) |
 | "No reconozco '…'" (RR) | El nombre no contiene SOHO / PARK / LAR GROUP | Renombra conservando la palabra clave |
 | "El Excel no cumple la estructura esperada" (422) | Faltan hojas/columnas en el formato | Revisa contra **"Estructura esperada"** de la unidad; no se cargó nada |
 | El activo cargó en el lugar equivocado | El nombre del archivo confundió la detección | Renombra para que solo contenga la palabra clave correcta |
